@@ -1,0 +1,44 @@
+Package: blockr.ui
+Title: A 'shiny' powered user interface for 'blockr.core'
+Version: 0.0.0.9000
+Authors@R: 
+    c(
+      person(
+        given = "David",
+        family = "Granjon",
+        role = c("aut", "cre"),
+        email = "david@cynkra.com"
+      ),
+      person(
+        given = "Nicolas",
+        family = "Bennett",
+        role = c("aut"),
+        email = "nicolas@cynkra.com"
+      ),
+      person(
+        given = "Christoph",
+        family = "Sax",
+        role = c("aut"),
+        email = "christoph@cynkra.com"
+      )
+    )
+Description: Provides a web-based point and click interface for creating data
+    pipelines and visualizations with 'blockr.core'.
+License: GPL (>= 3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    shiny (>= 1.5.0),
+    DT,
+    bslib,
+    scoutbaR,
+    visNetwork,
+    shinyWidgets,
+    bslib,
+    blockr.core
+Remotes:
+    cynkra/blockr.core
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
