@@ -30,12 +30,10 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports:
     shiny (>= 1.5.0),
-    DT,
     bslib,
     scoutbaR,
     visNetwork,
     shinyWidgets,
-    bslib,
     blockr.core
 Remotes:
     cynkra/blockr.core

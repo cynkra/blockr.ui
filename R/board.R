@@ -72,13 +72,18 @@ network_ui <- function(id) {
       scoutbar(
         ns("scoutbar"),
         placeholder = "Search for a block",
-       actions = blk_choices()
+        actions = blk_choices()
       )
     ),
     sidebar = div(
       class = "btn-group",
       role = "group",
-      actionButton(ns("add_block_to"), "New block", icon = icon("circle-plus"), class = "btn-light"),
+      actionButton(
+        ns("add_block_to"),
+        "New block",
+        icon = icon("circle-plus"),
+        class = "btn-light"
+      ),
       actionButton(ns("remove"), "Remove block", icon = icon("trash"), class = "btn-light"),
     ),
     canvas = visNetworkOutput(ns("network"))
@@ -86,15 +91,14 @@ network_ui <- function(id) {
 }
 
 #' Add a node
-#' 
+#'
 #' Update dataframe for visNetwork graph
-#' 
+#'
 #' @param new New block to insert. Must be a valid
 #' block registry entry
 #' @param nodes dataframe representing network data.
 #' @keywords internal
 add_node <- function(new, nodes) {
-
   stopifnot(
     is_block(new),
     is.data.frame(nodes)
@@ -121,9 +125,9 @@ add_node <- function(new, nodes) {
 }
 
 #' Remove a node
-#' 
+#'
 #' Update dataframe for visNetwork graph
-#' 
+#'
 #' @param selected UID (character string) of node to remove.
 #' @param nodes dataframe representing network data.
 #' @keywords internal
@@ -325,7 +329,7 @@ board_server <- function(id) {
           server = block_server(blk, data = list())
         )
       })
-      
+
       observeEvent(network_out$removed_block(), {
         rv$blocks[[network_out$removed_block()]] <- NULL
         bslib::toggle_sidebar("sidebar", open = FALSE)
