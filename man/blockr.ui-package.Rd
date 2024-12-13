@@ -8,6 +8,14 @@
 \description{
 Provides a web-based point and click interface for creating data pipelines and visualizations with 'blockr.core'.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/cynkra/blockr.ui}
+  \item Report bugs at \url{https://github.com/cynkra/blockr.ui/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: David Granjon \email{david@cynkra.com}
 
