@@ -6,4 +6,5 @@
 #' @import visNetwork
 #' @import shinyWidgets
 #' @import bslib
+#' @import blockr.core
 NULL

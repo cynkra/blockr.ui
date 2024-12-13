@@ -1,9 +1,6 @@
-library(scoutbaR)
-library(shiny)
+library(blockr.ui)
 library(bslib)
-library(visNetwork)
-
-devtools::load_all()
+library(shiny)
 
 ui <- page_fillable(
   board_ui("board")
