@@ -1,3 +1,5 @@
+library(blockr.core)
+library(blockr.dplyr)
 library(blockr.ui)
 library(bslib)
 library(shiny)
