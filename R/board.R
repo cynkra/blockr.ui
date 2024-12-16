@@ -90,7 +90,7 @@ board_server <- function(id) {
       ns <- session$ns
 
       # The board must know about the blocks
-      rv <- reactiveValues(blocks = list())
+      rv <- reactiveValues(blocks = list(), connections = list())
       exportTestValues(
         blocks = rv$blocks,
         network_out = network_out
@@ -114,20 +114,52 @@ board_server <- function(id) {
         )
       })
 
+      # TBD: update the connections when edges change in the DAG
+      # TBD: optimize -> only export added or removed connections
+      # to avoid looping over all blocks
+      observeEvent(network_out$edges(), {
+        # TBD create function
+        lapply(rv$blocks, \(blk) {
+          if (!length(block_inputs(blk$block))) return(NULL)
+          id <- block_uid(blk$block)
+          blk_inputs <- block_inputs(blk$block)
+          connections <- network_out$edges()[
+            network_out$edges()$to == id, "from"
+          ]
+
+          if (!length(connections)) return(NULL)
+
+          # TO DO Check that the number of connections don't exceed
+          # the number of input slots of the given block
+          # Inject result of connected downstream block
+          browser()
+          rv$connections[[id]][[blk_inputs]] <- rv$blocks[[connections]]$server$res
+        })
+      })
+
       # Call block server module when node is added or removed
       observeEvent(network_out$added_block(), {
         blk <- network_out$added_block()
+        rv$connections[[block_uid(blk)]] <- setNames(
+          vector("list", length(block_inputs(blk))),
+          block_inputs(blk)
+        )
         rv$blocks[[block_uid(blk)]] <- list(
           # We need the block object to render the UI
           block = blk,
           # The server is the module from which we can
           # extract data, ...
-          server = block_server(blk, data = list())
+          server = block_server(
+            blk,
+            data = rv$connections[[block_uid(blk)]]
+          )
         )
       })
 
       observeEvent(network_out$removed_block(), {
+        # cleanup
         rv$blocks[[network_out$removed_block()]] <- NULL
+        rv$connections[[network_out$removed_block()]] <- NULL
         bslib::toggle_sidebar("sidebar", open = FALSE)
       })
 
@@ -141,6 +173,7 @@ board_server <- function(id) {
         )
         tmp <- rv$blocks[[selected]]
         isolate({
+          # TBD create function
           state <- lapply(tmp$server$state, \(el) {
             if (is.reactive(el)) el() else el
           })

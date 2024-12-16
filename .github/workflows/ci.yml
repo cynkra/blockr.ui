@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      GITHUB_PAT: ${{ secrets.PAT }}
+      GITHUB_PAT: ${{ secrets.BLOCKR_PAT }}
       R_KEEP_PKG_SOURCE: yes
 
     steps:

@@ -58,8 +58,7 @@ test_that("Add nodes works", {
 test_that("Remove block works", {
   expect_error(remove_node("www", data.frame()))
   expect_error(
-    remove_node(character(),
-    add_node(new_dataset_block(), data.frame()))
+    remove_node(character(), add_node(new_dataset_block(), data.frame()))
   )
   nodes <- add_node(new_dataset_block(), data.frame())
   nodes <- remove_node(nodes[1, "id"], nodes)

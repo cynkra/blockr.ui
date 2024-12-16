@@ -67,6 +67,27 @@ add_node <- function(new, nodes) {
   }
 }
 
+add_edge <- function(from, to, edges) {
+  stopifnot(
+    is.data.frame(edges)
+  )
+
+  edge_data <- data.frame(
+    from = from,
+    to = to,
+    arrows = "to"
+  )
+
+  if (nrow(edges) == 0) {
+    edge_data
+  } else {
+    rbind(
+      edges,
+      edge_data
+    )
+  }
+}
+
 #' Remove a node
 #'
 #' Update dataframe for visNetwork graph
@@ -98,7 +119,8 @@ network_server <- function(id) {
     rv <- reactiveValues(
       edges = data.frame(),
       nodes = data.frame(),
-      new_block = NULL
+      new_block = NULL,
+      add_block_to = FALSE
     )
 
     output$network <- renderVisNetwork({
@@ -118,6 +140,22 @@ network_server <- function(id) {
     # Trigger add block
     observeEvent(input$add_block, {
       rv$new_block <- NULL
+      # Reset add_block_to
+      rv$add_block_to <- FALSE
+      update_scoutbar(
+        session,
+        "scoutbar",
+        revealScoutbar = TRUE
+      )
+    })
+
+    # TBD: implement add_block_to -> add a block after the selected one
+    # We need a contextual registry and update the scoutbar with relevant
+    # choices. I think we can use the same scoutbar as for the classic
+    # add block with all choices.
+    observeEvent(input$add_block_to, {
+      rv$new_block <- NULL
+      rv$add_block_to <- TRUE
       update_scoutbar(
         session,
         "scoutbar",
@@ -135,16 +173,21 @@ network_server <- function(id) {
       # Update node vals for the network rendering
       rv$nodes <- add_node(rv$new_block, rv$nodes)
 
+      # Handle add_block_to where we also setup the connections
+      if (rv$add_block_to) {
+        rv$edges <- add_edge(
+          from = input$network_selected,
+          to = block_uid(rv$new_block),
+          rv$edges
+        )
+      }
+
       visNetworkProxy(ns("network")) |>
-        visUpdateNodes(rv$nodes)
+        visUpdateNodes(rv$nodes) |>
+        visUpdateEdges(rv$edges)
     })
 
     # TBD handle node update: change of color due to block validity change ...
-
-    # TBD: implement add_block_to -> add a block after the selected one
-    # We need a contextual registry and update the scoutbar with relevant
-    # choices. I think we can use the same scoutbar as for the classic
-    # add block with all choices.
 
     # Remove a block
     # TBD: how do we handle multi block removal?

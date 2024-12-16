@@ -25,7 +25,7 @@ test_that("Board works", {
   app$expect_values()
 
   # Update data fields
-  dataset_nme <- paste0("board-", names(blks)[[1]],"-expression-dataset")
+  dataset_nme <- paste0("board-", names(blks)[[1]], "-expression-dataset")
   fields <- setNames("CO2", dataset_nme)
   app$set_inputs(!!!fields)
   app$wait_for_idle()
