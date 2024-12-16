@@ -91,6 +91,10 @@ board_server <- function(id) {
 
       # The board must know about the blocks
       rv <- reactiveValues(blocks = list())
+      exportTestValues(
+        blocks = rv$blocks,
+        network_out = network_out
+      )
 
       # DAG representation
       # network_out$connections: dataframe of connected node ids.

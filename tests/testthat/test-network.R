@@ -1,3 +1,6 @@
+library(blockr.core)
+library(blockr.dplyr)
+
 testServer(network_server, {
   # Init state
   expect_s3_class(rv$edges, "data.frame")
@@ -9,12 +12,13 @@ testServer(network_server, {
   output$network
 
   # Add data block
+  session$setInputs(add_block = 1)
   session$setInputs(scoutbar = "dataset_block")
   expect_s3_class(rv$new_block, c("dataset_block", "data_block", "block"))
   expect_true(nrow(rv$nodes) == 1)
 
   # Add new block again
-  session$setInputs(add_block = 1)
+  session$setInputs(add_block = 2)
   expect_null(rv$new_block)
   session$setInputs(scoutbar = "select_block")
   expect_s3_class(rv$new_block, c("select_block", "transform_block", "block"))
