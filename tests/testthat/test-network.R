@@ -38,3 +38,32 @@ testServer(network_server, {
   expect_equal(session$returned$added_block(), rv$new_block)
   expect_equal(session$returned$removed_block(), input$network_selected)
 })
+
+test_that("Add nodes works", {
+  nodes <- data.frame()
+  expect_error(add_node(list(), nodes))
+
+  blk <- new_dataset_block()
+  expect_error((add_node(blk, list())))
+  nodes <- add_node(blk, nodes)
+
+  expect_s3_class(nodes, "data.frame")
+  expect_identical(nodes$id, block_uid(blk))
+})
+
+test_that("Remove block works", {
+  expect_error(remove_node("www", data.frame()))
+  expect_error(
+    remove_node(character(),
+    add_node(new_dataset_block(), data.frame()))
+  )
+  nodes <- add_node(new_dataset_block(), data.frame())
+  nodes <- remove_node(nodes[1, "id"], nodes)
+  expect_error(remove_node("www", nodes))
+  expect_true(nrow(nodes) == 0)
+})
+
+test_that("Network ui", {
+  expect_type(network_ui("plop"), "list")
+  expect_named(network_ui("plop"), c("action_bar", "sidebar", "canvas"))
+})
