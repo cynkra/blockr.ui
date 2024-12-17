@@ -12,6 +12,8 @@ jobs:
 
     uses: ./.github/workflows/lint.yml
 
+    secrets: inherit
+
   smoke:
 
     needs: lint
@@ -39,6 +41,8 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
+      
+      secrets: inherit
 
   check:
 
