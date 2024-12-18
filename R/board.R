@@ -131,17 +131,23 @@ board_server <- function(id) {
 
           # TO DO Check that the number of connections don't exceed
           # the number of input slots of the given block
-          # Inject result of connected downstream block
-          browser()
-          rv$connections[[id]][[blk_inputs]] <- rv$blocks[[connections]]$server$res
+
+          # Inject result of connected downstream block if the connection
+          # is not yet made
+          if (is.null(rv$connections[[id]][[blk_inputs]]())) {
+            rv$connections[[id]][[blk_inputs]](rv$blocks[[connections]]$server$res())
+          }
         })
       })
+
+      # TO DO: after the connection is created, we need to update it
+      # whenever the result changes
 
       # Call block server module when node is added or removed
       observeEvent(network_out$added_block(), {
         blk <- network_out$added_block()
         rv$connections[[block_uid(blk)]] <- setNames(
-          vector("list", length(block_inputs(blk))),
+          lapply(block_inputs(blk), \(x) reactiveVal()),
           block_inputs(blk)
         )
         rv$blocks[[block_uid(blk)]] <- list(
