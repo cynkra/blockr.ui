@@ -35,8 +35,10 @@ testServer(network_server, {
   # Inspect returned values
   expect_equal(
     names(session$returned),
-    c("edges", "nodes", "selected_node", "added_node",
-    "removed_node", "added_edge", "removed_edge")
+    c(
+      "edges", "nodes", "selected_node", "added_node",
+      "removed_node", "added_edge", "removed_edge"
+    )
   )
   invisible(
     lapply(names(session$returned), \(val) {
