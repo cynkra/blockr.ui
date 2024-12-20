@@ -2,13 +2,12 @@
 % Please edit documentation in R/board.R
 \name{blk_choices}
 \alias{blk_choices}
-\title{Utilities to populate the scoutbar with block
-registry information. Create one page per block category}
+\title{Create block choices for scoutbaR widget}
 \usage{
 blk_choices()
 }
 \description{
-Utilities to populate the scoutbar with block
+Utility to populate the scoutbar with block
 registry information. Create one page per block category
 }
 \keyword{internal}

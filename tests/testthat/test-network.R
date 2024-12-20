@@ -3,12 +3,14 @@ library(blockr.dplyr)
 
 testServer(network_server, {
   # Init state
+  session$setInputs(add_block = 0)
   expect_s3_class(rv$edges, "data.frame")
   expect_s3_class(rv$nodes, "data.frame")
   expect_true(nrow(rv$edges) == 0)
   expect_true(nrow(rv$nodes) == 0)
-  session$setInputs(add_block = 0)
   expect_null(rv$new_block)
+  expect_length(rv$added_edge, 0)
+  expect_length(rv$removed_edge, 0)
   output$network
 
   # Add data block
@@ -28,10 +30,13 @@ testServer(network_server, {
   session$setInputs(network_selected = tail(rv$nodes$id, n = 1), remove = 1)
   expect_true(nrow(rv$nodes) == 1)
 
+  # TODO: test append block
+
   # Inspect returned values
   expect_equal(
     names(session$returned),
-    c("edges", "nodes", "selected_node", "added_block", "removed_block")
+    c("edges", "nodes", "selected_node", "added_node",
+    "removed_node", "added_edge", "removed_edge")
   )
   invisible(
     lapply(names(session$returned), \(val) {
@@ -39,8 +44,11 @@ testServer(network_server, {
     })
   )
 
-  expect_equal(session$returned$added_block(), rv$new_block)
-  expect_equal(session$returned$removed_block(), input$network_selected)
+  expect_equal(session$returned$added_node(), rv$new_block)
+  expect_equal(session$returned$removed_node(), input$network_selected)
+  expect_equal(session$returned$added_edge(), rv$added_edge)
+  expect_equal(session$returned$removed_edge(), rv$removed_edge)
+  expect_equal(session$returned$selected_node(), input$network_selected)
 })
 
 test_that("Add nodes works", {
@@ -69,4 +77,24 @@ test_that("Remove block works", {
 test_that("Network ui", {
   expect_type(network_ui("plop"), "list")
   expect_named(network_ui("plop"), c("action_bar", "sidebar", "canvas"))
+})
+
+test_that("Add edge works", {
+  expect_error(add_edge("1", "2", list()))
+  res <- add_edge("1", "2", "plop", data.frame())
+  expect_type(res, "list")
+  expect_length(res, 2)
+  expect_s3_class(res$res, "data.frame")
+  expect_identical(nrow(res$res), 1L)
+  expect_type(res$added, "character")
+})
+
+test_that("Remove edge works", {
+  expect_error(remove_edge("1", list()))
+  expect_error(remove_edge("1", data.frame()))
+  edges <- add_edge("1", "2", "test", data.frame())
+  expect_error(remove_edge("", edges$res))
+  res <- remove_edge("1_2", edges$res)
+  expect_true(nrow(res$res) == 0)
+  expect_identical(res$removed, 1L)
 })

@@ -24,6 +24,15 @@ blk_choices <- function() {
   })
 }
 
+#' Restore block ui based on its state
+#' @keywords internal
+restore_block_ui <- function(block, state, id) {
+  state <- lapply(state, \(el) {
+    if (is.reactive(el)) el() else el
+  })
+  do.call(block_ui, c(list(x = block, id = id), state))
+}
+
 #' The board provides the main ui for blockr2
 #'
 #' The board is composed of 2 views pointing to the network module
@@ -81,6 +90,105 @@ board_ui <- function(id) {
   )
 }
 
+#' Init connections for a block
+#'
+#' @param blk Block object.
+#' @keywords internal
+init_connection <- function(blk) {
+  stats::setNames(
+    lapply(block_inputs(blk), \(x) reactiveVal()),
+    block_inputs(blk)
+  )
+}
+
+#' Add connection between 2 blocks
+#'
+#' @param con Edge id. Character.
+#' @param edges Edges dataframe.
+#' @param rv Reactivevalues containing connections information.
+#' @keywords internal
+#' @return A list with new observers and connections reactive values.
+add_connection <- function(con, edges, rv) {
+  # edge id is made as follows: <FROM_NODE_ID>_<TO_NODE_ID>
+  ids <- strsplit(con, "_")[[1]]
+  from_id <- ids[1]
+  to_id <- ids[2]
+
+  from_blk <- rv$blocks[[from_id]]
+  to_blk <- rv$blocks[[to_id]]
+
+  # Check receiver block input slots
+  blk_inputs <- block_inputs(to_blk$block)
+  if (!length(block_inputs(to_blk$block))) return(NULL)
+
+  # Find connections
+  connections <- edges[
+    edges$id == con, "label"
+  ]
+
+  if (!length(connections)) return(NULL)
+
+  # Add connections
+  lapply(connections, \(slot) {
+    # Inject result of connected downstream block if the connection
+    # is not yet made. This needs an observer to listen to any change
+    # in the upstream block result.
+    obs_id <- sprintf("%s_%s_%s", from_id, to_id, slot)
+    rv$obs[[obs_id]] <- observeEvent(rv$blocks[[from_id]]$server$res(), {
+      rv$connections[[to_id]][[slot]](rv$blocks[[from_id]]$server$res())
+    })
+  })
+
+  list(obs = rv$obs, connections = rv$connections)
+}
+
+#' Remove connection between 2 blocks
+#'
+#' @param con Edge id to remove. Character.
+#' @param rv Reactivevalues containing connections information.
+#' @keywords internal
+remove_connection <- function(con, rv) {
+  ids <- strsplit(con, "_")[[1]]
+  id_from <- ids[1]
+  id_to <- ids[2]
+
+  # Reset connections
+  rv$connections <- lapply(
+    rv$connections[[id_to]],
+    \(slot) slot(NULL)
+  )
+
+  # Destroy all update observers
+  obs_to_destroy <- grep(id_from, names(rv$obs), value = TRUE)
+  rv$obs <- lapply(obs_to_destroy, \(el) {
+    rv$obs[[el]]$destroy()
+    rv$obs[[el]] <- NULL
+  })
+
+  list(obs = rv$obs, connections = rv$connections)
+}
+
+#' Init block server module
+#'
+#' @param blk Block object.
+#' @param rv Reactivevalues containing connections information.
+#' @keywords internal
+init_block_server <- function(blk, rv) {
+  rv$connections[[block_uid(blk)]] <- init_connection(blk)
+  rv$blocks[[block_uid(blk)]] <- list(
+    # We need the block object to render the UI
+    block = blk,
+    # The server is the module from which we can
+    # extract data, ...
+    server = block_server(
+      blk,
+      data = rv$connections[[block_uid(blk)]]
+    )
+  )
+
+  list(connections = rv$connections, blocks = rv$blocks)
+}
+
 #' @rdname board
 #' @export
 board_server <- function(id) {
@@ -89,18 +197,17 @@ board_server <- function(id) {
     function(input, output, session) {
       ns <- session$ns
 
-      # The board must know about the blocks
-      rv <- reactiveValues(blocks = list(), connections = list())
+      # The board must know about the blocks and connections between them
+      rv <- reactiveValues(blocks = list(), connections = list(), obs = list())
       exportTestValues(
         blocks = rv$blocks,
         network_out = network_out
       )
 
       # DAG representation
-      # network_out$connections: dataframe of connected node ids.
-      network_out <- network_server("dag")
+      network_out <- network_server("dag", rv)
 
-      # Dashboard mode
+      # TODO: Dashboard mode
       dashboard_server("dash")
 
       # Switch between dashboard and network view
@@ -114,84 +221,56 @@ board_server <- function(id) {
         )
       })
 
-      # TBD: update the connections when edges change in the DAG
-      # TBD: optimize -> only export added or removed connections
-      # to avoid looping over all blocks
-      observeEvent(network_out$edges(), {
-        # TBD create function
-        lapply(rv$blocks, \(blk) {
-          if (!length(block_inputs(blk$block))) return(NULL)
-          id <- block_uid(blk$block)
-          blk_inputs <- block_inputs(blk$block)
-          connections <- network_out$edges()[
-            network_out$edges()$to == id, "from"
-          ]
-
-          if (!length(connections)) return(NULL)
-
-          # TO DO Check that the number of connections don't exceed
-          # the number of input slots of the given block
-
-          # Inject result of connected downstream block if the connection
-          # is not yet made
-          if (is.null(rv$connections[[id]][[blk_inputs]]())) {
-            rv$connections[[id]][[blk_inputs]](rv$blocks[[connections]]$server$res())
-          }
-        })
+      # Manage new connections
+      observeEvent(req(network_out$added_edge()), {
+        res <- add_connection(network_out$added_edge(), network_out$edges(), rv)
+        rv$obs <- res$obs
+        rv$connections <- res$connections
       })
 
-      # TO DO: after the connection is created, we need to update it
-      # whenever the result changes
-
-      # Call block server module when node is added or removed
-      observeEvent(network_out$added_block(), {
-        blk <- network_out$added_block()
-        rv$connections[[block_uid(blk)]] <- setNames(
-          lapply(block_inputs(blk), \(x) reactiveVal()),
-          block_inputs(blk)
-        )
-        rv$blocks[[block_uid(blk)]] <- list(
-          # We need the block object to render the UI
-          block = blk,
-          # The server is the module from which we can
-          # extract data, ...
-          server = block_server(
-            blk,
-            data = rv$connections[[block_uid(blk)]]
-          )
-        )
+      # When an edge is removed, we reset the correponding connection
+      # so that blocks don't show outdated data ...
+      observeEvent(req(network_out$removed_edge()), {
+        res <- remove_connection(network_out$removed_edge(), rv)
+        rv$obs <- res$obs
+        rv$connections <- res$connections
       })
 
-      observeEvent(network_out$removed_block(), {
+      # Call block server module when node is added
+      observeEvent(network_out$added_node(), {
+        res <- init_block_server(network_out$added_node(), rv)
+        rv$connections <- res$connections
+        rv$blocks <- res$blocks
+      })
+
+      # Handle node removal
+      observeEvent(network_out$removed_node(), {
         # cleanup
-        rv$blocks[[network_out$removed_block()]] <- NULL
-        rv$connections[[network_out$removed_block()]] <- NULL
+        rv$blocks[[network_out$removed_node()]] <- NULL
+        # TODO: we may want to cleanup the module cleanly but
+        # this can't be done natively with Shiny ...
         bslib::toggle_sidebar("sidebar", open = FALSE)
       })
 
       # When a node is selected, we need to display
       # sidebar with node UI module.
       output$node_ui <- renderUI({
-        selected <- network_out$selected()
+        selected <- network_out$selected_node()
         req(
           nchar(selected) > 0,
           rv$blocks[[selected]]
         )
         tmp <- rv$blocks[[selected]]
-        isolate({
-          # TBD create function
-          state <- lapply(tmp$server$state, \(el) {
-            if (is.reactive(el)) el() else el
-          })
-          do.call(block_ui, c(list(x = tmp$block, id = id), state))
-        })
+
+        isolate(restore_block_ui(tmp$block, tmp$server$state, id))
       })
 
-      observeEvent(network_out$selected(),
+      # Toggle sidebar on node selection/deselection
+      observeEvent(network_out$selected_node(),
         {
           bslib::toggle_sidebar(
             "sidebar",
-            open = !is.null(network_out$selected()) && nchar(network_out$selected()) > 0
+            open = !is.null(network_out$selected_node()) && nchar(network_out$selected_node()) > 0
           )
         },
         ignoreNULL = FALSE
