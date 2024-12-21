@@ -31,6 +31,11 @@ test_that("Board works", {
   app$wait_for_idle()
   app$expect_values()
 
+  # Append select block
+  app$click("board-dag-append_block")
+  app$click(selector = ".scout__bar-wrapper button[aria-label=\"select_block\"]")
+  app$expect_values()
+
   # Remove
   app$click("board-dag-remove")
   app$wait_for_idle()

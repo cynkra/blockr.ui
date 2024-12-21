@@ -1,12 +1,13 @@
 {
   "input": {
+    "DataTables_Table_2_length": "5",
     "board-board_tabs": "network_tab",
     "board-dag-add_block": 1,
-    "board-dag-append_block": 0,
+    "board-dag-append_block": 1,
     "board-dag-network_initialized": true,
     "board-dag-network_selected": "vllhvqwpztmjsbh",
-    "board-dag-remove": 0,
-    "board-dag-scoutbar": "dataset_block",
+    "board-dag-remove": 1,
+    "board-dag-scoutbar": "select_block",
     "board-dag-scoutbar-configuration": {
       "id": "board-dag-scoutbar",
       "theme": "light",
@@ -55,7 +56,7 @@
       "revealScoutbar": true
     },
     "board-mode": true,
-    "board-sidebar": true,
+    "board-sidebar": false,
     "board-vllhvqwpztmjsbh-expression-dataset": "CO2",
     "board-vllhvqwpztmjsbh-result_cell_clicked": {
 
@@ -238,7 +239,7 @@
         "validation"
       ]
     },
-    "board-dag-edges": "data frame with 0 columns and 0 rows",
+    "board-dag-edges": "[1] id     from   to     label  arrows\n<0 rows> (or 0-length row.names)",
     "board-dag-network": {
       "x": {
         "nodes": {
@@ -309,105 +310,13 @@
 
       ]
     },
-    "board-dag-nodes": "               id         label           title  shape stack icon.code\n1 vllhvqwpztmjsbh dataset_block vllhvqwpztmjsbh circle    NA        NA",
+    "board-dag-nodes": "               id        label           title  shape stack icon.code\n2 udrztahoztxbdte select_block udrztahoztxbdte circle    NA        NA",
     "board-node_ui": {
-      "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" id=\"board-vllhvqwpztmjsbh-expression-dataset-label\" for=\"board-vllhvqwpztmjsbh-expression-dataset\">Dataset<\/label>\n  <div>\n    <select id=\"board-vllhvqwpztmjsbh-expression-dataset\" class=\"shiny-input-select\"><option value=\"BOD\" selected>BOD<\/option>\n<option value=\"CO2\">CO2<\/option>\n<option value=\"ChickWeight\">ChickWeight<\/option>\n<option value=\"DNase\">DNase<\/option>\n<option value=\"Formaldehyde\">Formaldehyde<\/option>\n<option value=\"Indometh\">Indometh<\/option>\n<option value=\"InsectSprays\">InsectSprays<\/option>\n<option value=\"LifeCycleSavings\">LifeCycleSavings<\/option>\n<option value=\"Loblolly\">Loblolly<\/option>\n<option value=\"Orange\">Orange<\/option>\n<option value=\"OrchardSprays\">OrchardSprays<\/option>\n<option value=\"PlantGrowth\">PlantGrowth<\/option>\n<option value=\"Puromycin\">Puromycin<\/option>\n<option value=\"Theoph\">Theoph<\/option>\n<option value=\"ToothGrowth\">ToothGrowth<\/option>\n<option value=\"USArrests\">USArrests<\/option>\n<option value=\"USJudgeRatings\">USJudgeRatings<\/option>\n<option value=\"airquality\">airquality<\/option>\n<option value=\"anscombe\">anscombe<\/option>\n<option value=\"attenu\">attenu<\/option>\n<option value=\"attitude\">attitude<\/option>\n<option value=\"beaver1\">beaver1<\/option>\n<option value=\"beaver2\">beaver2<\/option>\n<option value=\"cars\">cars<\/option>\n<option value=\"chickwts\">chickwts<\/option>\n<option value=\"esoph\">esoph<\/option>\n<option value=\"faithful\">faithful<\/option>\n<option value=\"freeny\">freeny<\/option>\n<option value=\"infert\">infert<\/option>\n<option value=\"iris\">iris<\/option>\n<option value=\"longley\">longley<\/option>\n<option value=\"morley\">morley<\/option>\n<option value=\"mtcars\">mtcars<\/option>\n<option value=\"npk\">npk<\/option>\n<option value=\"pressure\">pressure<\/option>\n<option value=\"quakes\">quakes<\/option>\n<option value=\"randu\">randu<\/option>\n<option value=\"rock\">rock<\/option>\n<option value=\"sleep\">sleep<\/option>\n<option value=\"stackloss\">stackloss<\/option>\n<option value=\"swiss\">swiss<\/option>\n<option value=\"trees\">trees<\/option>\n<option value=\"warpbreaks\">warpbreaks<\/option>\n<option value=\"women\">women<\/option><\/select>\n    <script type=\"application/json\" data-for=\"board-vllhvqwpztmjsbh-expression-dataset\" data-nonempty=\"\">{\"plugins\":[\"selectize-plugin-a11y\"]}<\/script>\n  <\/div>\n<\/div>\n<div class=\"datatables html-widget html-widget-output shiny-report-size html-fill-item\" id=\"board-vllhvqwpztmjsbh-result\" style=\"width:100%;height:auto;\"><\/div>",
-      "deps": [
-        {
-          "name": "selectize",
-          "version": "0.15.2",
-          "src": {
-            "href": "selectize-0.15.2"
-          },
-          "meta": null,
-          "script": [
-            "selectize.min.js",
-            "selectize-plugin-a11y.min.js"
-          ],
-          "stylesheet": "selectize.css",
-          "head": null,
-          "attachment": null,
-          "package": null,
-          "all_files": true
-        },
-        {
-          "name": "htmltools-fill",
-          "version": "0.5.8.1",
-          "src": {
-            "href": "htmltools-fill-0.5.8.1"
-          },
-          "meta": null,
-          "script": null,
-          "stylesheet": "fill.css",
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        },
-        {
-          "name": "htmlwidgets",
-          "version": "1.6.4",
-          "src": {
-            "href": "htmlwidgets-1.6.4"
-          },
-          "meta": null,
-          "script": "htmlwidgets.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        },
-        {
-          "name": "datatables-css",
-          "version": "0.0.0",
-          "src": {
-            "href": "datatables-css-0.0.0"
-          },
-          "meta": null,
-          "script": null,
-          "stylesheet": "datatables-crosstalk.css",
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        },
-        {
-          "name": "datatables-binding",
-          "version": "0.33",
-          "src": {
-            "href": "datatables-binding-0.33"
-          },
-          "meta": null,
-          "script": "datatables.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": false
-        },
-        {
-          "name": "jquery",
-          "version": "3.5.1",
-          "src": {
-            "href": "jquery-3.5.1"
-          },
-          "meta": null,
-          "script": "jquery.min.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        },
-        {
-          "name": "crosstalk",
-          "version": "1.2.1",
-          "src": {
-            "href": "crosstalk-1.2.1"
-          },
-          "meta": null,
-          "script": "js/crosstalk.min.js",
-          "stylesheet": "css/crosstalk.min.css",
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        }
+      "message": "",
+      "call": "NULL",
+      "type": [
+        "shiny.silent.error",
+        "validation"
       ]
     },
     "board-vllhvqwpztmjsbh-result": {
@@ -569,24 +478,28 @@
   },
   "export": {
     "board-blocks": {
-      "vllhvqwpztmjsbh": {
+      "udrztahoztxbdte": {
         "block": {
           "expr_server": [
-            "function () ",
+            "function (data) ",
             "{",
             "    moduleServer(\"expression\", function(input, output, session) {",
-            "        list(expr = reactive(eval(bquote(as.call(c(as.symbol(\"::\"), ",
-            "            quote(.(pkg)), quote(.(dat)))), list(pkg = as.name(package), ",
-            "            dat = as.name(input$dataset))))), state = list(dataset = reactive(input$dataset), ",
-            "            package = package))",
+            "        sels <- reactiveVal(columns)",
+            "        cols <- reactive(colnames(data()))",
+            "        observeEvent(input$columns, sels(input$columns))",
+            "        observe(updateSelectInput(session, inputId = \"columns\", ",
+            "            choices = cols(), selected = sels()))",
+            "        list(expr = reactive(bquote(dplyr::select(data, ..(cols)), ",
+            "            list(cols = lapply(sels(), as.name)), splice = TRUE)), ",
+            "            state = list(columns = reactive(sels()), choices = reactive(cols())))",
             "    })",
             "}"
           ],
           "expr_ui": [
-            "function (ns, dataset, package) ",
+            "function (ns, columns, choices = character()) ",
             "{",
-            "    selectInput(inputId = ns(\"expression\", \"dataset\"), label = \"Dataset\", ",
-            "        choices = list_datasets(package), selected = dataset)",
+            "    selectInput(inputId = ns(\"expression\", \"columns\"), label = \"Columns\", ",
+            "        choices = choices, selected = columns, multiple = TRUE)",
             "}"
           ]
         },
@@ -622,12 +535,12 @@
             "        .value",
             "    else invisible(.value)",
             "}, observable = <environment>, cacheHint = list(userExpr = {",
-            "    eval(bquote(as.call(c(as.symbol(\"::\"), quote(.(pkg)), quote(.(dat)))), ",
-            "        list(pkg = as.name(package), dat = as.name(input$dataset))))",
+            "    bquote(dplyr::select(data, ..(cols)), list(cols = lapply(sels(), ",
+            "        as.name)), splice = TRUE)",
             "}), class = \"function\")"
           ],
           "state": {
-            "dataset": [
+            "columns": [
               "structure(function () ",
               "{",
               "    .dependents$register()",
@@ -641,10 +554,26 @@
               "        .value",
               "    else invisible(.value)",
               "}, observable = <environment>, cacheHint = list(userExpr = {",
-              "    input$dataset",
+              "    sels()",
               "}), class = \"function\")"
             ],
-            "package": "datasets"
+            "choices": [
+              "structure(function () ",
+              "{",
+              "    .dependents$register()",
+              "    if (.invalidated || .running) {",
+              "        ..stacktraceoff..(self$.updateValue())",
+              "    }",
+              "    if (.error) {",
+              "        stop(.value)",
+              "    }",
+              "    if (.visible) ",
+              "        .value",
+              "    else invisible(.value)",
+              "}, observable = <environment>, cacheHint = list(userExpr = {",
+              "    cols()",
+              "}), class = \"function\")"
+            ]
           }
         }
       }

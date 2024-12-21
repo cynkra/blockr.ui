@@ -153,17 +153,16 @@ remove_connection <- function(con, rv) {
   id_to <- ids[2]
 
   # Reset connections
-  rv$connections <- lapply(
-    rv$connections[[id_to]],
-    \(slot) slot(NULL)
-  )
+  for (slot in names(rv$connections[[id_to]])) {
+    rv$connections[[id_to]][[slot]](NULL)
+  }
 
   # Destroy all update observers
   obs_to_destroy <- grep(id_from, names(rv$obs), value = TRUE)
-  rv$obs <- lapply(obs_to_destroy, \(el) {
+  for (el in obs_to_destroy) {
     rv$obs[[el]]$destroy()
     rv$obs[[el]] <- NULL
-  })
+  }
 
   list(obs = rv$obs, connections = rv$connections)
 }
@@ -231,9 +230,13 @@ board_server <- function(id) {
       # When an edge is removed, we reset the correponding connection
       # so that blocks don't show outdated data ...
       observeEvent(req(network_out$removed_edge()), {
-        res <- remove_connection(network_out$removed_edge(), rv)
-        rv$obs <- res$obs
-        rv$connections <- res$connections
+        # As removing a node may remove multiple edges ...
+        # we need to loop over ...
+        for (con in network_out$removed_edge()) {
+          res <- remove_connection(con, rv)
+          rv$obs <- res$obs
+          rv$connections <- res$connections
+        }
       })
 
       # Call block server module when node is added

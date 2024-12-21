@@ -2,7 +2,7 @@
   "input": {
     "board-board_tabs": "network_tab",
     "board-dag-add_block": 1,
-    "board-dag-add_block_to": 0,
+    "board-dag-append_block": 0,
     "board-dag-network_initialized": true,
     "board-dag-network_selected": "vllhvqwpztmjsbh",
     "board-dag-remove": 0,
@@ -125,6 +125,15 @@
     }
   },
   "output": {
+    "board-dag-data_source_ui": {
+      "message": "",
+      "call": "NULL",
+      "type": [
+        "shiny.silent.error",
+        "validation"
+      ]
+    },
+    "board-dag-edges": "data frame with 0 columns and 0 rows",
     "board-dag-network": {
       "x": {
         "nodes": {
@@ -143,6 +152,9 @@
           },
           "manipulation": {
             "enabled": false
+          },
+          "edges": {
+            "length": 200
           }
         },
         "groups": null,
@@ -192,6 +204,7 @@
 
       ]
     },
+    "board-dag-nodes": "               id         label           title  shape stack icon.code\n1 vllhvqwpztmjsbh dataset_block vllhvqwpztmjsbh circle    NA        NA",
     "board-node_ui": {
       "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" id=\"board-vllhvqwpztmjsbh-expression-dataset-label\" for=\"board-vllhvqwpztmjsbh-expression-dataset\">Dataset<\/label>\n  <div>\n    <select id=\"board-vllhvqwpztmjsbh-expression-dataset\" class=\"shiny-input-select\"><option value=\"BOD\" selected>BOD<\/option>\n<option value=\"CO2\">CO2<\/option>\n<option value=\"ChickWeight\">ChickWeight<\/option>\n<option value=\"DNase\">DNase<\/option>\n<option value=\"Formaldehyde\">Formaldehyde<\/option>\n<option value=\"Indometh\">Indometh<\/option>\n<option value=\"InsectSprays\">InsectSprays<\/option>\n<option value=\"LifeCycleSavings\">LifeCycleSavings<\/option>\n<option value=\"Loblolly\">Loblolly<\/option>\n<option value=\"Orange\">Orange<\/option>\n<option value=\"OrchardSprays\">OrchardSprays<\/option>\n<option value=\"PlantGrowth\">PlantGrowth<\/option>\n<option value=\"Puromycin\">Puromycin<\/option>\n<option value=\"Theoph\">Theoph<\/option>\n<option value=\"ToothGrowth\">ToothGrowth<\/option>\n<option value=\"USArrests\">USArrests<\/option>\n<option value=\"USJudgeRatings\">USJudgeRatings<\/option>\n<option value=\"airquality\">airquality<\/option>\n<option value=\"anscombe\">anscombe<\/option>\n<option value=\"attenu\">attenu<\/option>\n<option value=\"attitude\">attitude<\/option>\n<option value=\"beaver1\">beaver1<\/option>\n<option value=\"beaver2\">beaver2<\/option>\n<option value=\"cars\">cars<\/option>\n<option value=\"chickwts\">chickwts<\/option>\n<option value=\"esoph\">esoph<\/option>\n<option value=\"faithful\">faithful<\/option>\n<option value=\"freeny\">freeny<\/option>\n<option value=\"infert\">infert<\/option>\n<option value=\"iris\">iris<\/option>\n<option value=\"longley\">longley<\/option>\n<option value=\"morley\">morley<\/option>\n<option value=\"mtcars\">mtcars<\/option>\n<option value=\"npk\">npk<\/option>\n<option value=\"pressure\">pressure<\/option>\n<option value=\"quakes\">quakes<\/option>\n<option value=\"randu\">randu<\/option>\n<option value=\"rock\">rock<\/option>\n<option value=\"sleep\">sleep<\/option>\n<option value=\"stackloss\">stackloss<\/option>\n<option value=\"swiss\">swiss<\/option>\n<option value=\"trees\">trees<\/option>\n<option value=\"warpbreaks\">warpbreaks<\/option>\n<option value=\"women\">women<\/option><\/select>\n    <script type=\"application/json\" data-for=\"board-vllhvqwpztmjsbh-expression-dataset\" data-nonempty=\"\">{\"plugins\":[\"selectize-plugin-a11y\"]}<\/script>\n  <\/div>\n<\/div>\n<div class=\"datatables html-widget html-widget-output shiny-report-size html-fill-item\" id=\"board-vllhvqwpztmjsbh-result\" style=\"width:100%;height:auto;\"><\/div>",
       "deps": [
@@ -518,6 +531,134 @@
           }
         }
       }
+    },
+    "board-network_out": {
+      "edges": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    rv$edges",
+        "}), class = \"function\")"
+      ],
+      "nodes": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    rv$nodes",
+        "}), class = \"function\")"
+      ],
+      "selected_node": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    input$network_selected",
+        "}), class = \"function\")"
+      ],
+      "added_node": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    rv$new_block",
+        "}), class = \"function\")"
+      ],
+      "removed_node": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    hybrid_chain(eventFunc(), function(value) {",
+        "        if (ignoreInit && !initialized) {",
+        "            initialized <<- TRUE",
+        "            req(FALSE)",
+        "        }",
+        "        req(!ignoreNULL || !isNullEvent(value))",
+        "        isolate(valueFunc())",
+        "    })",
+        "}), class = \"function\")"
+      ],
+      "added_edge": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    rv$added_edge",
+        "}), class = \"function\")"
+      ],
+      "removed_edge": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    rv$removed_edge",
+        "}), class = \"function\")"
+      ]
     }
   }
 }

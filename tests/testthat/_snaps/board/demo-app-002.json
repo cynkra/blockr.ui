@@ -2,7 +2,7 @@
   "input": {
     "board-board_tabs": "network_tab",
     "board-dag-add_block": 1,
-    "board-dag-add_block_to": 0,
+    "board-dag-append_block": 0,
     "board-dag-network_initialized": true,
     "board-dag-network_selected": "",
     "board-dag-remove": 0,
@@ -58,6 +58,7 @@
     "board-sidebar": false
   },
   "output": {
+    "board-dag-edges": "data frame with 0 columns and 0 rows",
     "board-dag-network": {
       "x": {
         "nodes": {
@@ -76,6 +77,9 @@
           },
           "manipulation": {
             "enabled": false
+          },
+          "edges": {
+            "length": 200
           }
         },
         "groups": null,
@@ -124,7 +128,8 @@
       "deps": [
 
       ]
-    }
+    },
+    "board-dag-nodes": "               id         label           title  shape stack icon.code\n1 vllhvqwpztmjsbh dataset_block vllhvqwpztmjsbh circle    NA        NA"
   },
   "export": {
     "board-blocks": {
@@ -207,6 +212,134 @@
           }
         }
       }
+    },
+    "board-network_out": {
+      "edges": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    rv$edges",
+        "}), class = \"function\")"
+      ],
+      "nodes": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    rv$nodes",
+        "}), class = \"function\")"
+      ],
+      "selected_node": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    input$network_selected",
+        "}), class = \"function\")"
+      ],
+      "added_node": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    rv$new_block",
+        "}), class = \"function\")"
+      ],
+      "removed_node": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    hybrid_chain(eventFunc(), function(value) {",
+        "        if (ignoreInit && !initialized) {",
+        "            initialized <<- TRUE",
+        "            req(FALSE)",
+        "        }",
+        "        req(!ignoreNULL || !isNullEvent(value))",
+        "        isolate(valueFunc())",
+        "    })",
+        "}), class = \"function\")"
+      ],
+      "added_edge": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    rv$added_edge",
+        "}), class = \"function\")"
+      ],
+      "removed_edge": [
+        "structure(function () ",
+        "{",
+        "    .dependents$register()",
+        "    if (.invalidated || .running) {",
+        "        ..stacktraceoff..(self$.updateValue())",
+        "    }",
+        "    if (.error) {",
+        "        stop(.value)",
+        "    }",
+        "    if (.visible) ",
+        "        .value",
+        "    else invisible(.value)",
+        "}, observable = <environment>, cacheHint = list(userExpr = {",
+        "    rv$removed_edge",
+        "}), class = \"function\")"
+      ]
     }
   }
 }

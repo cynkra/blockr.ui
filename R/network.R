@@ -347,7 +347,7 @@ network_server <- function(id, vals, debug = TRUE) {
           to = input$network_selected,
           label = slot,
           rv$edges
-        )
+        )$res
       })
 
       visNetworkProxy(ns("network")) |>
