@@ -27,7 +27,7 @@ network_ui <- function(id, debug = TRUE) {
         icon = icon("circle-plus"),
         class = "btn-light"
       ),
-      uiOutput(ns("data_source_ui")),
+      uiOutput(ns("in_con_ui")),
       actionButton(ns("remove"), "Remove block", icon = icon("trash"), class = "btn-light"),
     ),
     canvas = tagList(
@@ -165,22 +165,46 @@ remove_edge <- function(selected, edges) {
   )
 }
 
-#' Check node connection
-#'
+#' Check whether a block input is connected
+#' 
+#' @param x Block object.
+#' @param slot Connection slot.
+#' @param vals Reactive values passed between modules.
 #' @export
-check_connections <- function(x, vals) {
-  UseMethod("check_connections", x)
+is_input_slot_connected <- function(x, slot, vals) {
+  is.null(vals$connections[[block_uid(x)]][[slot]]())
 }
+
 #' @export
-check_connections.data_block <- function(x, vals) {
-  FALSE
+create_in_con_ui <- function(x, ...) {
+  UseMethod("create_in_con_ui")
 }
+
 #' @export
-check_connections.transform_block <- function(x, vals) {
-  n_active_connections <- sum(
-    !lgl_ply(vals$connections[[block_uid(x)]], \(slot) is.null(slot()))
-  )
-  isTRUE(n_active_connections < length(block_inputs(x)))
+create_in_con_ui.block <- function(x, ...) {
+  lapply(blk_inputs, \(slot) {
+
+    can_connect <- !is_input_slot_connected(selected_block(), slot, vals)
+    if (can_connect) {
+      selectInput(
+        ns(sprintf("%s-%s_input_slot", input$network_selected, slot)),
+        sprintf("%s input slot", slot),
+        # TO DO: subset choices to avoid the existing connections and the current block
+        choices = setNames(other_nodes()$id, paste(other_nodes()$label, other_nodes()$id))
+      )
+    } else {
+      actionButton(
+        ns(sprintf("%s-%s_disconnect", input$network_selected, slot)),
+        "",
+        icon = icon("trash")
+      )
+    }
+  })
+}
+
+#' @export
+create_in_con_ui.data_block <- function(x, ...) {
+  NULL
 }
 
 #' @rdname board
@@ -289,55 +313,15 @@ network_server <- function(id, vals, debug = TRUE) {
       rv$nodes[rv$nodes$id != input$network_selected, ]
     })
 
-    # Connect block to existing blocks.
-    # We only show it if the node can be connected,
-    # that is, check that the number of connections don't exceed
-    # the number of input slots of the given block
-    can_update_data_sources <- reactive({
-      req(nchar(input$network_selected) > 0, input$network_selected %in% rv$nodes$id)
-      # Check that node number is enough (excluding the current node from the total)
-      n_nodes <- length(rv$nodes[rv$nodes$id != input$network_selected, "id"])
-      req(n_nodes >= length(block_inputs(selected_block())))
-      check_connections(selected_block(), vals)
+    # TO DO: create S3 method
+    # - data blocks don't have incoming connections
+    output$in_con_ui <- renderUI({
+      blk_inputs <- block_inputs(selected_block())
+      create_in_con_ui(selected_block())
     })
 
-    output$data_source_ui <- renderUI({
-      req(can_update_data_sources())
-      actionButton(
-        ns("manage_sources"),
-        "Data sources",
-        icon = icon("share-nodes"),
-        class = "btn-light"
-      )
-    })
-
-    # TODO: create S3 method that does display contextual menu
-    # based on the current block selection inputs slot.
-    # The join block would allow to select 2 nodes, while the select block only 1.
-    # This only works if the block does not have existing connections.
-    observeEvent(input$manage_sources, {
-      connect_ui <- lapply(block_inputs(selected_block()), \(slot) {
-        selectInput(
-          ns(sprintf("%s-%s_input_slot", input$network_selected, slot)),
-          sprintf("%s input slot", slot),
-          # TO DO: subset choices to avoid the existing connections and the current block
-          choices = setNames(other_nodes()$id, paste(other_nodes()$label, other_nodes()$id))
-        )
-      })
-
-      # TODO: we don't necessarily need a modal, this UI could be visible at all time
-      # in the sidebar...
-      showModal(
-        modalDialog(
-          size = "s",
-          title = sprintf("Manage node %s connections", block_uid(selected_block())),
-          connect_ui,
-          actionButton(
-            ns("update_sources"),
-            "Update"
-          )
-        )
-      )
+    output$out_con_ui <- renderUI({
+      # TO DO: list all out connections from the selected block
     })
 
     # Draw new edges
