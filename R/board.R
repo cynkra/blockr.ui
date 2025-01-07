@@ -122,21 +122,18 @@ add_connection <- function(con, edges, rv) {
   if (!length(block_inputs(to_blk$block))) return(NULL)
 
   # Find connections
-  connections <- edges[
-    edges$id == con, "label"
-  ]
+  con_label <- edges[edges$id == con, "label"]
 
-  if (!length(connections)) return(NULL)
+  if (!length(con_label)) return(NULL)
 
   # Add connections
-  lapply(connections, \(slot) {
-    # Inject result of connected downstream block if the connection
-    # is not yet made. This needs an observer to listen to any change
-    # in the upstream block result.
-    obs_id <- sprintf("%s_%s_%s", from_id, to_id, slot)
-    rv$obs[[obs_id]] <- observeEvent(rv$blocks[[from_id]]$server$res(), {
-      rv$connections[[to_id]][[slot]](rv$blocks[[from_id]]$server$res())
-    })
+  # Inject result of connected downstream block if the connection
+  # is not yet made. This needs an observer to listen to any change
+  # in the upstream block result.
+  obs_id <- sprintf("%s_%s_%s", from_id, to_id, con_label)
+
+  rv$obs[[obs_id]] <- observeEvent(rv$blocks[[from_id]]$server$result(), {
+    rv$connections[[to_id]][[con_label]](rv$blocks[[from_id]]$server$result())
   })
 
   list(obs = rv$obs, connections = rv$connections)
@@ -222,9 +219,13 @@ board_server <- function(id) {
 
       # Manage new connections
       observeEvent(req(network_out$added_edge()), {
-        res <- add_connection(network_out$added_edge(), network_out$edges(), rv)
-        rv$obs <- res$obs
-        rv$connections <- res$connections
+        # In some cases like the join block, multiple edges can
+        # be added
+        for (edge in network_out$added_edge()) {
+          res <- add_connection(edge, network_out$edges(), rv)
+          rv$obs <- res$obs
+          rv$connections <- res$connections
+        }
       })
 
       # When an edge is removed, we reset the correponding connection

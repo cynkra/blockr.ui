@@ -257,7 +257,8 @@ network_server <- function(id, vals, debug = TRUE) {
       rv$nodes <- add_node(rv$new_block, rv$nodes)
 
       visNetworkProxy(ns("network")) |>
-        visUpdateNodes(rv$nodes)
+        visUpdateNodes(rv$nodes) |>
+        visSelectNodes(id = tail(rv$nodes$id, n = 1))
 
       # Handle add_block_to where we also setup the connections
       if (rv$append_block) {
@@ -342,12 +343,16 @@ network_server <- function(id, vals, debug = TRUE) {
     # Draw new edges
     observeEvent(input$update_sources, {
       lapply(block_inputs(selected_block()), \(slot) {
-        rv$edges <- add_edge(
+        edges <- add_edge(
           from = input[[sprintf("%s-%s_input_slot", input$network_selected, slot)]],
           to = input$network_selected,
           label = slot,
           rv$edges
-        )$res
+        )
+        if (!(edges$added %in% rv$edges$id)) {
+          rv$edges <- edges$res
+          rv$added_edge <- c(rv$added_edge, edges$added)
+        }
       })
 
       visNetworkProxy(ns("network")) |>
