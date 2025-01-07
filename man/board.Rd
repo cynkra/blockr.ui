@@ -15,7 +15,7 @@ board_server(id)
 
 dashboard_ui(id)
 
-dashboard_server(id)
+dashboard_server(id, vals, parent_ns)
 
 network_ui(id, debug = TRUE)
 
@@ -24,9 +24,9 @@ network_server(id, vals, debug = TRUE)
 \arguments{
 \item{id}{Unique id.}
 
-\item{debug}{Print extra information about the network}
-
 \item{vals}{Reactive values of parent module.}
+
+\item{debug}{Print extra information about the network}
 }
 \description{
 The board is composed of 2 views pointing to the network module

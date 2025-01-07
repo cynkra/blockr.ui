@@ -76,7 +76,7 @@ board_ui <- function(id) {
             bg = "white",
             position = "right",
             # Node module (ui filters + output)
-            uiOutput(ns("node_ui")),
+            div(id = ns("block_container_ui")),
             network_ui$sidebar
           ),
           network_ui$canvas
@@ -84,7 +84,19 @@ board_ui <- function(id) {
       ),
       tabPanelBody(
         "dashboard_tab",
-        dashboard_ui(ns("dash"))
+        layout_sidebar(
+          sidebar = sidebar(
+            id = ns("dash_sidebar"),
+            open = TRUE,
+            width = 300,
+            class = "rounded",
+            bg = "white",
+            position = "left",
+            div(id = ns("bucket_container")),
+            verbatimTextOutput(ns("bucket_content"))
+          ),
+          dashboard_ui(ns("dash"))
+        )
       )
     )
   )
@@ -203,18 +215,27 @@ board_server <- function(id) {
       # DAG representation
       network_out <- network_server("dag", rv)
 
-      # TODO: Dashboard mode
-      dashboard_server("dash")
+      # Dashboard mode
+      dashboard_out <- dashboard_server("dash")
 
       # Switch between dashboard and network view
       # TBD: ideally we create a toggle input with 2 values
-      observeEvent(input$mode, {
-        tab <- if (input$mode) "network" else "dashboard"
+      board_mode <- reactive({
+        if (input$mode) "network" else "dashboard"
+      })
+
+      observeEvent(board_mode(), {
         updateTabsetPanel(
           session,
           "board_tabs",
-          selected = sprintf("%s_tab", tab)
+          selected = sprintf("%s_tab", board_mode())
         )
+
+        if (board_mode() == "dashboard") {
+          removeUI(sprintf("#%s", ns("block_ui")))
+        } else {
+          removeUI(sprintf("#%s", ns("bucket")))
+        }
       })
 
       # Manage new connections
@@ -258,16 +279,77 @@ board_server <- function(id) {
 
       # When a node is selected, we need to display
       # sidebar with node UI module.
-      output$node_ui <- renderUI({
+      observeEvent(req(nchar(network_out$selected_node()) > 0, board_mode() == "network"), {
         selected <- network_out$selected_node()
-        req(
-          nchar(selected) > 0,
-          rv$blocks[[selected]]
-        )
+        req(rv$blocks[[selected]])
         tmp <- rv$blocks[[selected]]
 
-        isolate(restore_block_ui(tmp$block, tmp$server$state, id))
+        removeUI(sprintf("#%s", ns("block_ui")))
+        insertUI(
+          sprintf("#%s", ns("block_container_ui")),
+          ui = div(
+            id = ns("block_ui"),
+            restore_block_ui(tmp$block, tmp$server$state, id)
+          )
+        )
       })
+
+      # Render bucket of node outputs in dashboard mode
+      # TO DO: we need a way to know which output is in the dashboard
+      # to avoid to put them back in the bucket when re-rendering outputs.
+      # Is there a callback from gridstackr to know if an element was dragged?
+      # We also would need to know the position in the dashboard. probably with x, y parameters of gs_item.
+      # NOTE: it seems that Shiny inputs won't work in a gridstack.
+      observeEvent({
+        req(length(rv$blocks) > 0, board_mode() == "dashboard")
+      }, {
+        items <- lapply(rv$blocks, \(blk) {
+          if (
+            nrow(dashboard_out$layout()) == 0 && nrow(bucket_content() == 0) ||
+              !(block_uid(blk$block) %in% dashboard_out$layout()$id)
+          ) {
+            gs_item(
+              id = block_uid(blk$block),
+              h1(sprintf("Block %s", class(blk$block)[1])),
+              htmltools::tagQuery(restore_block_ui(blk$block, blk$server$state, id))$selectedTags()[[2]],
+              #restore_block_ui(blk$block, blk$server$state, id),
+              class_content = "bg-white p-2 border rounded-4"
+            )
+          }
+        })
+  
+        # Store in output to activate the widget callback (see below)
+        output$bucket <- bucket <- renderGridstack({
+          gridstack(
+            disableResize = TRUE,
+            column = 1,
+            options = list(
+              acceptWidgets = TRUE,
+              dragOut = TRUE
+            ),
+            items
+          )
+        })
+
+        # We still need to update the bucket content when the output is hidden
+        outputOptions(output, "bucket", suspendWhenHidden = FALSE)
+
+        removeUI(sprintf("#%s", ns("bucket")))
+        insertUI(
+          sprintf("#%s", ns("bucket_container")),
+          ui = div(id = ns("bucket"), gridstackOutput(ns("bucket")))
+        )
+      })
+
+      # The GridStack layout can be retrieved via the special shiny input ⁠input$<outputId>_layout⁠.
+      # This might allow us to know which block is where and restore the correct layout.
+      bucket_content <- reactive({
+        if (is.null(input$bucket_layout)) return(data.frame())
+        do.call(rbind.data.frame, input$bucket_layout$children)
+      })
+
+      # Debug only
+      output$bucket_content <- renderPrint(bucket_content())
 
       # Toggle sidebar on node selection/deselection
       observeEvent(network_out$selected_node(),
