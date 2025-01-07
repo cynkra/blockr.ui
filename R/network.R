@@ -18,17 +18,19 @@ network_ui <- function(id, debug = TRUE) {
         actions = blk_choices()
       )
     ),
-    sidebar = div(
-      class = "btn-group",
-      role = "group",
-      actionButton(
-        ns("append_block"),
-        "Append block",
-        icon = icon("circle-plus"),
-        class = "btn-light"
-      ),
+    sidebar = tagList(
       uiOutput(ns("in_con_ui")),
-      actionButton(ns("remove"), "Remove block", icon = icon("trash"), class = "btn-light"),
+      div(
+        class = "btn-group",
+        role = "group",
+        actionButton(
+          ns("append_block"),
+          "Append block",
+          icon = icon("circle-plus"),
+          class = "btn-light"
+        ),
+        actionButton(ns("remove"), "Remove block", icon = icon("trash"), class = "btn-light"),
+      )
     ),
     canvas = tagList(
       visNetworkOutput(ns("network")),
@@ -106,7 +108,7 @@ add_edge <- function(from, to, label, edges) {
   )
 
   if (nrow(edges) == 0) {
-    list(res =  edge_data, added = id)
+    list(res = edge_data, added = id)
   } else {
     list(
       res = rbind(
@@ -154,7 +156,7 @@ remove_edge <- function(selected, edges) {
     is.character(selected),
     nchar(selected) > 0
   )
-  to_remove <-  grep(selected, edges$id)
+  to_remove <- grep(selected, edges$id)
   if (length(to_remove) == 0) {
     stop(sprintf("Can't find edge with id %s in the data", selected))
   }
@@ -166,13 +168,14 @@ remove_edge <- function(selected, edges) {
 }
 
 #' Check whether a block input is connected
-#' 
+#'
 #' @param x Block object.
 #' @param slot Connection slot.
 #' @param vals Reactive values passed between modules.
 #' @export
 is_input_slot_connected <- function(x, slot, vals) {
-  is.null(vals$connections[[block_uid(x)]][[slot]]())
+  res <- vals$connections[[block_uid(x)]][[slot]]()
+  if (is.null(res)) res else slot
 }
 
 #' @export
@@ -180,31 +183,66 @@ create_in_con_ui <- function(x, ...) {
   UseMethod("create_in_con_ui")
 }
 
+#' Create UI for incoming connection management
+#'
+#' @param x Block.
+#' @param other_nodes Other node dataframe.
+#' @param edges Reactive values passed between modules.
+#' @param ns Namespace.
+#' @param ... Other parameters.
+#'
 #' @export
-create_in_con_ui.block <- function(x, ...) {
-  lapply(blk_inputs, \(slot) {
+create_in_con_ui.block <- function(x, other_nodes, ns, edges, ...) {
+  selected_id <- block_uid(x)
+  in_cons <- edges[edges$to == selected_id, ]
+  blk_inputs <- block_inputs(x)
 
-    can_connect <- !is_input_slot_connected(selected_block(), slot, vals)
-    if (can_connect) {
-      selectInput(
-        ns(sprintf("%s-%s_input_slot", input$network_selected, slot)),
-        sprintf("%s input slot", slot),
+  con_ui <- lapply(blk_inputs, \(slot) {
+    default <- NULL
+    if (nrow(in_cons) > 0) {
+      default <- other_nodes[
+        other_nodes$id == in_cons[in_cons$label == slot, "from"],
+        "id"
+      ]
+    }
+
+    div(
+      class = "d-flex justify-content-center align-items-center",
+      selectizeInput(
+        ns(sprintf("%s-%s_input_slot", selected_id, slot)),
+        tooltip(
+          trigger = list(
+            sprintf("%s input slot", slot),
+            icon("circle-info")
+          ),
+          "If nothing appears, you may need to add other blocks in the canvas to connect to it."
+        ),
         # TO DO: subset choices to avoid the existing connections and the current block
-        choices = setNames(other_nodes()$id, paste(other_nodes()$label, other_nodes()$id))
-      )
-    } else {
+        choices = setNames(other_nodes$id, paste(other_nodes$label, other_nodes$id)),
+        options = list(
+          placeholder = "Please select an option below",
+          onInitialize = if (nrow(in_cons) == 0) I("function() { this.setValue(''); }")
+        ),
+        selected = default
+      ),
       actionButton(
-        ns(sprintf("%s-%s_disconnect", input$network_selected, slot)),
+        ns(sprintf("%s-%s_disconnect", selected_id, slot)),
         "",
+        class = "btn-sm mx-2",
         icon = icon("trash")
       )
-    }
+    )
   })
+
+  tagList(
+    h1("Incoming connections management"),
+    con_ui
+  )
 }
 
 #' @export
-create_in_con_ui.data_block <- function(x, ...) {
-  NULL
+create_in_con_ui.data_block <- function(x, other_nodes, ns, edges, ...) {
+  h1("No incoming connections to manage")
 }
 
 #' @rdname board
@@ -221,7 +259,8 @@ network_server <- function(id, vals, debug = TRUE) {
       new_block = NULL,
       append_block = FALSE,
       added_edge = character(),
-      removed_edge = character()
+      removed_edge = character(),
+      obs = list()
     )
 
     output$network <- renderVisNetwork({
@@ -316,34 +355,62 @@ network_server <- function(id, vals, debug = TRUE) {
     # TO DO: create S3 method
     # - data blocks don't have incoming connections
     output$in_con_ui <- renderUI({
-      blk_inputs <- block_inputs(selected_block())
-      create_in_con_ui(selected_block())
+      create_in_con_ui(selected_block(), other_nodes(), ns, rv$edges)
     })
 
     output$out_con_ui <- renderUI({
       # TO DO: list all out connections from the selected block
     })
 
-    # Draw new edges
-    observeEvent(input$update_sources, {
-      lapply(block_inputs(selected_block()), \(slot) {
-        edges <- add_edge(
-          from = input[[sprintf("%s-%s_input_slot", input$network_selected, slot)]],
-          to = input$network_selected,
-          label = slot,
-          rv$edges
-        )
-        if (!(edges$added %in% rv$edges$id)) {
+    # Register edge hooks if needed
+    observeEvent(selected_block(), {
+      blk_inputs <- block_inputs(selected_block())
+
+      lapply(blk_inputs, \(slot) {
+        if (length(rv$obs[[paste(input$network_selected, slot, sep = "-")]]) > 0) return(NULL)
+        # Add edge hook
+        rv$obs[[paste(input$network_selected, slot, sep = "-")]] <- observeEvent({
+          req(
+            input[[sprintf("%s-%s_input_slot", input$network_selected, slot)]],
+            input[[sprintf("%s-%s_input_slot", input$network_selected, slot)]] != "NULL"
+          )
+        }, {
+            edges <- add_edge(
+              from = input[[sprintf("%s-%s_input_slot", input$network_selected, slot)]],
+              to = input$network_selected,
+              label = slot,
+              rv$edges
+            )
+            if (!(edges$added %in% rv$edges$id)) {
+              rv$edges <- edges$res
+              rv$added_edge <- c(rv$added_edge, edges$added)
+            }
+
+            visNetworkProxy(ns("network")) |>
+          visUpdateEdges(rv$edges)
+        })
+
+        # Remove edge hook
+        rv$obs[[paste(input$network_selected, slot, "remove", sep = "-")]] <- observeEvent({
+          input[[sprintf("%s-%s_disconnect", input$network_selected, slot)]]
+        }, {
+          to_remove <- rv$edges[rv$edges$to == input$network_selected & rv$edges$label == slot, "id"]
+          edges <- remove_edge(to_remove, rv$edges)
+          rv$removed_edge <- rv$edges[edges$removed, "id"]
           rv$edges <- edges$res
-          rv$added_edge <- c(rv$added_edge, edges$added)
-        }
+          
+          visNetworkProxy(ns("network")) |>
+            visRemoveEdges(to_remove)
+
+          rv$obs[[paste(input$network_selected, slot, "remove", sep = "-")]]$destroy()
+          rv$obs[[paste(input$network_selected, slot, sep = "-")]]$destroy()
+          rv$obs[[paste(input$network_selected, slot, "remove", sep = "-")]] <- NULL
+          rv$obs[[paste(input$network_selected, slot, sep = "-")]] <- NULL
+        })
       })
-
-      visNetworkProxy(ns("network")) |>
-        visUpdateEdges(rv$edges)
-
-      removeModal()
     })
+
+    # TODO Remove edge
 
     # TODO: handle node update. Change of color due to block validity change ...
     # This needs input parameter from the parent module which contains
@@ -365,8 +432,6 @@ network_server <- function(id, vals, debug = TRUE) {
     # TODO: implement edge creation
     # This is different from add_to. Ideally we can drag from one node
     # to another to connect them.
-
-    # TODO: implement remove edge (user selects the edge).
 
     # The network module must return the edge representation
     # since they are created from the network and needed in other parts,
