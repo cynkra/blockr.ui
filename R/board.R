@@ -214,8 +214,8 @@ board_server <- function(id) {
         obs = list(),
         # Cache where nodes should be in the dashboard mode: either bucket or body.
         grid = list(
-          bucket = data.frame(id = NA, x = NA, y = NA, h = NA, w = NA),
-          body = data.frame(id = NA, x = NA, y = NA, h = NA, w = NA)
+          bucket = data.frame(),
+          body = data.frame()
         )
       )
       exportTestValues(
@@ -355,8 +355,8 @@ board_server <- function(id) {
               "bucket",
               gs_item(
                 h1(sprintf("Block %s", class(blk$block)[1])),
-                htmltools::tagQuery(restore_block_ui(blk$block, blk$server$state, id))$selectedTags()[[2]],
-                #restore_block_ui(blk$block, blk$server$state, id),
+                #htmltools::tagQuery(restore_block_ui(blk$block, blk$server$state, id))$selectedTags()[[2]],
+                restore_block_ui(blk$block, blk$server$state, id),
                 class_content = "bg-white p-2 border rounded-4"
               ),
               list(id = block_uid(blk$block))
@@ -380,8 +380,8 @@ board_server <- function(id) {
               "body",
               gs_item(
                 h1(sprintf("Block %s", class(blk$block)[1])),
-                htmltools::tagQuery(restore_block_ui(blk$block, blk$server$state, id))$selectedTags()[[2]],
-                #restore_block_ui(blk$block, blk$server$state, id),
+                #htmltools::tagQuery(restore_block_ui(blk$block, blk$server$state, id))$selectedTags()[[2]],
+                restore_block_ui(blk$block, blk$server$state, id),
                 class_content = "bg-white p-2 border rounded-4"
               ),
               pars
