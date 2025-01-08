@@ -210,7 +210,7 @@ network_server <- function(id, vals, debug = TRUE) {
       ) |>
         visOptions(
           # To get currently selected node
-          nodesIdSelection = TRUE
+          nodesIdSelection = TRUE, manipulation = TRUE
         ) |>
         visEdges(length = 200)
     })
