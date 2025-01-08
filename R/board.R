@@ -74,13 +74,13 @@ board_ui <- function(id) {
       ),
       layout_sidebar(
         sidebar = sidebar(
+          open = FALSE,
           position = "right",
-          width = 600,
+          width = "100%",
           # bucket
           gridstackOutput(ns("bucket")),
           verbatimTextOutput(ns("bucket_content")),
           # body
-          #gs_trash(id = ns("mytrash"), label = "Drag here to remove", height = "50px"),
           gridstackOutput(ns("body")),
           verbatimTextOutput(ns("body_content"))
         ),
@@ -208,6 +208,8 @@ board_server <- function(id) {
           body = data.frame()
         )
       )
+
+      # For shinytest2 (don't remove)
       exportTestValues(
         blocks = rv$blocks,
         network_out = network_out
@@ -253,12 +255,14 @@ board_server <- function(id) {
         gs_proxy_add(
           "bucket",
           gs_item(
-            h1(sprintf("Block %s", class(new_blk$block)[1])),
-            #htmltools::tagQuery(
-            #restore_block_ui(blk$block, blk$server$state, id)
-            #)$selectedTags()[[2]],
-            restore_block_ui(new_blk$block, new_blk$server$state, id),
-            class_content = "bg-white p-2 border rounded-4"
+            card(
+              full_screen = TRUE,
+              card_title(sprintf("Block %s", class(new_blk$block)[1])),
+              #htmltools::tagQuery(
+              #restore_block_ui(blk$block, blk$server$state, id)
+              #)$selectedTags()[[2]],
+              restore_block_ui(new_blk$block, new_blk$server$state, id)
+            )
           ),
           list(id = block_uid(network_out$added_node()))
         )
@@ -327,8 +331,7 @@ board_server <- function(id) {
           float = TRUE,
           options = list(
             acceptWidgets = TRUE
-          ) #,
-          #trash_id = "mytrash"
+          )
         )
       })
       outputOptions(output, "body", suspendWhenHidden = FALSE)
