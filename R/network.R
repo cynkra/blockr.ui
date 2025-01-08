@@ -370,9 +370,13 @@ network_server <- function(id, vals, debug = TRUE) {
     observeEvent(input$remove, {
       rv$nodes <- remove_node(input$network_selected, rv$nodes)
       if (nrow(rv$edges) > 0) {
-        edges <- remove_edge(input$network_selected, rv$edges)
-        rv$removed_edge <- rv$edges[edges$removed, "id"]
-        rv$edges <- edges$res
+        tryCatch({
+          edges <- remove_edge(input$network_selected, rv$edges)
+          rv$removed_edge <- rv$edges[edges$removed, "id"]
+          rv$edges <- edges$res
+        }, error = function(e) {
+          message(sprintf("Node %s had no edge to remove", input$network_selected))
+        })
       }
       visNetworkProxy(ns("network")) |>
         visRemoveNodes(input$network_selected)
