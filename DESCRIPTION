@@ -34,7 +34,8 @@ Imports:
     scoutbaR,
     visNetwork,
     shinyWidgets,
-    blockr.core
+    blockr.core,
+    shinyjs
 Remotes:
     cynkra/blockr.core,
     cynkra/blockr.dplyr

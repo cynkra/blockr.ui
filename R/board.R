@@ -17,12 +17,7 @@ blk_choices <- function() {
             if (attr(choice, "category") == cat) {
               scout_action(
                 id = attr(choice, "classes")[1],
-                label = paste0(
-                  attr(choice, "name"),
-                  " (",
-                  attr(choice, "package"),
-                  ")"
-                ),
+                label = attr(choice, "name"),
                 description = attr(choice, "description")
               )
             }
@@ -49,7 +44,7 @@ restore_block_ui <- function(block, state, id) {
 #' @param id Unique id.
 #' @rdname board
 #' @export
-board_ui <- function(id) {
+main_ui <- function(id) {
   ns <- NS(id)
 
   network_ui <- network_ui(ns("dag"))
@@ -66,30 +61,31 @@ board_ui <- function(id) {
     layout_sidebar(
       sidebar = sidebar(
         id = ns("sidebar"),
-        open = FALSE,
-        width = 300,
-        class = "rounded",
-        bg = "white",
-        network_ui$sidebar
+        open = TRUE,
+        position = "right",
+        width = "60%",
+        tabsetPanel(
+          id = ns("board_tabs"),
+          tabPanel(
+            "Properties",
+            value = "network_tab",
+            # Node module (ui filters + output)
+            div(id = ns("block_container_ui")),
+            network_ui$sidebar,
+            bslib::input_switch(
+              ns("block_mode"),
+              "Use in dashboard?"
+            )
+          ),
+          tabPanel(
+            "Dashboard",
+            value = "dashboard_tab",
+            gridstackOutput(ns("grid")),
+            verbatimTextOutput(ns("grid_content"))
+          )
+        )
       ),
-      layout_sidebar(
-        sidebar = sidebar(
-          open = FALSE,
-          position = "right",
-          width = "100%",
-          # bucket
-          gridstackOutput(ns("bucket")),
-          verbatimTextOutput(ns("bucket_content")),
-          # body
-          gridstackOutput(ns("body")),
-          verbatimTextOutput(ns("body_content"))
-        ),
-        network_ui$canvas,
-        border = FALSE
-      ),
-      border_radius = FALSE,
-      fillable = TRUE,
-      class = "p-0"
+      network_ui$canvas
     )
   )
 }
@@ -168,13 +164,31 @@ remove_connection <- function(con, rv) {
   list(obs = rv$obs, connections = rv$connections)
 }
 
-#' Init block server module
+#' Init block ui and server module
 #'
 #' @param blk Block object.
 #' @param rv Reactivevalues containing connections information.
+#' @param ns Namespace.
 #' @keywords internal
-init_block_server <- function(blk, rv) {
+init_block <- function(blk, rv, ns) {
   rv$connections[[block_uid(blk)]] <- init_connection(blk)
+
+  # Block ui needs to come before server is initialized
+  # so that the UI is updated
+  insertUI(
+    sprintf("#%s", ns("block_container_ui")),
+    ui = div(
+      class = "m-2",
+      id = ns(block_uid(blk)),
+      card(
+        full_screen = TRUE,
+        card_title(sprintf("Node %s properties", block_uid(blk))),
+        block_ui(blk, ns(NULL))
+      )
+    ),
+    immediate = TRUE
+  )
+
   rv$blocks[[block_uid(blk)]] <- list(
     # We need the block object to render the UI
     block = blk,
@@ -183,7 +197,8 @@ init_block_server <- function(blk, rv) {
     server = block_server(
       blk,
       data = rv$connections[[block_uid(blk)]]
-    )
+    ),
+    mode = "editor"
   )
 
   list(connections = rv$connections, blocks = rv$blocks)
@@ -191,7 +206,7 @@ init_block_server <- function(blk, rv) {
 
 #' @rdname board
 #' @export
-board_server <- function(id) {
+main_server <- function(id) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -202,17 +217,68 @@ board_server <- function(id) {
         blocks = list(),
         connections = list(),
         obs = list(),
-        # Cache where nodes should be in the dashboard mode: either bucket or body.
-        grid = list(
-          bucket = data.frame(),
-          body = data.frame()
-        )
+        # Cache where nodes should be in the dashboard mode.
+        grid = data.frame(),
       )
 
       # For shinytest2 (don't remove)
       exportTestValues(
         blocks = rv$blocks,
         network_out = network_out
+      )
+
+      # TO DO: make a function ...
+      # Move items between properties tab and grid
+      observeEvent(
+        input$board_tabs,
+        {
+          dashboard_blocks <- rv$blocks[
+            which(chr_ply(rv$blocks, `[[`, "mode") == "dashboard")
+          ]
+          if (!length(dashboard_blocks)) return(NULL)
+
+          lapply(dashboard_blocks, \(blk) {
+            if (input$board_tabs == "dashboard_tab") {
+              # Similar gs_proxy_add so that we can
+              # move an element to the grid and call the JS method
+              # with parameters we like.
+
+              # TO DO: currently the grid is reset by gs_proxy_remove_all
+              # Find a way to keep the grid state.
+              pars <- if (!nrow(rv$grid)) {
+                list(
+                  id = ns(block_uid(blk$block)),
+                  w = 4,
+                  h = 4
+                )
+              } else {
+                as.list(rv$grid[rv$grid$id == ns(block_uid(blk$block)), ])
+              }
+
+              session$sendCustomMessage(
+                "add-grid-widget",
+                message = list(
+                  id = ns("grid"),
+                  data = pars
+                )
+              )
+            } else {
+              # Move items back to properties panel
+              session$sendCustomMessage(
+                "move-widget-to-sidebar",
+                list(
+                  id = sprintf("#%s", ns("block_container_ui")),
+                  block_id = sprintf("#%s", ns(block_uid(blk$block)))
+                )
+              )
+            }
+          })
+
+          # Cleanup grid in editor mode
+          if (input$board_tabs == "network_tab") {
+            gs_proxy_remove_all("grid")
+          }
+        }
       )
 
       # DAG representation
@@ -246,26 +312,43 @@ board_server <- function(id) {
 
       # Call block server module when node is added
       observeEvent(network_out$added_node(), {
-        res <- init_block_server(network_out$added_node(), rv)
+        res <- init_block(network_out$added_node(), rv, ns)
         rv$connections <- res$connections
         rv$blocks <- res$blocks
+      })
 
-        new_blk <- rv$blocks[[block_uid(network_out$added_node())]]
+      # To be able to know if the block needs to
+      # be rendered in the dashboard grid.
+      # TO DO: fix a bug when adding multiple nodes
+      # the button should be reset to FALSE when a node
+      # isn't in the dashboard mode...
+      observeEvent(
+        {
+          req(nchar(network_out$selected_node()) > 0)
+          input$block_mode
+        },
+        {
+          selected <- network_out$selected_node()
+          if (input$block_mode) {
+            rv$blocks[[selected]]$mode <- "dashboard"
+          } else {
+            rv$blocks[[selected]]$mode <- "editor"
+          }
+        }
+      )
 
-        gs_proxy_add(
-          "bucket",
-          gs_item(
-            card(
-              full_screen = TRUE,
-              card_title(sprintf("Block %s", class(new_blk$block)[1])),
-              #htmltools::tagQuery(
-              #restore_block_ui(blk$block, blk$server$state, id)
-              #)$selectedTags()[[2]],
-              restore_block_ui(new_blk$block, new_blk$server$state, id)
-            )
-          ),
-          list(id = block_uid(network_out$added_node()))
-        )
+      # When a node is selected, we need to only show the
+      # UI of the selected block
+      observeEvent(req(nchar(network_out$selected_node()) > 0), {
+        selected <- network_out$selected_node()
+        to_hide <- which(names(rv$blocks) != selected)
+
+        shinyjs::show(selected)
+        if (length(to_hide)) {
+          lapply(names(rv$blocks)[to_hide], \(el) {
+            shinyjs::hide(el)
+          })
+        }
       })
 
       # Handle node removal
@@ -273,12 +356,16 @@ board_server <- function(id) {
         # cleanup
         rv$blocks[[network_out$removed_node()]] <- NULL
         # Remove node from grid: need to find in which grid it is ...
-        is_in_bucket <- length(
-          grep(network_out$removed_node(), rv$grid$bucket$id)
+        is_in_dashboard <- length(
+          grep(network_out$removed_node(), rv$grid$id)
         ) >
           0
-        if (is_in_bucket) proxy <- "bucket" else "body"
-        gs_proxy_remove_item(proxy, id = network_out$removed_node())
+        if (is_in_dashboard) {
+          gs_proxy_remove_item("grid", id = network_out$removed_node())
+        } else {
+          # Remove block UI
+          removeUI(sprintf("#%s", ns(network_out$removed_node())))
+        }
 
         bslib::toggle_sidebar("sidebar", open = FALSE)
       })
@@ -290,72 +377,38 @@ board_server <- function(id) {
       # id, (x, y) position and dimensions (h and w).
       # NOTE: it seems that Shiny some inputs won't work in a gridstack like selectize.js elements
 
-      # Store in output to activate the widget callback (see below)
-      output$bucket <- renderGridstack({
-        gridstack(
-          disableResize = TRUE,
-          column = 1,
-          options = list(
-            acceptWidgets = TRUE,
-            dragOut = TRUE
-          )
-        )
-      })
-      # We still need to update the bucket content when the output is hidden
-      # This is because some dependent nodes need the result of a parent node
-      # to render their result.
-      outputOptions(output, "bucket", suspendWhenHidden = FALSE)
-
       # The GridStack layout can be retrieved via the special shiny input ⁠input$<outputId>_layout⁠.
       # This allows us to know which block is where and restore the correct layout via a proxy (see
       # observer above).
-      bucket_content <- reactive({
-        if (is.null(input$bucket_layout)) return(data.frame())
-        res <- do.call(rbind.data.frame, input$bucket_layout$children)
-        res[, !names(res) %in% c("content")]
-      })
-
-      # Update rv cache to real time change in the grid
-      observeEvent(bucket_content(), {
-        rv$grid$bucket <- bucket_content()
-      })
-
-      # Debug only
-      output$bucket_content <- renderPrint(bucket_content())
-
-      output$body <- renderGridstack({
+      output$grid <- renderGridstack({
         gridstack(
           margin = "10px",
           cellHeight = "140px",
           resize_handles = "all",
+          removable = TRUE,
           float = TRUE,
           options = list(
             acceptWidgets = TRUE
           )
         )
       })
-      outputOptions(output, "body", suspendWhenHidden = FALSE)
+      outputOptions(output, "grid", suspendWhenHidden = FALSE)
 
       # Same as for the bucket, except that we assign dummy dimensions
       # when they don't exist.
-      body_content <- reactive({
-        if (is.null(input$body_layout)) return(data.frame())
-        items <- lapply(input$body_layout$children, \(child) {
-          if (is.null(child$h)) child$h <- NA
-          if (is.null(child$w)) child$w <- NA
-          child
-        })
-        res <- do.call(rbind.data.frame, items)
+      grid_content <- reactive({
+        if (is.null(input$grid_layout)) return(data.frame())
+        res <- do.call(rbind.data.frame, input$grid_layout$children)
         res[, !names(res) %in% c("content")]
       })
 
       # Update rv cache to real time change in the grid
-      observeEvent(body_content(), {
-        rv$grid$body <- body_content()
+      observeEvent(grid_content(), {
+        rv$grid <- grid_content()
       })
 
       # Debug only
-      output$body_content <- renderPrint(body_content())
+      output$grid_content <- renderPrint(grid_content())
 
       # Toggle sidebar on node selection/deselection
       observeEvent(

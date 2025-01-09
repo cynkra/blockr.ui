@@ -2,11 +2,11 @@
 
 S3method(check_connections,data_block)
 S3method(check_connections,transform_block)
-export(board_server)
-export(board_ui)
 export(check_connections)
 export(dashboard_server)
 export(dashboard_ui)
+export(main_server)
+export(main_ui)
 export(network_server)
 export(network_ui)
 import(blockr.core)

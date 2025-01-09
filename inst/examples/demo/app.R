@@ -4,12 +4,16 @@ library(blockr.ui)
 library(bslib)
 library(shiny)
 
+shiny::addResourcePath("assets", "./inst/examples/demo/www")
+
 ui <- page_fillable(
-  board_ui("board")
+  shinyjs::useShinyjs(),
+  tags$script(src = "assets/custom.js"),
+  main_ui("board")
 )
 
 server <- function(input, output, session) {
-  board_server("board")
+  main_server("board")
 }
 
 shinyApp(ui, server)

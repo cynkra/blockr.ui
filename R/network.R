@@ -28,7 +28,12 @@ network_ui <- function(id, debug = TRUE) {
         class = "btn-light"
       ),
       uiOutput(ns("data_source_ui")),
-      actionButton(ns("remove"), "Remove block", icon = icon("trash"), class = "btn-light"),
+      actionButton(
+        ns("remove"),
+        "Remove block",
+        icon = icon("trash"),
+        class = "btn-light"
+      )
     ),
     canvas = tagList(
       visNetworkOutput(ns("network")),
@@ -106,7 +111,7 @@ add_edge <- function(from, to, label, edges) {
   )
 
   if (nrow(edges) == 0) {
-    list(res =  edge_data, added = id)
+    list(res = edge_data, added = id)
   } else {
     list(
       res = rbind(
@@ -154,7 +159,7 @@ remove_edge <- function(selected, edges) {
     is.character(selected),
     nchar(selected) > 0
   )
-  to_remove <-  grep(selected, edges$id)
+  to_remove <- grep(selected, edges$id)
   if (length(to_remove) == 0) {
     stop(sprintf("Can't find edge with id %s in the data", selected))
   }
@@ -208,11 +213,43 @@ network_server <- function(id, vals, debug = TRUE) {
         height = "100vh",
         width = "100%"
       ) |>
+        visInteraction(hover = FALSE, multiselect = TRUE) |>
         visOptions(
           # To get currently selected node
-          nodesIdSelection = TRUE, manipulation = TRUE
+          nodesIdSelection = TRUE,
+          manipulation = TRUE,
+          collapse = TRUE
         ) |>
-        visEdges(length = 200)
+        visEdges(length = 200) |>
+        visEvents(
+          oncontext = sprintf(
+            "function(e) {
+              e.event.preventDefault(); // avoid showing web inspector ...
+              Shiny.onInputChange('%s', e.nodes, {priority: 'event'});
+            }",
+            ns("node_right_clicked")
+          ),
+          hoverNode = sprintf(
+            "function(e) {
+            Shiny.onInputChange('%s', e.node, {priority: 'event'});
+          ;}",
+            ns("hovered_node")
+          ),
+          #blurNode = sprintf(
+          #  "function(e) {
+          #  Shiny.onInputChange('%s', e.node, {priority: 'event'});
+          #;}",
+          #  ns("hovered_node")
+          #)
+        )
+    })
+
+    #observeEvent(input$hovered_node, {
+    #  showNotification(input$hovered_node)
+    #})
+
+    observeEvent(input$node_right_clicked, {
+      showNotification(input$node_right_clicked)
     })
 
     if (debug) {
@@ -251,7 +288,7 @@ network_server <- function(id, vals, debug = TRUE) {
       # Construct block with empty defaults
       # TODO: maybe we want to provide more choices
       # but that would require more UI elements
-      rv$new_block <- available_blocks()[[input$scoutbar]]()
+      rv$new_block <- create_block(input$scoutbar)
 
       # Update node vals for the network rendering
       rv$nodes <- add_node(rv$new_block, rv$nodes)
@@ -278,14 +315,20 @@ network_server <- function(id, vals, debug = TRUE) {
 
     # Selected block object
     selected_block <- reactive({
-      req(nchar(input$network_selected) > 0, input$network_selected %in% rv$nodes$id)
+      req(
+        nchar(input$network_selected) > 0,
+        input$network_selected %in% rv$nodes$id
+      )
       vals$blocks[[input$network_selected]]$block
     })
 
     # Returns other nodes ids, without the selected one
     # This is useful to prevent to connect the node to itself
     other_nodes <- reactive({
-      req(nchar(input$network_selected) > 0, input$network_selected %in% rv$nodes$id)
+      req(
+        nchar(input$network_selected) > 0,
+        input$network_selected %in% rv$nodes$id
+      )
       rv$nodes[rv$nodes$id != input$network_selected, ]
     })
 
@@ -294,7 +337,10 @@ network_server <- function(id, vals, debug = TRUE) {
     # that is, check that the number of connections don't exceed
     # the number of input slots of the given block
     can_update_data_sources <- reactive({
-      req(nchar(input$network_selected) > 0, input$network_selected %in% rv$nodes$id)
+      req(
+        nchar(input$network_selected) > 0,
+        input$network_selected %in% rv$nodes$id
+      )
       # Check that node number is enough (excluding the current node from the total)
       n_nodes <- length(rv$nodes[rv$nodes$id != input$network_selected, "id"])
       req(n_nodes >= length(block_inputs(selected_block())))
@@ -321,7 +367,10 @@ network_server <- function(id, vals, debug = TRUE) {
           ns(sprintf("%s-%s_input_slot", input$network_selected, slot)),
           sprintf("%s input slot", slot),
           # TO DO: subset choices to avoid the existing connections and the current block
-          choices = setNames(other_nodes()$id, paste(other_nodes()$label, other_nodes()$id))
+          choices = setNames(
+            other_nodes()$id,
+            paste(other_nodes()$label, other_nodes()$id)
+          )
         )
       })
 
@@ -330,7 +379,10 @@ network_server <- function(id, vals, debug = TRUE) {
       showModal(
         modalDialog(
           size = "s",
-          title = sprintf("Manage node %s connections", block_uid(selected_block())),
+          title = sprintf(
+            "Manage node %s connections",
+            block_uid(selected_block())
+          ),
           connect_ui,
           actionButton(
             ns("update_sources"),
@@ -344,7 +396,9 @@ network_server <- function(id, vals, debug = TRUE) {
     observeEvent(input$update_sources, {
       lapply(block_inputs(selected_block()), \(slot) {
         edges <- add_edge(
-          from = input[[sprintf("%s-%s_input_slot", input$network_selected, slot)]],
+          from = input[[
+            sprintf("%s-%s_input_slot", input$network_selected, slot)
+          ]],
           to = input$network_selected,
           label = slot,
           rv$edges
@@ -370,13 +424,18 @@ network_server <- function(id, vals, debug = TRUE) {
     observeEvent(input$remove, {
       rv$nodes <- remove_node(input$network_selected, rv$nodes)
       if (nrow(rv$edges) > 0) {
-        tryCatch({
-          edges <- remove_edge(input$network_selected, rv$edges)
-          rv$removed_edge <- rv$edges[edges$removed, "id"]
-          rv$edges <- edges$res
-        }, error = function(e) {
-          message(sprintf("Node %s had no edge to remove", input$network_selected))
-        })
+        tryCatch(
+          {
+            edges <- remove_edge(input$network_selected, rv$edges)
+            rv$removed_edge <- rv$edges[edges$removed, "id"]
+            rv$edges <- edges$res
+          },
+          error = function(e) {
+            message(
+              sprintf("Node %s had no edge to remove", input$network_selected)
+            )
+          }
+        )
       }
       visNetworkProxy(ns("network")) |>
         visRemoveNodes(input$network_selected)
