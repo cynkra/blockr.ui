@@ -28,15 +28,6 @@ blk_choices <- function() {
   })
 }
 
-#' Restore block ui based on its state
-#' @keywords internal
-restore_block_ui <- function(block, state, id) {
-  state <- lapply(state, \(el) {
-    if (is.reactive(el)) el() else el
-  })
-  do.call(block_ui, c(list(x = block, id = id), state))
-}
-
 #' The board provides the main ui for blockr2
 #'
 #' The board is composed of 2 views pointing to the network module
@@ -49,40 +40,46 @@ main_ui <- function(id) {
 
   network_ui <- network_ui(ns("dag"))
 
-  tagList(
-    div(
-      class = "d-flex justify-content-center align-items-center",
-      div(
-        class = "btn-group",
-        role = "group",
-        network_ui$action_bar
-      )
+  layout_sidebar(
+    class = "p-0",
+    sidebar = sidebar(
+      id = ns("dashboard"),
+      title = "Dashboard",
+      position = "right",
+      width = "60%",
+      open = FALSE,
+      gridstackOutput(ns("grid")),
+      verbatimTextOutput(ns("grid_content"))
     ),
     layout_sidebar(
+      border = FALSE,
       sidebar = sidebar(
-        id = ns("sidebar"),
-        open = TRUE,
+        id = ns("properties"),
+        title = "Block properties",
+        open = FALSE,
+        width = "40%",
         position = "right",
-        width = "60%",
-        tabsetPanel(
-          id = ns("board_tabs"),
-          tabPanel(
-            "Properties",
-            value = "network_tab",
-            # Node module (ui filters + output)
-            div(id = ns("block_container_ui")),
-            network_ui$sidebar,
-            bslib::input_switch(
-              ns("block_mode"),
-              "Use in dashboard?"
-            )
-          ),
-          tabPanel(
-            "Dashboard",
-            value = "dashboard_tab",
-            gridstackOutput(ns("grid")),
-            verbatimTextOutput(ns("grid_content"))
-          )
+        div(id = ns("block_container_ui")),
+        network_ui$sidebar,
+        bslib::input_switch(
+          ns("block_mode"),
+          "Use in dashboard?"
+        )
+      ),
+      div(
+        class = "d-flex justify-content-center align-items-center",
+        shinyWidgets::switchInput(
+          ns("mode"),
+          onStatus = "default",
+          onLabel = icon("network-wired"),
+          offLabel = icon("table-columns"),
+          value = TRUE,
+          size = "mini"
+        ),
+        div(
+          class = "btn-group",
+          role = "group",
+          network_ui$action_bar
         )
       ),
       network_ui$canvas
@@ -227,10 +224,42 @@ main_server <- function(id) {
         network_out = network_out
       )
 
+      # Board mode
+      mode <- reactive({
+        if (input$mode) "network" else "dashboard"
+      })
+
+      # Hide the sidebar toggles to avoid accidental clicks by users
+      # The switching is handles via below observeEvents
+      session$sendCustomMessage("hide-sidebars-toggles", list(ns = ns(NULL)))
+
+      # Toggle sidebars based on the board mode.
+      # Since we render the same UI either in the properties sidebar
+      # or the dashboard sidebar, they can't be opened at the same time.
+      observeEvent(c(mode(), network_out$selected_node()), {
+        cond <- if (is.null(network_out$selected_node())) {
+          mode() == "network"
+        } else {
+          (mode() == "network" && nchar(network_out$selected_node()) > 0)
+        }
+
+        toggle_sidebar(
+          id = "properties",
+          open = cond
+        )
+        toggle_sidebar(
+          id = "dashboard",
+          open = (mode() == "dashboard")
+        )
+      })
+
       # TO DO: make a function ...
-      # Move items between properties tab and grid
+      # Move items between properties tab and grid.
+      # Since we can't rebuilt the UI of each block and preserve its state
+      # we have to move elements fromm one place to another. This also avoids ID
+      # duplication.
       observeEvent(
-        input$board_tabs,
+        mode(),
         {
           dashboard_blocks <- rv$blocks[
             which(chr_ply(rv$blocks, `[[`, "mode") == "dashboard")
@@ -238,7 +267,7 @@ main_server <- function(id) {
           if (!length(dashboard_blocks)) return(NULL)
 
           lapply(dashboard_blocks, \(blk) {
-            if (input$board_tabs == "dashboard_tab") {
+            if (mode() == "dashboard") {
               # Similar gs_proxy_add so that we can
               # move an element to the grid and call the JS method
               # with parameters we like.
@@ -275,7 +304,7 @@ main_server <- function(id) {
           })
 
           # Cleanup grid in editor mode
-          if (input$board_tabs == "network_tab") {
+          if (mode() == "network") {
             gs_proxy_remove_all("grid")
           }
         }
@@ -370,8 +399,7 @@ main_server <- function(id) {
         bslib::toggle_sidebar("sidebar", open = FALSE)
       })
 
-      # Render bucket of node outputs in dashboard mode
-      # To avoid an ID duplication issue,
+      # Render grid of block outputs in dashboard mode.
       # We rely on an rv cache to keep track of where a node was before switching from
       # a mode to another. This cache is a list contains bucket and body dataframes with block
       # id, (x, y) position and dimensions (h and w).
@@ -394,8 +422,7 @@ main_server <- function(id) {
       })
       outputOptions(output, "grid", suspendWhenHidden = FALSE)
 
-      # Same as for the bucket, except that we assign dummy dimensions
-      # when they don't exist.
+      # Format layout elements as dataframe for easier use
       grid_content <- reactive({
         if (is.null(input$grid_layout)) return(data.frame())
         res <- do.call(rbind.data.frame, input$grid_layout$children)
@@ -409,19 +436,6 @@ main_server <- function(id) {
 
       # Debug only
       output$grid_content <- renderPrint(grid_content())
-
-      # Toggle sidebar on node selection/deselection
-      observeEvent(
-        network_out$selected_node(),
-        {
-          bslib::toggle_sidebar(
-            "sidebar",
-            open = !is.null(network_out$selected_node()) &&
-              nchar(network_out$selected_node()) > 0
-          )
-        },
-        ignoreNULL = FALSE
-      )
     }
   )
 }

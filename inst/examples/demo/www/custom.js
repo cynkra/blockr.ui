@@ -9,7 +9,13 @@ $(function () {
     return widgetObj;
   }
 
-  Shiny.addCustomMessageHandler("add-grid-widget", function (obj) {
+  // Hdide sidebar toggles
+  Shiny.addCustomMessageHandler("hide-sidebars-toggles", (m) => {
+    $(`button[aria-controls=\"${m.ns}-dashboard\"]`).css('visibility', 'hidden');
+    $(`button[aria-controls=\"${m.ns}-properties\"]`).css('visibility', 'hidden');
+  });
+
+  Shiny.addCustomMessageHandler("add-grid-widget", (obj) => {
     var grid = getWidget(obj.id);
     if (typeof grid != "undefined") {
       obj.data.content = `<div
