@@ -46,7 +46,7 @@ main_ui <- function(id) {
       id = ns("dashboard"),
       title = "Dashboard",
       position = "right",
-      width = "60%",
+      width = "75%",
       open = FALSE,
       gridstackOutput(ns("grid")),
       verbatimTextOutput(ns("grid_content"))
@@ -272,8 +272,8 @@ main_server <- function(id) {
               # move an element to the grid and call the JS method
               # with parameters we like.
 
-              # TO DO: currently the grid is reset by gs_proxy_remove_all
-              # Find a way to keep the grid state.
+              # Restore dimensions and position from
+              # the grid state if this exist for the given block
               pars <- if (!nrow(rv$grid)) {
                 list(
                   id = ns(block_uid(blk$block)),
@@ -429,10 +429,17 @@ main_server <- function(id) {
         res[, !names(res) %in% c("content")]
       })
 
-      # Update rv cache to real time change in the grid
-      observeEvent(grid_content(), {
-        rv$grid <- grid_content()
-      })
+      # Update rv cache to real time change in the grid only
+      # in dashboard mode.
+      observeEvent(
+        {
+          req(mode() == "dashboard")
+          grid_content()
+        },
+        {
+          rv$grid <- grid_content()
+        }
+      )
 
       # Debug only
       output$grid_content <- renderPrint(grid_content())
