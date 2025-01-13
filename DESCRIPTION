@@ -39,6 +39,7 @@ Imports:
 Remotes:
     cynkra/blockr.core,
     cynkra/blockr.dplyr
+    dreamRs/gridstackr
 Suggests: 
     shinytest2,
     testthat (>= 3.0.0),
