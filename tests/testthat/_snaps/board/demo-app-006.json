@@ -1,11 +1,10 @@
 {
   "input": {
-    "DataTables_Table_2_length": "5",
-    "board-board_tabs": "network_tab",
+    "DataTables_Table_1_length": "5",
     "board-dag-add_block": 1,
     "board-dag-append_block": 1,
     "board-dag-network_initialized": true,
-    "board-dag-network_selected": "vllhvqwpztmjsbh",
+    "board-dag-network_selected": "tkbuyepwijxjfco",
     "board-dag-remove": 1,
     "board-dag-scoutbar": "select_block",
     "board-dag-scoutbar-configuration": {
@@ -18,7 +17,7 @@
             {
               "children": {
                 "ariaLabel": "dataset_block",
-                "label": "dataset block ()",
+                "label": "dataset block",
                 "description": "Choose a dataset from a package",
                 "closeOnClick": true
               },
@@ -33,7 +32,7 @@
             {
               "children": {
                 "ariaLabel": "join_block",
-                "label": "join block ()",
+                "label": "join block",
                 "description": "Join together two data.frames",
                 "closeOnClick": true
               },
@@ -42,8 +41,17 @@
             {
               "children": {
                 "ariaLabel": "select_block",
-                "label": "select block ()",
+                "label": "select block",
                 "description": "Subset columns in a data.frame",
+                "closeOnClick": true
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
+                "ariaLabel": "subset_block",
+                "label": "subset block",
+                "description": "Row and column subsetting",
                 "closeOnClick": true
               },
               "class": "scout_action"
@@ -55,17 +63,36 @@
       ],
       "revealScoutbar": true
     },
+    "board-dashboard": false,
+    "board-grid_layout": {
+      "alwaysShowResizeHandle": false,
+      "cellHeight": 140,
+      "float": true,
+      "disableDrag": false,
+      "disableResize": false,
+      "removable": true,
+      "resizable": {
+        "handles": "all"
+      },
+      "acceptWidgets": true,
+      "children": [
+
+      ]
+    },
     "board-mode": true,
-    "board-sidebar": false,
-    "board-vllhvqwpztmjsbh-expression-dataset": "CO2",
-    "board-vllhvqwpztmjsbh-result_cell_clicked": {
+    "board-properties": false,
+    "board-tkbuyepwijxjfco-expression-columns": null,
+    "board-tkbuyepwijxjfco-mode": false,
+    "board-udrztahoztxbdte-expression-dataset": "CO2",
+    "board-udrztahoztxbdte-mode": false,
+    "board-udrztahoztxbdte-result_cell_clicked": {
 
     },
-    "board-vllhvqwpztmjsbh-result_cells_selected": [
+    "board-udrztahoztxbdte-result_cells_selected": [
 
     ],
-    "board-vllhvqwpztmjsbh-result_columns_selected": null,
-    "board-vllhvqwpztmjsbh-result_rows_all": [
+    "board-udrztahoztxbdte-result_columns_selected": null,
+    "board-udrztahoztxbdte-result_rows_all": [
       1,
       2,
       3,
@@ -151,16 +178,16 @@
       83,
       84
     ],
-    "board-vllhvqwpztmjsbh-result_rows_current": [
+    "board-udrztahoztxbdte-result_rows_current": [
       1,
       2,
       3,
       4,
       5
     ],
-    "board-vllhvqwpztmjsbh-result_rows_selected": null,
-    "board-vllhvqwpztmjsbh-result_search": "",
-    "board-vllhvqwpztmjsbh-result_state": {
+    "board-udrztahoztxbdte-result_rows_selected": null,
+    "board-udrztahoztxbdte-result_search": "",
+    "board-udrztahoztxbdte-result_state": {
       "start": 0,
       "length": 5,
       "order": [
@@ -257,7 +284,12 @@
             "shape": "dot"
           },
           "manipulation": {
-            "enabled": false
+            "enabled": true
+          },
+          "interaction": {
+            "hover": false,
+            "multiselect": true,
+            "zoomSpeed": 1
           },
           "edges": {
             "length": 200
@@ -283,6 +315,21 @@
         "submain": null,
         "footer": null,
         "background": "rgba(0, 0, 0, 0)",
+        "tooltipStay": 300,
+        "tooltipStyle": "position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);",
+        "opts_manipulation": {
+          "datacss": "table.legend_table {\n  font-size: 11px;\n  border-width:1px;\n  border-color:#d3d3d3;\n  border-style:solid;\n}\ntable.legend_table td {\n  border-width:1px;\n  border-color:#d3d3d3;\n  border-style:solid;\n  padding: 2px;\n}\ndiv.table_content {\n  width:80px;\n  text-align:center;\n}\ndiv.table_description {\n  width:100px;\n}\n\n.operation {\n  font-size:20px;\n}\n\n.network-popUp {\n  display:none;\n  z-index:299;\n  width:250px;\n  /*height:150px;*/\n  background-color: #f9f9f9;\n  border-style:solid;\n  border-width:1px;\n  border-color: #0d0d0d;\n  padding:10px;\n  text-align: center;\n  position:fixed;\n  top:50%;  \n  left:50%;  \n  margin:-100px 0 0 -100px;  \n\n}",
+          "addNodeCols": [
+            "id",
+            "label"
+          ],
+          "editNodeCols": [
+            "id",
+            "label"
+          ],
+          "tab_add_node": "<span id=\"addnode-operation\" class = \"operation\">node<\/span> <br><table style=\"margin:auto;\"><tr><td>id<\/td><td><input id=\"addnode-id\"  type= \"text\" value=\"new value\"><\/td><\/tr><tr><td>label<\/td><td><input id=\"addnode-label\"  type= \"text\" value=\"new value\"><\/td><\/tr><\/table><input type=\"button\" value=\"save\" id=\"addnode-saveButton\"><\/button><input type=\"button\" value=\"cancel\" id=\"addnode-cancelButton\"><\/button>",
+          "tab_edit_node": "<span id=\"editnode-operation\" class = \"operation\">node<\/span> <br><table style=\"margin:auto;\"><tr><td>id<\/td><td><input id=\"editnode-id\"  type= \"text\" value=\"new value\"><\/td><\/tr><tr><td>label<\/td><td><input id=\"editnode-label\"  type= \"text\" value=\"new value\"><\/td><\/tr><\/table><input type=\"button\" value=\"save\" id=\"editnode-saveButton\"><\/button><input type=\"button\" value=\"cancel\" id=\"editnode-cancelButton\"><\/button>"
+        },
         "highlight": {
           "enabled": false,
           "hoverNearest": false,
@@ -292,13 +339,51 @@
           "labelOnly": true
         },
         "collapse": {
-          "enabled": false,
+          "enabled": true,
           "fit": false,
           "resetHighlight": true,
           "clusterOptions": null,
           "keepCoord": true,
           "labelSuffix": "(cluster)"
+        },
+        "events": {
+          "oncontext": "function(e) {\n              e.event.preventDefault(); // avoid showing web inspector ...\n              Shiny.onInputChange('board-dag-node_right_clicked', e.nodes, {priority: 'event'});\n            }",
+          "hoverNode": "function(e) {\n            Shiny.onInputChange('board-dag-hovered_node', e.node, {priority: 'event'});\n          ;}"
         }
+      },
+      "evals": [
+        "events.oncontext",
+        "events.hoverNode"
+      ],
+      "jsHooks": [
+
+      ],
+      "deps": [
+
+      ]
+    },
+    "board-dag-nodes": "               id         label           title  shape stack icon.code\n1 udrztahoztxbdte dataset_block udrztahoztxbdte circle    NA        NA",
+    "board-grid": {
+      "x": {
+        "html": "",
+        "options": {
+          "alwaysShowResizeHandle": false,
+          "animate": true,
+          "cellHeight": "140px",
+          "column": 12,
+          "float": true,
+          "disableDrag": false,
+          "disableResize": false,
+          "margin": "10px",
+          "maxRow": 0,
+          "minRow": 0,
+          "removable": true,
+          "resizable": {
+            "handles": "all"
+          },
+          "acceptWidgets": true
+        },
+        "bg": "#e5e7eb"
       },
       "evals": [
 
@@ -310,16 +395,12 @@
 
       ]
     },
-    "board-dag-nodes": "               id        label           title  shape stack icon.code\n2 udrztahoztxbdte select_block udrztahoztxbdte circle    NA        NA",
-    "board-node_ui": {
-      "message": "",
-      "call": "NULL",
-      "type": [
-        "shiny.silent.error",
-        "validation"
-      ]
-    },
-    "board-vllhvqwpztmjsbh-result": {
+    "board-tkbuyepwijxjfco-result": [
+      "",
+      "NULL",
+      "c(\"shiny.silent.error\", \"validation\")"
+    ],
+    "board-udrztahoztxbdte-result": {
       "x": {
         "style": "bootstrap5",
         "filter": "none",
@@ -481,25 +562,23 @@
       "udrztahoztxbdte": {
         "block": {
           "expr_server": [
-            "function (data) ",
+            "function () ",
             "{",
             "    moduleServer(\"expression\", function(input, output, session) {",
-            "        sels <- reactiveVal(columns)",
-            "        cols <- reactive(colnames(data()))",
-            "        observeEvent(input$columns, sels(input$columns))",
-            "        observe(updateSelectInput(session, inputId = \"columns\", ",
-            "            choices = cols(), selected = sels()))",
-            "        list(expr = reactive(bquote(dplyr::select(data, ..(cols)), ",
-            "            list(cols = lapply(sels(), as.name)), splice = TRUE)), ",
-            "            state = list(columns = reactive(sels()), choices = reactive(cols())))",
+            "        list(expr = reactive({",
+            "            eval(bquote(as.call(c(as.symbol(\"::\"), quote(.(pkg)), ",
+            "                quote(.(dat)))), list(pkg = as.name(package), ",
+            "                dat = as.name(input$dataset))))",
+            "        }), state = list(dataset = reactive(input$dataset), package = package))",
             "    })",
             "}"
           ],
           "expr_ui": [
-            "function (ns, columns, choices = character()) ",
+            "function (ns) ",
             "{",
-            "    selectInput(inputId = ns(\"expression\", \"columns\"), label = \"Columns\", ",
-            "        choices = choices, selected = columns, multiple = TRUE)",
+            "    selectInput(inputId = ns(\"expression\", \"dataset\"), label = \"Dataset\", ",
+            "        choices = list_datasets(package), selectize = FALSE, ",
+            "        selected = dataset)",
             "}"
           ]
         },
@@ -518,7 +597,12 @@
             "        .value",
             "    else invisible(.value)",
             "}, observable = <environment>, cacheHint = list(userExpr = {",
-            "    eval(exp$expr(), lapply(data, reval))",
+            "    do.call(req, lapply(exp$state, reval_if))",
+            "    tryCatch(eval(exp$expr(), lapply(data, reval)), error = function(e) {",
+            "        showNotification(conditionMessage(e), duration = NULL, ",
+            "            type = \"error\")",
+            "        NULL",
+            "    })",
             "}), class = \"function\")"
           ],
           "expr": [
@@ -535,47 +619,29 @@
             "        .value",
             "    else invisible(.value)",
             "}, observable = <environment>, cacheHint = list(userExpr = {",
-            "    bquote(dplyr::select(data, ..(cols)), list(cols = lapply(sels(), ",
-            "        as.name)), splice = TRUE)",
+            "    eval(bquote(as.call(c(as.symbol(\"::\"), quote(.(pkg)), quote(.(dat)))), ",
+            "        list(pkg = as.name(package), dat = as.name(input$dataset))))",
             "}), class = \"function\")"
           ],
-          "state": {
-            "columns": [
-              "structure(function () ",
-              "{",
-              "    .dependents$register()",
-              "    if (.invalidated || .running) {",
-              "        ..stacktraceoff..(self$.updateValue())",
-              "    }",
-              "    if (.error) {",
-              "        stop(.value)",
-              "    }",
-              "    if (.visible) ",
-              "        .value",
-              "    else invisible(.value)",
-              "}, observable = <environment>, cacheHint = list(userExpr = {",
-              "    sels()",
-              "}), class = \"function\")"
-            ],
-            "choices": [
-              "structure(function () ",
-              "{",
-              "    .dependents$register()",
-              "    if (.invalidated || .running) {",
-              "        ..stacktraceoff..(self$.updateValue())",
-              "    }",
-              "    if (.error) {",
-              "        stop(.value)",
-              "    }",
-              "    if (.visible) ",
-              "        .value",
-              "    else invisible(.value)",
-              "}, observable = <environment>, cacheHint = list(userExpr = {",
-              "    cols()",
-              "}), class = \"function\")"
-            ]
-          }
-        }
+          "json": [
+            "structure(function () ",
+            "{",
+            "    .dependents$register()",
+            "    if (.invalidated || .running) {",
+            "        ..stacktraceoff..(self$.updateValue())",
+            "    }",
+            "    if (.error) {",
+            "        stop(.value)",
+            "    }",
+            "    if (.visible) ",
+            "        .value",
+            "    else invisible(.value)",
+            "}, observable = <environment>, cacheHint = list(userExpr = {",
+            "    to_json(x, lapply(exp$state, reval_if))",
+            "}), class = \"function\")"
+          ]
+        },
+        "mode": "editor"
       }
     },
     "board-network_out": {

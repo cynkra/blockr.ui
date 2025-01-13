@@ -1,6 +1,5 @@
 {
   "input": {
-    "board-board_tabs": "network_tab",
     "board-dag-add_block": 0,
     "board-dag-append_block": 0,
     "board-dag-network_initialized": true,
@@ -17,7 +16,7 @@
             {
               "children": {
                 "ariaLabel": "dataset_block",
-                "label": "dataset block ()",
+                "label": "dataset block",
                 "description": "Choose a dataset from a package",
                 "closeOnClick": true
               },
@@ -32,7 +31,7 @@
             {
               "children": {
                 "ariaLabel": "join_block",
-                "label": "join block ()",
+                "label": "join block",
                 "description": "Join together two data.frames",
                 "closeOnClick": true
               },
@@ -41,8 +40,17 @@
             {
               "children": {
                 "ariaLabel": "select_block",
-                "label": "select block ()",
+                "label": "select block",
                 "description": "Subset columns in a data.frame",
+                "closeOnClick": true
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
+                "ariaLabel": "subset_block",
+                "label": "subset block",
+                "description": "Row and column subsetting",
                 "closeOnClick": true
               },
               "class": "scout_action"
@@ -53,8 +61,24 @@
         }
       ]
     },
+    "board-dashboard": false,
+    "board-grid_layout": {
+      "alwaysShowResizeHandle": false,
+      "cellHeight": 140,
+      "float": true,
+      "disableDrag": false,
+      "disableResize": false,
+      "removable": true,
+      "resizable": {
+        "handles": "all"
+      },
+      "acceptWidgets": true,
+      "children": [
+
+      ]
+    },
     "board-mode": true,
-    "board-sidebar": false
+    "board-properties": false
   },
   "output": {
     "board-dag-edges": "data frame with 0 columns and 0 rows",
@@ -75,7 +99,12 @@
             "shape": "dot"
           },
           "manipulation": {
-            "enabled": false
+            "enabled": true
+          },
+          "interaction": {
+            "hover": false,
+            "multiselect": true,
+            "zoomSpeed": 1
           },
           "edges": {
             "length": 200
@@ -101,6 +130,21 @@
         "submain": null,
         "footer": null,
         "background": "rgba(0, 0, 0, 0)",
+        "tooltipStay": 300,
+        "tooltipStyle": "position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);",
+        "opts_manipulation": {
+          "datacss": "table.legend_table {\n  font-size: 11px;\n  border-width:1px;\n  border-color:#d3d3d3;\n  border-style:solid;\n}\ntable.legend_table td {\n  border-width:1px;\n  border-color:#d3d3d3;\n  border-style:solid;\n  padding: 2px;\n}\ndiv.table_content {\n  width:80px;\n  text-align:center;\n}\ndiv.table_description {\n  width:100px;\n}\n\n.operation {\n  font-size:20px;\n}\n\n.network-popUp {\n  display:none;\n  z-index:299;\n  width:250px;\n  /*height:150px;*/\n  background-color: #f9f9f9;\n  border-style:solid;\n  border-width:1px;\n  border-color: #0d0d0d;\n  padding:10px;\n  text-align: center;\n  position:fixed;\n  top:50%;  \n  left:50%;  \n  margin:-100px 0 0 -100px;  \n\n}",
+          "addNodeCols": [
+            "id",
+            "label"
+          ],
+          "editNodeCols": [
+            "id",
+            "label"
+          ],
+          "tab_add_node": "<span id=\"addnode-operation\" class = \"operation\">node<\/span> <br><table style=\"margin:auto;\"><tr><td>id<\/td><td><input id=\"addnode-id\"  type= \"text\" value=\"new value\"><\/td><\/tr><tr><td>label<\/td><td><input id=\"addnode-label\"  type= \"text\" value=\"new value\"><\/td><\/tr><\/table><input type=\"button\" value=\"save\" id=\"addnode-saveButton\"><\/button><input type=\"button\" value=\"cancel\" id=\"addnode-cancelButton\"><\/button>",
+          "tab_edit_node": "<span id=\"editnode-operation\" class = \"operation\">node<\/span> <br><table style=\"margin:auto;\"><tr><td>id<\/td><td><input id=\"editnode-id\"  type= \"text\" value=\"new value\"><\/td><\/tr><tr><td>label<\/td><td><input id=\"editnode-label\"  type= \"text\" value=\"new value\"><\/td><\/tr><\/table><input type=\"button\" value=\"save\" id=\"editnode-saveButton\"><\/button><input type=\"button\" value=\"cancel\" id=\"editnode-cancelButton\"><\/button>"
+        },
         "highlight": {
           "enabled": false,
           "hoverNearest": false,
@@ -110,13 +154,51 @@
           "labelOnly": true
         },
         "collapse": {
-          "enabled": false,
+          "enabled": true,
           "fit": false,
           "resetHighlight": true,
           "clusterOptions": null,
           "keepCoord": true,
           "labelSuffix": "(cluster)"
+        },
+        "events": {
+          "oncontext": "function(e) {\n              e.event.preventDefault(); // avoid showing web inspector ...\n              Shiny.onInputChange('board-dag-node_right_clicked', e.nodes, {priority: 'event'});\n            }",
+          "hoverNode": "function(e) {\n            Shiny.onInputChange('board-dag-hovered_node', e.node, {priority: 'event'});\n          ;}"
         }
+      },
+      "evals": [
+        "events.oncontext",
+        "events.hoverNode"
+      ],
+      "jsHooks": [
+
+      ],
+      "deps": [
+
+      ]
+    },
+    "board-dag-nodes": "data frame with 0 columns and 0 rows",
+    "board-grid": {
+      "x": {
+        "html": "",
+        "options": {
+          "alwaysShowResizeHandle": false,
+          "animate": true,
+          "cellHeight": "140px",
+          "column": 12,
+          "float": true,
+          "disableDrag": false,
+          "disableResize": false,
+          "margin": "10px",
+          "maxRow": 0,
+          "minRow": 0,
+          "removable": true,
+          "resizable": {
+            "handles": "all"
+          },
+          "acceptWidgets": true
+        },
+        "bg": "#e5e7eb"
       },
       "evals": [
 
@@ -127,8 +209,7 @@
       "deps": [
 
       ]
-    },
-    "board-dag-nodes": "data frame with 0 columns and 0 rows"
+    }
   },
   "export": {
     "board-blocks": [
