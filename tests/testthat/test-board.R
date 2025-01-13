@@ -12,15 +12,13 @@ test_that("Board works", {
 
   # Add block
   app$click("board-dag-add_block")
-  app$click(selector = ".scout__bar-wrapper button[aria-label=\"dataset_block\"]")
+  app$click(
+    selector = ".scout__bar-wrapper button[aria-label=\"dataset_block\"]"
+  )
   app$expect_values()
 
   # Select a block: does not have input binding
   blks <- app$get_value(export = "board-blocks")
-  app$set_inputs(
-    `board-dag-network_selected` = names(blks)[[1]],
-    allow_no_input_binding_ = TRUE
-  )
   app$wait_for_idle()
   app$expect_values()
 
@@ -33,7 +31,9 @@ test_that("Board works", {
 
   # Append select block
   app$click("board-dag-append_block")
-  app$click(selector = ".scout__bar-wrapper button[aria-label=\"select_block\"]")
+  app$click(
+    selector = ".scout__bar-wrapper button[aria-label=\"select_block\"]"
+  )
   app$expect_values()
 
   # Remove

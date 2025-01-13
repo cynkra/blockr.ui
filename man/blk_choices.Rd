@@ -10,4 +10,3 @@ blk_choices()
 Utility to populate the scoutbar with block
 registry information. Create one page per block category
 }
-\keyword{internal}

@@ -21,7 +21,7 @@ devtools::install_github("cynkra/blockr.ui")
 
 ## Example
 
-This is a basic example which shows you how to solve a common problem:
+To run the app:
 
 ``` r
 library(blockr.ui)
@@ -29,14 +29,14 @@ library(bslib)
 library(shiny)
 
 ui <- page_fillable(
-  board_ui("board")
+  main_ui("board")
 )
 
 server <- function(input, output, session) {
-  board_server("board")
+  main_server("board")
 }
 
 shinyApp(ui, server)
 ```
 
-![](./man/figures/blockr2.png)
+![](./man/figures/blockr-ui-v2.gif) ![](./man/figures/blockr2.png)

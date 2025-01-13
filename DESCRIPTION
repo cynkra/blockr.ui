@@ -34,10 +34,15 @@ Imports:
     scoutbaR,
     visNetwork,
     shinyWidgets,
-    blockr.core
+    blockr.core,
+    shinyjs,
+    gridstackr,
+    utils,
+    stats
 Remotes:
     cynkra/blockr.core,
-    cynkra/blockr.dplyr
+    cynkra/blockr.dplyr,
+    dreamRs/gridstackr
 Suggests: 
     shinytest2,
     testthat (>= 3.0.0),

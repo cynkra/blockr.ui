@@ -1,10 +1,10 @@
 {
   "input": {
-    "board-board_tabs": "network_tab",
+    "DataTables_Table_1_length": "5",
     "board-dag-add_block": 1,
     "board-dag-append_block": 1,
     "board-dag-network_initialized": true,
-    "board-dag-network_selected": "vllhvqwpztmjsbh",
+    "board-dag-network_selected": "tkbuyepwijxjfco",
     "board-dag-remove": 0,
     "board-dag-scoutbar": "select_block",
     "board-dag-scoutbar-configuration": {
@@ -17,7 +17,7 @@
             {
               "children": {
                 "ariaLabel": "dataset_block",
-                "label": "dataset block ()",
+                "label": "dataset block",
                 "description": "Choose a dataset from a package",
                 "closeOnClick": true
               },
@@ -32,7 +32,7 @@
             {
               "children": {
                 "ariaLabel": "join_block",
-                "label": "join block ()",
+                "label": "join block",
                 "description": "Join together two data.frames",
                 "closeOnClick": true
               },
@@ -41,8 +41,17 @@
             {
               "children": {
                 "ariaLabel": "select_block",
-                "label": "select block ()",
+                "label": "select block",
                 "description": "Subset columns in a data.frame",
+                "closeOnClick": true
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
+                "ariaLabel": "subset_block",
+                "label": "subset block",
+                "description": "Row and column subsetting",
                 "closeOnClick": true
               },
               "class": "scout_action"
@@ -54,17 +63,36 @@
       ],
       "revealScoutbar": true
     },
+    "board-dashboard": false,
+    "board-grid_layout": {
+      "alwaysShowResizeHandle": false,
+      "cellHeight": 140,
+      "float": true,
+      "disableDrag": false,
+      "disableResize": false,
+      "removable": true,
+      "resizable": {
+        "handles": "all"
+      },
+      "acceptWidgets": true,
+      "children": [
+
+      ]
+    },
     "board-mode": true,
-    "board-sidebar": true,
-    "board-vllhvqwpztmjsbh-expression-dataset": "CO2",
-    "board-vllhvqwpztmjsbh-result_cell_clicked": {
+    "board-properties": true,
+    "board-tkbuyepwijxjfco-expression-columns": null,
+    "board-tkbuyepwijxjfco-mode": false,
+    "board-udrztahoztxbdte-expression-dataset": "CO2",
+    "board-udrztahoztxbdte-mode": false,
+    "board-udrztahoztxbdte-result_cell_clicked": {
 
     },
-    "board-vllhvqwpztmjsbh-result_cells_selected": [
+    "board-udrztahoztxbdte-result_cells_selected": [
 
     ],
-    "board-vllhvqwpztmjsbh-result_columns_selected": null,
-    "board-vllhvqwpztmjsbh-result_rows_all": [
+    "board-udrztahoztxbdte-result_columns_selected": null,
+    "board-udrztahoztxbdte-result_rows_all": [
       1,
       2,
       3,
@@ -150,16 +178,16 @@
       83,
       84
     ],
-    "board-vllhvqwpztmjsbh-result_rows_current": [
+    "board-udrztahoztxbdte-result_rows_current": [
       1,
       2,
       3,
       4,
       5
     ],
-    "board-vllhvqwpztmjsbh-result_rows_selected": null,
-    "board-vllhvqwpztmjsbh-result_search": "",
-    "board-vllhvqwpztmjsbh-result_state": {
+    "board-udrztahoztxbdte-result_rows_selected": null,
+    "board-udrztahoztxbdte-result_search": "",
+    "board-udrztahoztxbdte-result_state": {
       "start": 0,
       "length": 5,
       "order": [
@@ -238,7 +266,7 @@
         "validation"
       ]
     },
-    "board-dag-edges": "                               id            from              to label arrows\n1 vllhvqwpztmjsbh_udrztahoztxbdte vllhvqwpztmjsbh udrztahoztxbdte  data     to",
+    "board-dag-edges": "                               id            from              to label arrows\n1 udrztahoztxbdte_tkbuyepwijxjfco udrztahoztxbdte tkbuyepwijxjfco  data     to",
     "board-dag-network": {
       "x": {
         "nodes": {
@@ -256,7 +284,12 @@
             "shape": "dot"
           },
           "manipulation": {
-            "enabled": false
+            "enabled": true
+          },
+          "interaction": {
+            "hover": false,
+            "multiselect": true,
+            "zoomSpeed": 1
           },
           "edges": {
             "length": 200
@@ -282,6 +315,21 @@
         "submain": null,
         "footer": null,
         "background": "rgba(0, 0, 0, 0)",
+        "tooltipStay": 300,
+        "tooltipStyle": "position: fixed;visibility:hidden;padding: 5px;white-space: nowrap;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);",
+        "opts_manipulation": {
+          "datacss": "table.legend_table {\n  font-size: 11px;\n  border-width:1px;\n  border-color:#d3d3d3;\n  border-style:solid;\n}\ntable.legend_table td {\n  border-width:1px;\n  border-color:#d3d3d3;\n  border-style:solid;\n  padding: 2px;\n}\ndiv.table_content {\n  width:80px;\n  text-align:center;\n}\ndiv.table_description {\n  width:100px;\n}\n\n.operation {\n  font-size:20px;\n}\n\n.network-popUp {\n  display:none;\n  z-index:299;\n  width:250px;\n  /*height:150px;*/\n  background-color: #f9f9f9;\n  border-style:solid;\n  border-width:1px;\n  border-color: #0d0d0d;\n  padding:10px;\n  text-align: center;\n  position:fixed;\n  top:50%;  \n  left:50%;  \n  margin:-100px 0 0 -100px;  \n\n}",
+          "addNodeCols": [
+            "id",
+            "label"
+          ],
+          "editNodeCols": [
+            "id",
+            "label"
+          ],
+          "tab_add_node": "<span id=\"addnode-operation\" class = \"operation\">node<\/span> <br><table style=\"margin:auto;\"><tr><td>id<\/td><td><input id=\"addnode-id\"  type= \"text\" value=\"new value\"><\/td><\/tr><tr><td>label<\/td><td><input id=\"addnode-label\"  type= \"text\" value=\"new value\"><\/td><\/tr><\/table><input type=\"button\" value=\"save\" id=\"addnode-saveButton\"><\/button><input type=\"button\" value=\"cancel\" id=\"addnode-cancelButton\"><\/button>",
+          "tab_edit_node": "<span id=\"editnode-operation\" class = \"operation\">node<\/span> <br><table style=\"margin:auto;\"><tr><td>id<\/td><td><input id=\"editnode-id\"  type= \"text\" value=\"new value\"><\/td><\/tr><tr><td>label<\/td><td><input id=\"editnode-label\"  type= \"text\" value=\"new value\"><\/td><\/tr><\/table><input type=\"button\" value=\"save\" id=\"editnode-saveButton\"><\/button><input type=\"button\" value=\"cancel\" id=\"editnode-cancelButton\"><\/button>"
+        },
         "highlight": {
           "enabled": false,
           "hoverNearest": false,
@@ -291,13 +339,51 @@
           "labelOnly": true
         },
         "collapse": {
-          "enabled": false,
+          "enabled": true,
           "fit": false,
           "resetHighlight": true,
           "clusterOptions": null,
           "keepCoord": true,
           "labelSuffix": "(cluster)"
+        },
+        "events": {
+          "oncontext": "function(e) {\n              e.event.preventDefault(); // avoid showing web inspector ...\n              Shiny.onInputChange('board-dag-node_right_clicked', e.nodes, {priority: 'event'});\n            }",
+          "hoverNode": "function(e) {\n            Shiny.onInputChange('board-dag-hovered_node', e.node, {priority: 'event'});\n          ;}"
         }
+      },
+      "evals": [
+        "events.oncontext",
+        "events.hoverNode"
+      ],
+      "jsHooks": [
+
+      ],
+      "deps": [
+
+      ]
+    },
+    "board-dag-nodes": "               id         label           title  shape stack icon.code\n1 udrztahoztxbdte dataset_block udrztahoztxbdte circle    NA        NA\n2 tkbuyepwijxjfco  select_block tkbuyepwijxjfco circle    NA        NA",
+    "board-grid": {
+      "x": {
+        "html": "",
+        "options": {
+          "alwaysShowResizeHandle": false,
+          "animate": true,
+          "cellHeight": "140px",
+          "column": 12,
+          "float": true,
+          "disableDrag": false,
+          "disableResize": false,
+          "margin": "10px",
+          "maxRow": 0,
+          "minRow": 0,
+          "removable": true,
+          "resizable": {
+            "handles": "all"
+          },
+          "acceptWidgets": true
+        },
+        "bg": "#e5e7eb"
       },
       "evals": [
 
@@ -309,108 +395,12 @@
 
       ]
     },
-    "board-dag-nodes": "               id         label           title  shape stack icon.code\n1 vllhvqwpztmjsbh dataset_block vllhvqwpztmjsbh circle    NA        NA\n2 udrztahoztxbdte  select_block udrztahoztxbdte circle    NA        NA",
-    "board-node_ui": {
-      "html": "<div class=\"form-group shiny-input-container\">\n  <label class=\"control-label\" id=\"board-vllhvqwpztmjsbh-expression-dataset-label\" for=\"board-vllhvqwpztmjsbh-expression-dataset\">Dataset<\/label>\n  <div>\n    <select id=\"board-vllhvqwpztmjsbh-expression-dataset\" class=\"shiny-input-select\"><option value=\"BOD\">BOD<\/option>\n<option value=\"CO2\" selected>CO2<\/option>\n<option value=\"ChickWeight\">ChickWeight<\/option>\n<option value=\"DNase\">DNase<\/option>\n<option value=\"Formaldehyde\">Formaldehyde<\/option>\n<option value=\"Indometh\">Indometh<\/option>\n<option value=\"InsectSprays\">InsectSprays<\/option>\n<option value=\"LifeCycleSavings\">LifeCycleSavings<\/option>\n<option value=\"Loblolly\">Loblolly<\/option>\n<option value=\"Orange\">Orange<\/option>\n<option value=\"OrchardSprays\">OrchardSprays<\/option>\n<option value=\"PlantGrowth\">PlantGrowth<\/option>\n<option value=\"Puromycin\">Puromycin<\/option>\n<option value=\"Theoph\">Theoph<\/option>\n<option value=\"ToothGrowth\">ToothGrowth<\/option>\n<option value=\"USArrests\">USArrests<\/option>\n<option value=\"USJudgeRatings\">USJudgeRatings<\/option>\n<option value=\"airquality\">airquality<\/option>\n<option value=\"anscombe\">anscombe<\/option>\n<option value=\"attenu\">attenu<\/option>\n<option value=\"attitude\">attitude<\/option>\n<option value=\"beaver1\">beaver1<\/option>\n<option value=\"beaver2\">beaver2<\/option>\n<option value=\"cars\">cars<\/option>\n<option value=\"chickwts\">chickwts<\/option>\n<option value=\"esoph\">esoph<\/option>\n<option value=\"faithful\">faithful<\/option>\n<option value=\"freeny\">freeny<\/option>\n<option value=\"infert\">infert<\/option>\n<option value=\"iris\">iris<\/option>\n<option value=\"longley\">longley<\/option>\n<option value=\"morley\">morley<\/option>\n<option value=\"mtcars\">mtcars<\/option>\n<option value=\"npk\">npk<\/option>\n<option value=\"pressure\">pressure<\/option>\n<option value=\"quakes\">quakes<\/option>\n<option value=\"randu\">randu<\/option>\n<option value=\"rock\">rock<\/option>\n<option value=\"sleep\">sleep<\/option>\n<option value=\"stackloss\">stackloss<\/option>\n<option value=\"swiss\">swiss<\/option>\n<option value=\"trees\">trees<\/option>\n<option value=\"warpbreaks\">warpbreaks<\/option>\n<option value=\"women\">women<\/option><\/select>\n    <script type=\"application/json\" data-for=\"board-vllhvqwpztmjsbh-expression-dataset\" data-nonempty=\"\">{\"plugins\":[\"selectize-plugin-a11y\"]}<\/script>\n  <\/div>\n<\/div>\n<div class=\"datatables html-widget html-widget-output shiny-report-size html-fill-item\" id=\"board-vllhvqwpztmjsbh-result\" style=\"width:100%;height:auto;\"><\/div>",
-      "deps": [
-        {
-          "name": "selectize",
-          "version": "0.15.2",
-          "src": {
-            "href": "selectize-0.15.2"
-          },
-          "meta": null,
-          "script": [
-            "selectize.min.js",
-            "selectize-plugin-a11y.min.js"
-          ],
-          "stylesheet": "selectize.css",
-          "head": null,
-          "attachment": null,
-          "package": null,
-          "all_files": true
-        },
-        {
-          "name": "htmltools-fill",
-          "version": "0.5.8.1",
-          "src": {
-            "href": "htmltools-fill-0.5.8.1"
-          },
-          "meta": null,
-          "script": null,
-          "stylesheet": "fill.css",
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        },
-        {
-          "name": "htmlwidgets",
-          "version": "1.6.4",
-          "src": {
-            "href": "htmlwidgets-1.6.4"
-          },
-          "meta": null,
-          "script": "htmlwidgets.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        },
-        {
-          "name": "datatables-css",
-          "version": "0.0.0",
-          "src": {
-            "href": "datatables-css-0.0.0"
-          },
-          "meta": null,
-          "script": null,
-          "stylesheet": "datatables-crosstalk.css",
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        },
-        {
-          "name": "datatables-binding",
-          "version": "0.33",
-          "src": {
-            "href": "datatables-binding-0.33"
-          },
-          "meta": null,
-          "script": "datatables.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": false
-        },
-        {
-          "name": "jquery",
-          "version": "3.5.1",
-          "src": {
-            "href": "jquery-3.5.1"
-          },
-          "meta": null,
-          "script": "jquery.min.js",
-          "stylesheet": null,
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        },
-        {
-          "name": "crosstalk",
-          "version": "1.2.1",
-          "src": {
-            "href": "crosstalk-1.2.1"
-          },
-          "meta": null,
-          "script": "js/crosstalk.min.js",
-          "stylesheet": "css/crosstalk.min.css",
-          "head": null,
-          "attachment": null,
-          "all_files": true
-        }
-      ]
-    },
-    "board-vllhvqwpztmjsbh-result": {
+    "board-tkbuyepwijxjfco-result": [
+      "",
+      "NULL",
+      "c(\"shiny.silent.error\", \"validation\")"
+    ],
+    "board-udrztahoztxbdte-result": {
       "x": {
         "style": "bootstrap5",
         "filter": "none",
@@ -569,24 +559,26 @@
   },
   "export": {
     "board-blocks": {
-      "vllhvqwpztmjsbh": {
+      "udrztahoztxbdte": {
         "block": {
           "expr_server": [
             "function () ",
             "{",
             "    moduleServer(\"expression\", function(input, output, session) {",
-            "        list(expr = reactive(eval(bquote(as.call(c(as.symbol(\"::\"), ",
-            "            quote(.(pkg)), quote(.(dat)))), list(pkg = as.name(package), ",
-            "            dat = as.name(input$dataset))))), state = list(dataset = reactive(input$dataset), ",
-            "            package = package))",
+            "        list(expr = reactive({",
+            "            eval(bquote(as.call(c(as.symbol(\"::\"), quote(.(pkg)), ",
+            "                quote(.(dat)))), list(pkg = as.name(package), ",
+            "                dat = as.name(input$dataset))))",
+            "        }), state = list(dataset = reactive(input$dataset), package = package))",
             "    })",
             "}"
           ],
           "expr_ui": [
-            "function (ns, dataset, package) ",
+            "function (ns) ",
             "{",
             "    selectInput(inputId = ns(\"expression\", \"dataset\"), label = \"Dataset\", ",
-            "        choices = list_datasets(package), selected = dataset)",
+            "        choices = list_datasets(package), selectize = FALSE, ",
+            "        selected = dataset)",
             "}"
           ]
         },
@@ -605,7 +597,12 @@
             "        .value",
             "    else invisible(.value)",
             "}, observable = <environment>, cacheHint = list(userExpr = {",
-            "    eval(exp$expr(), lapply(data, reval))",
+            "    do.call(req, lapply(exp$state, reval_if))",
+            "    tryCatch(eval(exp$expr(), lapply(data, reval)), error = function(e) {",
+            "        showNotification(conditionMessage(e), duration = NULL, ",
+            "            type = \"error\")",
+            "        NULL",
+            "    })",
             "}), class = \"function\")"
           ],
           "expr": [
@@ -626,29 +623,27 @@
             "        list(pkg = as.name(package), dat = as.name(input$dataset))))",
             "}), class = \"function\")"
           ],
-          "state": {
-            "dataset": [
-              "structure(function () ",
-              "{",
-              "    .dependents$register()",
-              "    if (.invalidated || .running) {",
-              "        ..stacktraceoff..(self$.updateValue())",
-              "    }",
-              "    if (.error) {",
-              "        stop(.value)",
-              "    }",
-              "    if (.visible) ",
-              "        .value",
-              "    else invisible(.value)",
-              "}, observable = <environment>, cacheHint = list(userExpr = {",
-              "    input$dataset",
-              "}), class = \"function\")"
-            ],
-            "package": "datasets"
-          }
-        }
+          "json": [
+            "structure(function () ",
+            "{",
+            "    .dependents$register()",
+            "    if (.invalidated || .running) {",
+            "        ..stacktraceoff..(self$.updateValue())",
+            "    }",
+            "    if (.error) {",
+            "        stop(.value)",
+            "    }",
+            "    if (.visible) ",
+            "        .value",
+            "    else invisible(.value)",
+            "}, observable = <environment>, cacheHint = list(userExpr = {",
+            "    to_json(x, lapply(exp$state, reval_if))",
+            "}), class = \"function\")"
+          ]
+        },
+        "mode": "editor"
       },
-      "udrztahoztxbdte": {
+      "tkbuyepwijxjfco": {
         "block": {
           "expr_server": [
             "function (data) ",
@@ -661,15 +656,15 @@
             "            choices = cols(), selected = sels()))",
             "        list(expr = reactive(bquote(dplyr::select(data, ..(cols)), ",
             "            list(cols = lapply(sels(), as.name)), splice = TRUE)), ",
-            "            state = list(columns = reactive(sels()), choices = reactive(cols())))",
+            "            state = list(columns = reactive(sels())))",
             "    })",
             "}"
           ],
           "expr_ui": [
-            "function (ns, columns, choices = character()) ",
+            "function (ns) ",
             "{",
             "    selectInput(inputId = ns(\"expression\", \"columns\"), label = \"Columns\", ",
-            "        choices = choices, selected = columns, multiple = TRUE)",
+            "        choices = list(), multiple = TRUE)",
             "}"
           ]
         },
@@ -688,7 +683,12 @@
             "        .value",
             "    else invisible(.value)",
             "}, observable = <environment>, cacheHint = list(userExpr = {",
-            "    eval(exp$expr(), lapply(data, reval))",
+            "    do.call(req, lapply(exp$state, reval_if))",
+            "    tryCatch(eval(exp$expr(), lapply(data, reval)), error = function(e) {",
+            "        showNotification(conditionMessage(e), duration = NULL, ",
+            "            type = \"error\")",
+            "        NULL",
+            "    })",
             "}), class = \"function\")"
           ],
           "expr": [
@@ -709,43 +709,25 @@
             "        as.name)), splice = TRUE)",
             "}), class = \"function\")"
           ],
-          "state": {
-            "columns": [
-              "structure(function () ",
-              "{",
-              "    .dependents$register()",
-              "    if (.invalidated || .running) {",
-              "        ..stacktraceoff..(self$.updateValue())",
-              "    }",
-              "    if (.error) {",
-              "        stop(.value)",
-              "    }",
-              "    if (.visible) ",
-              "        .value",
-              "    else invisible(.value)",
-              "}, observable = <environment>, cacheHint = list(userExpr = {",
-              "    sels()",
-              "}), class = \"function\")"
-            ],
-            "choices": [
-              "structure(function () ",
-              "{",
-              "    .dependents$register()",
-              "    if (.invalidated || .running) {",
-              "        ..stacktraceoff..(self$.updateValue())",
-              "    }",
-              "    if (.error) {",
-              "        stop(.value)",
-              "    }",
-              "    if (.visible) ",
-              "        .value",
-              "    else invisible(.value)",
-              "}, observable = <environment>, cacheHint = list(userExpr = {",
-              "    cols()",
-              "}), class = \"function\")"
-            ]
-          }
-        }
+          "json": [
+            "structure(function () ",
+            "{",
+            "    .dependents$register()",
+            "    if (.invalidated || .running) {",
+            "        ..stacktraceoff..(self$.updateValue())",
+            "    }",
+            "    if (.error) {",
+            "        stop(.value)",
+            "    }",
+            "    if (.visible) ",
+            "        .value",
+            "    else invisible(.value)",
+            "}, observable = <environment>, cacheHint = list(userExpr = {",
+            "    to_json(x, lapply(exp$state, reval_if))",
+            "}), class = \"function\")"
+          ]
+        },
+        "mode": "editor"
       }
     },
     "board-network_out": {

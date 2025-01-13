@@ -7,4 +7,5 @@
 #' @import shinyWidgets
 #' @import bslib
 #' @import blockr.core
+#' @import gridstackr
 NULL
