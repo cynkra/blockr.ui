@@ -38,7 +38,7 @@ Imports:
     shinyjs
 Remotes:
     cynkra/blockr.core,
-    cynkra/blockr.dplyr
+    cynkra/blockr.dplyr,
     dreamRs/gridstackr
 Suggests: 
     shinytest2,
