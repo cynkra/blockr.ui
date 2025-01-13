@@ -39,11 +39,11 @@ library(bslib)
 library(shiny)
 
 ui <- page_fillable(
-  board_ui("board")
+  main_ui("board")
 )
 
 server <- function(input, output, session) {
-  board_server("board")
+  main_server("board")
 }
 
 shinyApp(ui, server)

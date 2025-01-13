@@ -2,7 +2,8 @@
 #'
 #' Utility to populate the scoutbar with block
 #' registry information. Create one page per block category
-#' @keywords internal
+#'
+#' @export
 blk_choices <- function() {
   blk_cats <- sort(
     unique(chr_ply(available_blocks(), \(b) attr(b, "category")))
@@ -28,12 +29,79 @@ blk_choices <- function() {
   })
 }
 
-#' The board provides the main ui for blockr2
+#' Board blocks grid
+#'
+#' Default board grid.
+#'
+#' @param ns Namespace
+#' @param width Sidebar width.
+#' @param title Sidebar title
+#' @export
+#' @rdname main
+grid_ui <- function(ns, width = "75%", title = "Dashboard") {
+  sidebar(
+    id = ns("dashboard"),
+    title = title,
+    position = "right",
+    width = width,
+    open = FALSE,
+    gridstackOutput(ns("grid")),
+    verbatimTextOutput(ns("grid_content"))
+  )
+}
+
+#' Block properties sidebar
+#'
+#' Default block sidebar.
+#'
+#' @param ... Extra UI elements.
+#' @rdname main
+#' @export
+properties_ui <- function(..., ns, width = "40%", title = "Block properties") {
+  sidebar(
+    id = ns("properties"),
+    title = title,
+    open = FALSE,
+    width = width,
+    position = "right",
+    div(id = ns("block_container_ui")),
+    ...
+  )
+}
+
+#' Board action bar
+#'
+#' Default action bar.
+#'
+#' @param ... Extra UI elements.
+#' @rdname main
+#' @export
+actions_ui <- function(..., ns) {
+  div(
+    class = "d-flex justify-content-center align-items-center",
+    shinyWidgets::switchInput(
+      ns("mode"),
+      onStatus = "default",
+      onLabel = icon("network-wired"),
+      offLabel = icon("table-columns"),
+      value = TRUE,
+      size = "mini"
+    ),
+    div(
+      class = "btn-group",
+      role = "group",
+      ...
+    )
+  )
+}
+
+#' Main ui for blockr2
 #'
 #' The board is composed of 2 views pointing to the network module
-#' or the dashboard module.
+#' or the grid/dashboard module.
+#'
 #' @param id Unique id.
-#' @rdname board
+#' @rdname main
 #' @export
 main_ui <- function(id) {
   ns <- NS(id)
@@ -42,42 +110,11 @@ main_ui <- function(id) {
 
   layout_sidebar(
     class = "p-0",
-    sidebar = sidebar(
-      id = ns("dashboard"),
-      title = "Dashboard",
-      position = "right",
-      width = "75%",
-      open = FALSE,
-      gridstackOutput(ns("grid")),
-      verbatimTextOutput(ns("grid_content"))
-    ),
+    sidebar = grid_ui(ns),
     layout_sidebar(
       border = FALSE,
-      sidebar = sidebar(
-        id = ns("properties"),
-        title = "Block properties",
-        open = FALSE,
-        width = "40%",
-        position = "right",
-        div(id = ns("block_container_ui")),
-        network_ui$sidebar
-      ),
-      div(
-        class = "d-flex justify-content-center align-items-center",
-        shinyWidgets::switchInput(
-          ns("mode"),
-          onStatus = "default",
-          onLabel = icon("network-wired"),
-          offLabel = icon("table-columns"),
-          value = TRUE,
-          size = "mini"
-        ),
-        div(
-          class = "btn-group",
-          role = "group",
-          network_ui$action_bar
-        )
-      ),
+      sidebar = properties_ui(network_ui$sidebar, ns = ns),
+      actions_ui(network_ui$action_bar, ns = ns),
       network_ui$canvas
     )
   )
@@ -86,7 +123,8 @@ main_ui <- function(id) {
 #' Init connections for a block
 #'
 #' @param blk Block object.
-#' @keywords internal
+#' @export
+#' @rdname connections
 init_connection <- function(blk) {
   stats::setNames(
     lapply(block_inputs(blk), \(x) reactiveVal()),
@@ -99,7 +137,8 @@ init_connection <- function(blk) {
 #' @param con Edge id. Character.
 #' @param edges Edges dataframe.
 #' @param rv Reactivevalues containing connections information.
-#' @keywords internal
+#' @rdname connections
+#' @export
 #' @return A list with new observers and connections reactive values.
 add_connection <- function(con, edges, rv) {
   # edge id is made as follows: <FROM_NODE_ID>_<TO_NODE_ID>
@@ -134,9 +173,8 @@ add_connection <- function(con, edges, rv) {
 
 #' Remove connection between 2 blocks
 #'
-#' @param con Edge id to remove. Character.
-#' @param rv Reactivevalues containing connections information.
-#' @keywords internal
+#' @rdname connections
+#' @export
 remove_connection <- function(con, rv) {
   ids <- strsplit(con, "_")[[1]]
   id_from <- ids[1]
@@ -157,17 +195,12 @@ remove_connection <- function(con, rv) {
   list(obs = rv$obs, connections = rv$connections)
 }
 
-#' Init block ui and server module
+#' Init block UI elements
 #'
-#' @param blk Block object.
-#' @param rv Reactivevalues containing connections information.
-#' @param session Shiny session object.
-#' @keywords internal
-init_block <- function(blk, rv, session) {
-  ns <- session$ns
-  input <- session$input
-  rv$connections[[block_uid(blk)]] <- init_connection(blk)
-
+#' Insert block UI in the DOM.
+#'
+#' @rdname init-block
+init_block_ui <- function(blk, ns) {
   # Block ui needs to come before server is initialized
   # so that the UI is updated
   insertUI(
@@ -187,21 +220,20 @@ init_block <- function(blk, rv, session) {
         )
       )
     ),
+    # DO NOT REMOVE !!!!!!!
     immediate = TRUE
   )
+}
 
-  rv$blocks[[block_uid(blk)]] <- list(
-    # We need the block object to access some of its elements
-    block = blk,
-    # The server is the module from which we can
-    # extract data, ...
-    server = block_server(
-      blk,
-      data = rv$connections[[block_uid(blk)]]
-    ),
-    mode = "editor"
-  )
-
+#' Init block callbacks
+#'
+#' This initializes some observers needed
+#' during the block lifecycle.
+#'
+#' @param input Shiny input object.
+#'
+#' @rdname init-block
+init_block_callbacks <- function(blk, rv, input) {
   # The add to dashboard should not be visible in dashboard mode
   rv$obs[[sprintf("toggle-%s-mode-ui", block_uid(blk))]] <- observeEvent(
     rv$mode,
@@ -230,10 +262,205 @@ init_block <- function(blk, rv, session) {
     }
   )
 
+  rv$obs
+}
+
+#' Init block ui and server module
+#'
+#' Insert all the pieces so that the block works.
+#'
+#' @param blk Block object.
+#' @param rv Reactivevalues containing connections information.
+#' @param session Shiny session object.
+#' @export
+#' @rdname init-block
+init_block <- function(blk, rv, session) {
+  ns <- session$ns
+  input <- session$input
+  rv$connections[[block_uid(blk)]] <- init_connection(blk)
+
+  init_block_ui(blk, ns)
+
+  rv$blocks[[block_uid(blk)]] <- list(
+    # We need the block object to access some of its elements
+    block = blk,
+    # The server is the module from which we can
+    # extract data, ...
+    server = block_server(
+      blk,
+      data = rv$connections[[block_uid(blk)]]
+    ),
+    mode = "editor"
+  )
+
+  rv$obs <- init_block_callbacks(blk, rv, input)
+
   list(connections = rv$connections, blocks = rv$blocks, obs = rv$obs)
 }
 
-#' @rdname board
+#' Manage board sidebars
+#'
+#' @param rv Reactive values.
+#' @param selected Selected node.
+#' @param session Shiny session object.
+#' @keywords internal
+#' @rdname handlers-utils
+manage_sidebars <- function(rv, selected, session) {
+  ns <- session$ns
+
+  # Hide the sidebar toggles to avoid accidental clicks by users
+  # The switching is handles via below observeEvents
+  session$sendCustomMessage("hide-sidebars-toggles", list(ns = ns(NULL)))
+
+  # Toggle sidebars based on the board mode.
+  # Since we render the same UI either in the properties sidebar
+  # or the dashboard sidebar, they can't be opened at the same time.
+  observeEvent(c(rv$mode, selected()), {
+    cond <- if (is.null(selected())) {
+      rv$mode == "network"
+    } else {
+      (rv$mode == "network" && nchar(selected()) > 0)
+    }
+
+    toggle_sidebar(
+      id = "properties",
+      open = cond
+    )
+    toggle_sidebar(
+      id = "dashboard",
+      open = (rv$mode == "dashboard")
+    )
+  })
+}
+
+#' Manage blocks visibility
+#'
+#' @keywords internal
+#' @rdname handlers-utils
+manage_block_visibility <- function(rv, selected) {
+  observeEvent(
+    {
+      req(rv$mode == "network")
+      req(nchar(selected()) > 0)
+    },
+    {
+      to_hide <- which(names(rv$blocks) != selected())
+
+      shinyjs::show(selected())
+      if (length(to_hide)) {
+        lapply(names(rv$blocks)[to_hide], \(el) {
+          shinyjs::hide(el)
+        })
+      }
+    }
+  )
+}
+
+#' Add block to grid
+#'
+#' @rdname board-grid
+add_block_to_grid <- function(blk, rv, session) {
+  ns <- session$ns
+  # Similar gs_proxy_add so that we can
+  # move an element to the grid and call the JS method
+  # with parameters we like.
+  # Restore dimensions and position from
+  # the grid state if this exist for the given block
+
+  # Create default dims in case (new block)
+  pars <- list(
+    id = ns(block_uid(blk)),
+    w = 4,
+    h = 4
+  )
+
+  # If node was in the grid ...
+  if (nrow(rv$grid) && any(grepl(block_uid(blk), rv$grid$id))) {
+    pars <- as.list(
+      rv$grid[rv$grid$id == ns(block_uid(blk)), ]
+    )
+  }
+
+  session$sendCustomMessage(
+    "add-grid-widget",
+    message = list(
+      id = ns("grid"),
+      data = pars
+    )
+  )
+  # The block may be hidden so we need to show it
+  shinyjs::show(block_uid(blk))
+}
+
+#' Remove block from grid
+#'
+#' @rdname board-grid
+remove_block_from_grid <- function(blk, session) {
+  ns <- session$ns
+  # Move items back to properties panel
+  session$sendCustomMessage(
+    "move-widget-to-sidebar",
+    list(
+      id = sprintf("#%s", ns("block_container_ui")),
+      block_id = sprintf("#%s", ns(block_uid(blk)))
+    )
+  )
+}
+
+#' Manage board grid
+#'
+#' @param blk Block object.
+#' @param rv Reactive values.
+#' @param dashboard_blocks List of blocks that should be in the grid.
+#' @param session Shiny session object.
+#' @rdname board-grid
+manage_board_grid <- function(rv, dashboard_blocks, session) {
+  observeEvent(
+    {
+      rv$mode
+    },
+    {
+      if (!length(dashboard_blocks())) return(NULL)
+
+      lapply(dashboard_blocks(), \(blk) {
+        if (rv$mode == "dashboard") {
+          add_block_to_grid(blk$block, rv, session)
+        } else {
+          remove_block_from_grid(blk$block, session)
+        }
+      })
+
+      # Cleanup grid in editor mode
+      if (rv$mode == "network") {
+        gs_proxy_remove_all("grid")
+      }
+    }
+  )
+}
+
+#' Process grid layout
+#'
+#' @param rv Reactive values
+#' @param grid_layout Returned by input$<GRID_ID>_layout.
+#' Contains blocks coordinates, dimensions, ...
+#' @param dashboard blocks Blocks that should be in the grid.
+#' @keywords internal
+process_grid_content <- function(rv, grid_layout, dashboard_blocks) {
+  req(rv$mode == "dashboard")
+  if (is.null(grid_layout)) return(data.frame())
+  if (!length(grid_layout$children) && length(dashboard_blocks()) > 0) {
+    return(rv$grid)
+  }
+  res <- do.call(rbind.data.frame, grid_layout$children)
+  #if (nrow(res) == 0) return(data.frame())
+  res[, !names(res) %in% c("content")]
+}
+
+#' Main server function
+#'
+#' Server module for board.
+#'
+#' @rdname main
 #' @export
 main_server <- function(id) {
   moduleServer(
@@ -262,96 +489,7 @@ main_server <- function(id) {
         if (input$mode) rv$mode <- "network" else rv$mode <- "dashboard"
       })
 
-      # Hide the sidebar toggles to avoid accidental clicks by users
-      # The switching is handles via below observeEvents
-      session$sendCustomMessage("hide-sidebars-toggles", list(ns = ns(NULL)))
-
-      # Toggle sidebars based on the board mode.
-      # Since we render the same UI either in the properties sidebar
-      # or the dashboard sidebar, they can't be opened at the same time.
-      observeEvent(c(rv$mode, network_out$selected_node()), {
-        cond <- if (is.null(network_out$selected_node())) {
-          rv$mode == "network"
-        } else {
-          (rv$mode == "network" && nchar(network_out$selected_node()) > 0)
-        }
-
-        toggle_sidebar(
-          id = "properties",
-          open = cond
-        )
-        toggle_sidebar(
-          id = "dashboard",
-          open = (rv$mode == "dashboard")
-        )
-      })
-
-      # TO DO: make a function ...
-      # Move items between properties tab and grid.
-      # Since we can't rebuilt the UI of each block and preserve its state
-      # we have to move elements fromm one place to another. This also avoids ID
-      # duplication.
-      dashboard_blocks <- reactive({
-        rv$blocks[
-          which(chr_ply(rv$blocks, `[[`, "mode") == "dashboard")
-        ]
-      })
-
-      observeEvent(
-        {
-          rv$mode
-        },
-        {
-          if (!length(dashboard_blocks())) return(NULL)
-
-          lapply(dashboard_blocks(), \(blk) {
-            if (rv$mode == "dashboard") {
-              # Similar gs_proxy_add so that we can
-              # move an element to the grid and call the JS method
-              # with parameters we like.
-              # Restore dimensions and position from
-              # the grid state if this exist for the given block
-              pars <- list(
-                id = ns(block_uid(blk$block)),
-                w = 4,
-                h = 4
-              )
-
-              if (
-                nrow(rv$grid) && any(grepl(block_uid(blk$block), rv$grid$id))
-              ) {
-                pars <- as.list(
-                  rv$grid[rv$grid$id == ns(block_uid(blk$block)), ]
-                )
-              }
-
-              session$sendCustomMessage(
-                "add-grid-widget",
-                message = list(
-                  id = ns("grid"),
-                  data = pars
-                )
-              )
-
-              shinyjs::show(block_uid(blk$block))
-            } else {
-              # Move items back to properties panel
-              session$sendCustomMessage(
-                "move-widget-to-sidebar",
-                list(
-                  id = sprintf("#%s", ns("block_container_ui")),
-                  block_id = sprintf("#%s", ns(block_uid(blk$block)))
-                )
-              )
-            }
-          })
-
-          # Cleanup grid in editor mode
-          if (rv$mode == "network") {
-            gs_proxy_remove_all("grid")
-          }
-        }
-      )
+      manage_sidebars(rv, network_out$selected_node, session)
 
       # DAG representation
       network_out <- network_server("dag", rv)
@@ -392,23 +530,7 @@ main_server <- function(id) {
 
       # When a node is selected, we need to only show the
       # UI of the selected block
-      observeEvent(
-        {
-          req(rv$mode == "network")
-          req(nchar(network_out$selected_node()) > 0)
-        },
-        {
-          selected <- network_out$selected_node()
-          to_hide <- which(names(rv$blocks) != selected)
-
-          shinyjs::show(selected)
-          if (length(to_hide)) {
-            lapply(names(rv$blocks)[to_hide], \(el) {
-              shinyjs::hide(el)
-            })
-          }
-        }
-      )
+      manage_block_visibility(rv, network_out$selected_node)
 
       # Handle node removal
       observeEvent(network_out$removed_node(), {
@@ -439,6 +561,19 @@ main_server <- function(id) {
         bslib::toggle_sidebar("properties", open = FALSE)
       })
 
+      # Move items between properties tab and grid.
+      # Since we can't rebuilt the UI of each block and preserve its state
+      # we have to move elements fromm one place to another. This also avoids ID
+      # duplication.
+      # TO DO: find how to make this a module
+      dashboard_blocks <- reactive({
+        rv$blocks[
+          which(chr_ply(rv$blocks, `[[`, "mode") == "dashboard")
+        ]
+      })
+      manage_board_grid(rv, dashboard_blocks, session)
+
+      # TO DO: make this a module
       # Render grid of block outputs in dashboard mode.
       # We rely on an rv cache to keep track of where a node was before switching from
       # a mode to another. This cache is a list contains bucket and body dataframes with block
@@ -464,16 +599,7 @@ main_server <- function(id) {
 
       # Format layout elements as dataframe for easier use
       grid_content <- reactive({
-        req(rv$mode == "dashboard")
-        if (is.null(input$grid_layout)) return(data.frame())
-        if (
-          !length(input$grid_layout$children) && length(dashboard_blocks()) > 0
-        ) {
-          return(rv$grid)
-        }
-        res <- do.call(rbind.data.frame, input$grid_layout$children)
-        #if (nrow(res) == 0) return(data.frame())
-        res[, !names(res) %in% c("content")]
+        process_grid_content(rv, input$grid_layout, dashboard_blocks)
       })
 
       # Update rv cache to real time change in the grid only
