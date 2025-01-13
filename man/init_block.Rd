@@ -4,14 +4,14 @@
 \alias{init_block}
 \title{Init block ui and server module}
 \usage{
-init_block(blk, rv, ns)
+init_block(blk, rv, session)
 }
 \arguments{
 \item{blk}{Block object.}
 
 \item{rv}{Reactivevalues containing connections information.}
 
-\item{ns}{Namespace.}
+\item{session}{Shiny session object.}
 }
 \description{
 Init block ui and server module
