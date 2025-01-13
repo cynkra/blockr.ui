@@ -6,6 +6,11 @@
 \usage{
 check_connections(x, vals)
 }
+\arguments{
+\item{x}{block.}
+
+\item{vals}{Reactive values.}
+}
 \description{
 Check node connection
 }

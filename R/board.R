@@ -200,7 +200,8 @@ remove_connection <- function(con, rv) {
 #' Insert block UI in the DOM.
 #'
 #' @rdname init-block
-init_block_ui <- function(blk, ns) {
+init_block_ui <- function(blk, session) {
+  ns <- session$ns
   # Block ui needs to come before server is initialized
   # so that the UI is updated
   insertUI(
@@ -275,11 +276,10 @@ init_block_callbacks <- function(blk, rv, input) {
 #' @export
 #' @rdname init-block
 init_block <- function(blk, rv, session) {
-  ns <- session$ns
   input <- session$input
   rv$connections[[block_uid(blk)]] <- init_connection(blk)
 
-  init_block_ui(blk, ns)
+  init_block_ui(blk, session)
 
   rv$blocks[[block_uid(blk)]] <- list(
     # We need the block object to access some of its elements
@@ -443,7 +443,7 @@ manage_board_grid <- function(rv, dashboard_blocks, session) {
 #' @param rv Reactive values
 #' @param grid_layout Returned by input$<GRID_ID>_layout.
 #' Contains blocks coordinates, dimensions, ...
-#' @param dashboard blocks Blocks that should be in the grid.
+#' @param dashboard_blocks Blocks that should be in the grid.
 #' @keywords internal
 process_grid_content <- function(rv, grid_layout, dashboard_blocks) {
   req(rv$mode == "dashboard")

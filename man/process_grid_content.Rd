@@ -12,7 +12,7 @@ process_grid_content(rv, grid_layout, dashboard_blocks)
 \item{grid_layout}{Returned by input$<GRID_ID>_layout.
 Contains blocks coordinates, dimensions, ...}
 
-\item{dashboard}{blocks Blocks that should be in the grid.}
+\item{dashboard_blocks}{Blocks that should be in the grid.}
 }
 \description{
 Process grid layout

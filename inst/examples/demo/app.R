@@ -4,7 +4,10 @@ library(blockr.ui)
 library(bslib)
 library(shiny)
 
-shiny::addResourcePath("assets", "./inst/examples/demo/www")
+shiny::addResourcePath(
+  "assets",
+  system.file("examples/demo/www", package = "blockr.ui")
+)
 
 ui <- page_fillable(
   shinyjs::useShinyjs(),

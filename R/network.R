@@ -1,4 +1,8 @@
-#' @rdname board
+#' Network UI
+#'
+#' @param id Module id.
+#' @param debug Whether to display debug information.
+#' @rdname network
 #' @export
 network_ui <- function(id, debug = TRUE) {
   ns <- NS(id)
@@ -172,6 +176,9 @@ remove_edge <- function(selected, edges) {
 
 #' Check node connection
 #'
+#' @param x block.
+#' @param vals Reactive values.
+#'
 #' @export
 check_connections <- function(x, vals) {
   UseMethod("check_connections", x)
@@ -188,9 +195,10 @@ check_connections.transform_block <- function(x, vals) {
   isTRUE(n_active_connections < length(block_inputs(x)))
 }
 
-#' @rdname board
+#' Network server module
+#'
+#' @rdname network
 #' @param vals Reactive values of parent module.
-#' @param debug Print extra information about the network
 #' @export
 network_server <- function(id, vals, debug = TRUE) {
   moduleServer(id, function(input, output, session) {
@@ -295,7 +303,7 @@ network_server <- function(id, vals, debug = TRUE) {
 
       visNetworkProxy(ns("network")) |>
         visUpdateNodes(rv$nodes) |>
-        visSelectNodes(id = tail(rv$nodes$id, n = 1))
+        visSelectNodes(id = utils::tail(rv$nodes$id, n = 1))
 
       # Handle add_block_to where we also setup the connections
       if (rv$append_block) {
@@ -367,7 +375,7 @@ network_server <- function(id, vals, debug = TRUE) {
           ns(sprintf("%s-%s_input_slot", input$network_selected, slot)),
           sprintf("%s input slot", slot),
           # TO DO: subset choices to avoid the existing connections and the current block
-          choices = setNames(
+          choices = stats::setNames(
             other_nodes()$id,
             paste(other_nodes()$label, other_nodes()$id)
           )
