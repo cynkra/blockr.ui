@@ -41,12 +41,27 @@ network_ui <- function(id, debug = TRUE) {
     ),
     canvas = tagList(
       visNetworkOutput(ns("network")),
+      #dropdownButton(
+      #  inputId = ns("network_options"),
+      #  label = "Network Options",
+      #  icon = icon("cogs"),
+      #  status = "primary",
+      #  circle = FALSE
+      #)
       if (debug) {
-        list(
-          h4("Edges"),
-          verbatimTextOutput(ns("edges")),
-          h4("Nodes"),
-          verbatimTextOutput(ns("nodes"))
+        accordion(
+          id = ns("canvas_debug_accordion"),
+          open = TRUE,
+          class = "accordion-flush",
+          accordion_panel(
+            title = "Debug info",
+            h4("Edges"),
+            verbatimTextOutput(ns("edges")),
+            h4("Nodes"),
+            verbatimTextOutput(ns("nodes")),
+            h4("Events"),
+            verbatimTextOutput(ns("graph_events"))
+          )
         )
       }
     )
@@ -69,8 +84,7 @@ add_node <- function(new, nodes) {
 
   node_data <- data.frame(
     id = block_uid(new),
-    label = attr(new, "class")[1],
-    # color = "red",
+    label = paste(attr(new, "class")[1], "\n id:", block_uid(new)),
     title = block_uid(new),
     shape = "circle",
     stack = NA,
@@ -225,30 +239,61 @@ network_server <- function(id, vals, debug = TRUE) {
         visOptions(
           # To get currently selected node
           nodesIdSelection = TRUE,
-          manipulation = TRUE,
+          manipulation = list(
+            enabled = TRUE,
+            initiallyActive = TRUE,
+            addNode = FALSE,
+            deleteNode = FALSE,
+            deleteEdge = FALSE,
+            editEdge = FALSE
+          ),
           collapse = TRUE
         ) |>
-        visEdges(length = 200) |>
+        visEdges(length = 200, smooth = FALSE) |>
         visEvents(
           oncontext = sprintf(
             "function(e) {
               e.event.preventDefault(); // avoid showing web inspector ...
-              Shiny.onInputChange('%s', e.nodes, {priority: 'event'});
+              Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
             }",
             ns("node_right_clicked")
           ),
-          hoverNode = sprintf(
+          selectEdge = sprintf(
             "function(e) {
-            Shiny.onInputChange('%s', e.node, {priority: 'event'});
-          ;}",
-            ns("hovered_node")
+              console.log(e);
+              //Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
+            }",
+            ns("selected_edge")
           ),
+          controlNodeDragEnd = sprintf(
+            "function(e) {
+            Shiny.setInputValue('%s', e.controlEdge);
+          ;}",
+            ns("new_edge")
+          ) #,
+          #hoverNode = sprintf(
+          #  "function(e) {
+          #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
+          #;}",
+          #  ns("hovered_node")
+          #),
           #blurNode = sprintf(
           #  "function(e) {
-          #  Shiny.onInputChange('%s', e.node, {priority: 'event'});
+          #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
           #;}",
           #  ns("hovered_node")
           #)
+        ) |>
+        #visConfigure(
+        #  enabled = TRUE,
+        #  filter = list("nodes"),
+        #  container = sprintf("dropdown-menu-%s", ns("network_options"))
+        #) |>
+        visPhysics(
+          solver = "repulsion",
+          stabilization = FALSE,
+          # Make sure nodes are not too far away when created ...
+          repulsion = list(centralGravity = 0.8, nodeDistance = 150)
         )
     })
 
@@ -256,13 +301,78 @@ network_server <- function(id, vals, debug = TRUE) {
     #  showNotification(input$hovered_node)
     #})
 
-    observeEvent(input$node_right_clicked, {
-      showNotification(input$node_right_clicked)
-    })
+    #observeEvent(input$node_right_clicked, {
+    #  showNotification(input$node_right_clicked)
+    #})
+
+    # Tweaks UI so that edge mode appears when it should.
+    # Also workaround a bug that always activate editNode by default.
+    observeEvent(
+      {
+        req(input$network_initialized)
+        c(rv$nodes, input$network_selected, input$network_graphChange)
+      },
+      {
+        session$sendCustomMessage(
+          "toggle-manipulation-ui",
+          list(
+            value = nrow(rv$nodes) > 1
+          )
+        )
+      }
+    )
+    # TODO: implement edge creation
+    # This is different from add_to. Ideally we can drag from one node
+    # to another to connect them.
+    # TODO: we need a validation mechanism to allow connections or not...
+    # Rules:
+    # - The dragged target must exist.
+    # - We can't drag the edge on the current selected node (avoid loops).
+    # - data block can't receive input data. Transform block receive
+    # as many input data as slot they have (1 for select, 2 for join, ...).
+    observeEvent(
+      {
+        input$new_edge
+        req(input$new_edge$from)
+      },
+      {
+        # Rule 1
+        if (is.null(input$new_edge$to)) {
+          showNotification(
+            "Unable to connect node. Please select a valid target.",
+            type = "error"
+          )
+          return(NULL)
+        }
+
+        # Rule 2
+        if (input$new_edge$from == input$new_edge$to) {
+          showNotification(
+            "Can't create a connection on the same block.",
+            type = "error"
+          )
+          return(NULL)
+        }
+
+        # Rule 2.
+        # TODO: ultimately we create S3 method
+        if (inherits(vals$blocks[[input$new_edge$to]]$block, "data_block")) {
+          showNotification(
+            "Data blocks don't accept any incoming connection (data input).",
+            type = "error"
+          )
+          # Recover the addEdge with input$network_graphChange and remove it right away.
+          visNetworkProxy(ns("network")) |>
+            visRemoveEdges(input$network_graphChange$id)
+          return(NULL)
+        }
+      }
+    )
 
     if (debug) {
       output$edges <- renderPrint(rv$edges)
       output$nodes <- renderPrint(rv$nodes)
+      output$graph_events <- renderPrint(input$network_graphChange)
     }
 
     # Trigger add block
@@ -423,6 +533,8 @@ network_server <- function(id, vals, debug = TRUE) {
       removeModal()
     })
 
+    # TODO: capture nodes position for serialization
+
     # TODO: handle node update. Change of color due to block validity change ...
     # This needs input parameter from the parent module which contains
     # the list of block server functions.
@@ -448,10 +560,6 @@ network_server <- function(id, vals, debug = TRUE) {
       visNetworkProxy(ns("network")) |>
         visRemoveNodes(input$network_selected)
     })
-
-    # TODO: implement edge creation
-    # This is different from add_to. Ideally we can drag from one node
-    # to another to connect them.
 
     # TODO: implement remove edge (user selects the edge).
 
