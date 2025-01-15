@@ -168,7 +168,7 @@ add_connection <- function(con, edges, rv) {
     rv$connections[[to_id]][[con_label]](rv$blocks[[from_id]]$server$result())
   })
 
-  list(obs = rv$obs, connections = rv$connections)
+  rv
 }
 
 #' Remove connection between 2 blocks
@@ -192,7 +192,7 @@ remove_connection <- function(con, rv) {
     rv$obs[[el]] <- NULL
   }
 
-  list(obs = rv$obs, connections = rv$connections)
+  rv
 }
 
 #' Init block UI elements
@@ -502,9 +502,7 @@ main_server <- function(id) {
         # In some cases like the join block, multiple edges can
         # be added
         for (edge in network_out$added_edge()) {
-          res <- add_connection(edge, network_out$edges(), rv)
-          rv$obs <- res$obs
-          rv$connections <- res$connections
+          rv <- add_connection(edge, network_out$edges(), rv)
         }
       })
 
@@ -514,18 +512,13 @@ main_server <- function(id) {
         # As removing a node may remove multiple edges ...
         # we need to loop over ...
         for (con in network_out$removed_edge()) {
-          res <- remove_connection(con, rv)
-          rv$obs <- res$obs
-          rv$connections <- res$connections
+          rv <- remove_connection(con, rv)
         }
       })
 
       # Call block server module when node is added
       observeEvent(network_out$added_node(), {
-        res <- init_block(network_out$added_node(), rv, session)
-        rv$connections <- res$connections
-        rv$blocks <- res$blocks
-        rv$obs <- res$obs
+        rv <- init_block(network_out$added_node(), rv, session)
       })
 
       # When a node is selected, we need to only show the
