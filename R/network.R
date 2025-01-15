@@ -330,6 +330,7 @@ network_server <- function(id, vals, debug = TRUE) {
     # - We can't drag the edge on the current selected node (avoid loops).
     # - data block can't receive input data. Transform block receive
     # as many input data as slot they have (1 for select, 2 for join, ...).
+    # - A node that has already all input slots connected can't received any incoming connection.
     observeEvent(
       {
         input$new_edge
@@ -354,7 +355,7 @@ network_server <- function(id, vals, debug = TRUE) {
           return(NULL)
         }
 
-        # Rule 2.
+        # Rule 3.
         # TODO: ultimately we create S3 method
         if (inherits(vals$blocks[[input$new_edge$to]]$block, "data_block")) {
           showNotification(
@@ -366,6 +367,32 @@ network_server <- function(id, vals, debug = TRUE) {
             visRemoveEdges(input$network_graphChange$id)
           return(NULL)
         }
+
+        # Rule 4: need to track the available connections for a given node
+        to_blk <- vals$blocks[[input$new_edge$to]]$block
+        if (!check_connections(to_blk, vals)) {
+          showNotification(
+            "The target block can't receive anymore data input.",
+            type = "error"
+          )
+          visNetworkProxy(ns("network")) |>
+            visRemoveEdges(input$network_graphChange$id)
+          return(NULL)
+        }
+
+        # Create the connection
+        edges <- add_edge(
+          from = input$new_edge$from,
+          to = input$new_edge$to,
+          # TO DO: the connection must be made to the latest available input slot
+          label = block_inputs(to_blk)[[1]],
+          edges = rv$edges
+        )
+        rv$added_edge <- edges$added
+        rv$edges <- edges$res
+
+        visNetworkProxy(ns("network")) |>
+          visUpdateEdges(rv$edges)
       }
     )
 
