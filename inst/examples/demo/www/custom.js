@@ -9,6 +9,27 @@ $(function () {
     return widgetObj;
   }
 
+  Shiny.addCustomMessageHandler("bind-network-keyboard-shortcuts", (m) => {
+    $(document).on("keydown", (e) => {
+      // Shift + E
+      if (e.shiftKey && e.keyCode == 69) {
+        HTMLWidgets.find(m.id).network.addEdgeMode();
+        $("button.vis-back").hide();
+        $(".vis-separator-line").hide();
+      }
+    })
+
+    $(document).on("keydown", (e) => {
+      // esc
+      if (e.key === "Escape") {
+        HTMLWidgets.find(m.id).network.enableEditMode();
+        $(".vis-close").hide();
+        $(".vis-edit").hide();
+        $(".vis-separator-line").hide();
+      }
+    })
+  })
+
   // Handle manipulation ui visibility
   Shiny.addCustomMessageHandler("toggle-manipulation-ui", (m) => {
     $(".vis-close").hide();

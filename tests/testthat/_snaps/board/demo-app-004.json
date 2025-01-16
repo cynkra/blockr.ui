@@ -2,6 +2,7 @@
   "input": {
     "board-dag-add_block": 1,
     "board-dag-append_block": 0,
+    "board-dag-canvas_debug_accordion": "Debug info",
     "board-dag-network_initialized": true,
     "board-dag-network_selected": "udrztahoztxbdte",
     "board-dag-remove": 0,
@@ -264,6 +265,7 @@
       ]
     },
     "board-dag-edges": "data frame with 0 columns and 0 rows",
+    "board-dag-graph_events": "NULL",
     "board-dag-network": {
       "x": {
         "nodes": {
@@ -281,7 +283,12 @@
             "shape": "dot"
           },
           "manipulation": {
-            "enabled": true
+            "enabled": true,
+            "initiallyActive": true,
+            "addNode": false,
+            "deleteNode": false,
+            "deleteEdge": false,
+            "editEdge": false
           },
           "interaction": {
             "hover": false,
@@ -289,7 +296,16 @@
             "zoomSpeed": 1
           },
           "edges": {
-            "length": 200
+            "length": 200,
+            "smooth": false
+          },
+          "physics": {
+            "solver": "repulsion",
+            "stabilization": false,
+            "repulsion": {
+              "centralGravity": 0.8,
+              "nodeDistance": 150
+            }
           }
         },
         "groups": null,
@@ -344,13 +360,15 @@
           "labelSuffix": "(cluster)"
         },
         "events": {
-          "oncontext": "function(e) {\n              e.event.preventDefault(); // avoid showing web inspector ...\n              Shiny.onInputChange('board-dag-node_right_clicked', e.nodes, {priority: 'event'});\n            }",
-          "hoverNode": "function(e) {\n            Shiny.onInputChange('board-dag-hovered_node', e.node, {priority: 'event'});\n          ;}"
+          "oncontext": "function(e) {\n              e.event.preventDefault(); // avoid showing web inspector ...\n              Shiny.setInputValue('board-dag-node_right_clicked', e.nodes, {priority: 'event'});\n            }",
+          "selectEdge": "function(e) {\n              Shiny.setInputValue('board-dag-selected_edge', e.edges[0], {priority: 'event'});\n            }",
+          "controlNodeDragEnd": "function(e) {\n            console.log(e.event.target.offsetParent.className);\n            Shiny.setInputValue('board-dag-new_edge', e.controlEdge);\n            //window.HTMLWidgets.find(`#$('.${e.event.target.offsetParent.className}').parent().parent().parent().attr('id')`)\n          ;}"
         }
       },
       "evals": [
         "events.oncontext",
-        "events.hoverNode"
+        "events.selectEdge",
+        "events.controlNodeDragEnd"
       ],
       "jsHooks": [
 
@@ -359,7 +377,7 @@
 
       ]
     },
-    "board-dag-nodes": "               id         label           title  shape stack icon.code\n1 udrztahoztxbdte dataset_block udrztahoztxbdte circle    NA        NA",
+    "board-dag-nodes": "               id                                label           title  shape\n1 udrztahoztxbdte dataset_block \\n id: udrztahoztxbdte udrztahoztxbdte circle\n  stack icon.code\n1    NA        NA",
     "board-grid": {
       "x": {
         "html": "",

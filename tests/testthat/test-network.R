@@ -36,8 +36,13 @@ testServer(network_server, {
   expect_equal(
     names(session$returned),
     c(
-      "edges", "nodes", "selected_node", "added_node",
-      "removed_node", "added_edge", "removed_edge"
+      "edges",
+      "nodes",
+      "selected_node",
+      "added_node",
+      "removed_node",
+      "added_edge",
+      "removed_edge"
     )
   )
   invisible(
@@ -54,26 +59,31 @@ testServer(network_server, {
 })
 
 test_that("Add nodes works", {
-  nodes <- data.frame()
-  expect_error(add_node(list(), nodes))
+  rv <- list(nodes = data.frame())
+  expect_error(add_node(list(), rv))
 
   blk <- new_dataset_block()
   expect_error((add_node(blk, list())))
-  nodes <- add_node(blk, nodes)
+  rv <- add_node(blk, rv)
 
-  expect_s3_class(nodes, "data.frame")
-  expect_identical(nodes$id, block_uid(blk))
+  expect_s3_class(rv$nodes, "data.frame")
+  expect_identical(rv$nodes$id, block_uid(blk))
 })
 
 test_that("Remove block works", {
-  expect_error(remove_node("www", data.frame()))
+  expect_error(remove_node("www", list()))
+  rv <- list(nodes = data.frame())
+  rv <- add_node(new_dataset_block(), rv)
   expect_error(
-    remove_node(character(), add_node(new_dataset_block(), data.frame()))
+    remove_node(character(), rv)
   )
-  nodes <- add_node(new_dataset_block(), data.frame())
-  nodes <- remove_node(nodes[1, "id"], nodes)
-  expect_error(remove_node("www", nodes))
-  expect_true(nrow(nodes) == 0)
+  rv <- add_node(new_dataset_block(), rv)
+  rv <- remove_node(rv$nodes[1, "id"], rv)
+  expect_true(nrow(rv$nodes) == 1)
+
+  rv <- add_node(new_dataset_block(), rv)
+  expect_error(remove_node("www", rv))
+  expect_error(remove_node(1, rv))
 })
 
 test_that("Network ui", {
@@ -82,21 +92,27 @@ test_that("Network ui", {
 })
 
 test_that("Add edge works", {
-  expect_error(add_edge("1", "2", list()))
-  res <- add_edge("1", "2", "plop", data.frame())
-  expect_type(res, "list")
-  expect_length(res, 2)
-  expect_s3_class(res$res, "data.frame")
-  expect_identical(nrow(res$res), 1L)
-  expect_type(res$added, "character")
+  expect_error(add_edge("1", "2", "plop", list()))
+  expect_error(add_edge(1, "2", "plop", list(edges = data.frame())))
+  expect_error(add_edge("1", 2, "plop", list(edges = data.frame())))
+  rv <- list(edges = data.frame())
+  rv <- add_edge("1", "2", "plop", rv)
+  expect_type(rv, "list")
+  expect_length(rv, 2)
+  expect_s3_class(rv$edges, "data.frame")
+  expect_identical(nrow(rv$edges), 1L)
+  expect_type(rv$added_edge, "character")
 })
 
 test_that("Remove edge works", {
-  expect_error(remove_edge("1", list()))
-  expect_error(remove_edge("1", data.frame()))
-  edges <- add_edge("1", "2", "test", data.frame())
-  expect_error(remove_edge("", edges$res))
-  res <- remove_edge("1_2", edges$res)
-  expect_true(nrow(res$res) == 0)
-  expect_identical(res$removed, 1L)
+  expect_error(remove_edge("1", list(edges = NULL)))
+  expect_error(remove_edge("1", list(edges = data.frame())))
+
+  rv <- list(edges = data.frame())
+  rv <- add_edge("1", "2", "test", rv)
+  expect_error(remove_edge("", rv))
+  expect_error(remove_edge(2, rv))
+  rv <- remove_edge("1_2", rv)
+  expect_true(nrow(rv$edges) == 0)
+  expect_identical(rv$removed_edge, 1L)
 })

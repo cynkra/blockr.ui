@@ -4,12 +4,12 @@
 \alias{remove_edge}
 \title{Remove an edge}
 \usage{
-remove_edge(selected, edges)
+remove_edge(selected, rv)
 }
 \arguments{
 \item{selected}{UID (character string) of edge to remove.}
 
-\item{edges}{dataframe representing edges data.}
+\item{rv}{Reactive values containing dataframe representing edges data.}
 }
 \description{
 Update dataframe for visNetwork graph

@@ -4,12 +4,12 @@
 \alias{remove_node}
 \title{Remove a node}
 \usage{
-remove_node(selected, nodes)
+remove_node(selected, rv)
 }
 \arguments{
 \item{selected}{UID (character string) of node to remove.}
 
-\item{nodes}{dataframe representing nodes data.}
+\item{rv}{Reactive values with dataframe representing nodes data.}
 }
 \description{
 Update dataframe for visNetwork graph

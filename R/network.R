@@ -68,166 +68,6 @@ network_ui <- function(id, debug = TRUE) {
   )
 }
 
-#' Add a node
-#'
-#' Update dataframe for visNetwork graph
-#'
-#' @param new New block to insert. Must be a valid
-#' block registry entry
-#' @param nodes dataframe representing network data.
-#' @keywords internal
-add_node <- function(new, nodes) {
-  stopifnot(
-    is_block(new),
-    is.data.frame(nodes)
-  )
-
-  node_data <- data.frame(
-    id = block_uid(new),
-    label = paste(attr(new, "class")[1], "\n id:", block_uid(new)),
-    title = block_uid(new),
-    shape = "circle",
-    stack = NA,
-    icon.code = NA
-  )
-
-  if (nrow(nodes) == 0) {
-    node_data
-  } else {
-    rbind(
-      nodes,
-      node_data
-    )
-  }
-}
-
-#' Add a edge
-#'
-#' Update dataframe for visNetwork graph
-#'
-#' @param from Node id.
-#' @param to Node it.
-#' @param label Edge label. This is useful to map the existing connected
-#' nodes to the input slots of the receiving node (for instance a join block).
-#' @param edges dataframe representing network data.
-#' @keywords internal
-add_edge <- function(from, to, label, edges) {
-  stopifnot(
-    is.character(from),
-    is.character(to),
-    is.data.frame(edges)
-  )
-
-  id <- sprintf("%s_%s", from, to)
-  edge_data <- data.frame(
-    # ID is necessary to avoid duplicating edges with visUpdateEdges
-    id = id,
-    from = from,
-    to = to,
-    label = label,
-    arrows = "to"
-  )
-
-  if (nrow(edges) == 0) {
-    list(res = edge_data, added = id)
-  } else {
-    list(
-      res = rbind(
-        edges,
-        edge_data
-      ),
-      added = id
-    )
-  }
-}
-
-#' Remove a node
-#'
-#' Update dataframe for visNetwork graph
-#'
-#' @param selected UID (character string) of node to remove.
-#' @param nodes dataframe representing nodes data.
-#' @keywords internal
-remove_node <- function(selected, nodes) {
-  stopifnot(
-    is.data.frame(nodes),
-    nrow(nodes) > 0,
-    is.character(selected),
-    nchar(selected) > 0
-  )
-
-  to_remove <- which(nodes$id == selected)
-  if (length(to_remove) == 0) {
-    stop(sprintf("Can't find node with id %s in the data", selected))
-  }
-  nodes[-to_remove, ]
-}
-
-#' Remove an edge
-#'
-#' Update dataframe for visNetwork graph
-#'
-#' @param selected UID (character string) of edge to remove.
-#' @param edges dataframe representing edges data.
-#' @keywords internal
-remove_edge <- function(selected, edges) {
-  stopifnot(
-    is.data.frame(edges),
-    nrow(edges) > 0,
-    is.character(selected),
-    nchar(selected) > 0
-  )
-  to_remove <- grep(selected, edges$id)
-  if (length(to_remove) == 0) {
-    stop(sprintf("Can't find edge with id %s in the data", selected))
-  }
-
-  list(
-    res = edges[-to_remove, ],
-    removed = to_remove
-  )
-}
-
-#' List node connections
-#'
-#' @param x block.
-#' @param vals Reactive values.
-#'
-list_empty_connections <- function(x, vals) {
-  UseMethod("list_empty_connections", x)
-}
-
-#' @export
-list_empty_connections.data_block <- function(x, vals) {
-  NULL
-}
-
-#' @export
-list_empty_connections.block <- function(x, vals) {
-  lgl_ply(vals$connections[[block_uid(x)]], \(slot) is.null(slot()))
-}
-
-#' Check node connection
-#'
-#' @param x block.
-#' @param vals Reactive values.
-#'
-#' @export
-check_connections <- function(x, vals) {
-  UseMethod("check_connections", x)
-}
-
-#' @export
-check_connections.data_block <- function(x, vals) {
-  FALSE
-}
-
-#' @export
-check_connections.block <- function(x, vals) {
-  n_active_connections <- sum(!list_empty_connections(x, vals))
-  isTRUE(n_active_connections < length(block_inputs(x)))
-}
-
 #' Network server module
 #'
 #' @rdname network
@@ -279,14 +119,15 @@ network_server <- function(id, vals, debug = TRUE) {
           ),
           selectEdge = sprintf(
             "function(e) {
-              console.log(e);
-              //Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
+              Shiny.setInputValue('%s', e.edges[0], {priority: 'event'});
             }",
             ns("selected_edge")
           ),
           controlNodeDragEnd = sprintf(
             "function(e) {
+            console.log(e.event.target.offsetParent.className);
             Shiny.setInputValue('%s', e.controlEdge);
+            //window.HTMLWidgets.find(`#$('.${e.event.target.offsetParent.className}').parent().parent().parent().attr('id')`)
           ;}",
             ns("new_edge")
           ) #,
@@ -316,6 +157,10 @@ network_server <- function(id, vals, debug = TRUE) {
         )
     })
 
+    #observeEvent(input$network_selected, {
+    #  browser()
+    #})
+
     #observeEvent(input$hovered_node, {
     #  showNotification(input$hovered_node)
     #})
@@ -323,6 +168,13 @@ network_server <- function(id, vals, debug = TRUE) {
     #observeEvent(input$node_right_clicked, {
     #  showNotification(input$node_right_clicked)
     #})
+
+    # Bind shift+e and esc to toggle the add edge mode
+    # on keyboard events
+    session$sendCustomMessage(
+      "bind-network-keyboard-shortcuts",
+      list(id = sprintf("#%s", ns("network")))
+    )
 
     # Tweaks UI so that edge mode appears when it should.
     # Also workaround a bug that always activate editNode by default.
@@ -401,15 +253,13 @@ network_server <- function(id, vals, debug = TRUE) {
 
         # Create the connection
         con_idx <- which(list_empty_connections(to_blk, vals) == TRUE)[[1]]
-        edges <- add_edge(
+        rv <- add_edge(
           from = input$new_edge$from,
           to = input$new_edge$to,
           # TO DO: the connection must be made to the latest available input slot
           label = block_inputs(to_blk)[[con_idx]],
-          edges = rv$edges
+          rv = rv
         )
-        rv$added_edge <- edges$added
-        rv$edges <- edges$res
 
         visNetworkProxy(ns("network")) |>
           visUpdateEdges(rv$edges)
@@ -456,7 +306,7 @@ network_server <- function(id, vals, debug = TRUE) {
       rv$new_block <- create_block(input$scoutbar)
 
       # Update node vals for the network rendering
-      rv$nodes <- add_node(rv$new_block, rv$nodes)
+      rv <- add_node(rv$new_block, rv)
 
       visNetworkProxy(ns("network")) |>
         visUpdateNodes(rv$nodes) |>
@@ -464,14 +314,12 @@ network_server <- function(id, vals, debug = TRUE) {
 
       # Handle add_block_to where we also setup the connections
       if (rv$append_block) {
-        edges <- add_edge(
+        rv <- add_edge(
           from = input$network_selected,
           to = block_uid(rv$new_block),
           label = block_inputs(rv$new_block)[[1]],
-          edges = rv$edges
+          rv = rv
         )
-        rv$added_edge <- edges$added
-        rv$edges <- edges$res
 
         visNetworkProxy(ns("network")) |>
           visUpdateEdges(rv$edges)
@@ -589,13 +437,11 @@ network_server <- function(id, vals, debug = TRUE) {
     # Remove a block
     # TODO: how do we handle multi block removal?
     observeEvent(input$remove, {
-      rv$nodes <- remove_node(input$network_selected, rv$nodes)
+      rv <- remove_node(input$network_selected, rv)
       if (nrow(rv$edges) > 0) {
         tryCatch(
           {
-            edges <- remove_edge(input$network_selected, rv$edges)
-            rv$removed_edge <- rv$edges[edges$removed, "id"]
-            rv$edges <- edges$res
+            rv <- remove_edge(input$network_selected, rv)
           },
           error = function(e) {
             message(
@@ -609,6 +455,25 @@ network_server <- function(id, vals, debug = TRUE) {
     })
 
     # TODO: implement remove edge (user selects the edge).
+    observeEvent(input$selected_edge, {
+      showModal(
+        modalDialog(
+          title = sprintf("Edge %s", input$selected_edge),
+          actionButton(ns("remove_edge"), "Remove"),
+        )
+      )
+    })
+
+    observeEvent(input$remove_edge, {
+      rv <- remove_edge(input$selected_edge, rv)
+
+      # TO DO: check why the disconnected node still get input data
+      # from the parent (probably because links are not refreshed ...)
+      visNetworkProxy(ns("network")) |>
+        visRemoveEdges(input$selected_edge)
+
+      removeModal()
+    })
 
     # The network module must return the edge representation
     # since they are created from the network and needed in other parts,

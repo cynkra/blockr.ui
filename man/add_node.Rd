@@ -4,13 +4,13 @@
 \alias{add_node}
 \title{Add a node}
 \usage{
-add_node(new, nodes)
+add_node(new, rv)
 }
 \arguments{
 \item{new}{New block to insert. Must be a valid
 block registry entry}
 
-\item{nodes}{dataframe representing network data.}
+\item{rv}{Reactive values with dataframe representing network data.}
 }
 \description{
 Update dataframe for visNetwork graph
