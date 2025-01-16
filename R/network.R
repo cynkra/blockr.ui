@@ -188,6 +188,25 @@ remove_edge <- function(selected, edges) {
   )
 }
 
+#' List node connections
+#'
+#' @param x block.
+#' @param vals Reactive values.
+#'
+list_empty_connections <- function(x, vals) {
+  UseMethod("list_empty_connections", x)
+}
+
+#' @export
+list_empty_connections.data_block <- function(x, vals) {
+  NULL
+}
+
+#' @export
+list_empty_connections.block <- function(x, vals) {
+  lgl_ply(vals$connections[[block_uid(x)]], \(slot) is.null(slot()))
+}
+
 #' Check node connection
 #'
 #' @param x block.
@@ -197,15 +216,15 @@ remove_edge <- function(selected, edges) {
 check_connections <- function(x, vals) {
   UseMethod("check_connections", x)
 }
+
 #' @export
 check_connections.data_block <- function(x, vals) {
   FALSE
 }
+
 #' @export
-check_connections.transform_block <- function(x, vals) {
-  n_active_connections <- sum(
-    !lgl_ply(vals$connections[[block_uid(x)]], \(slot) is.null(slot()))
-  )
+check_connections.block <- function(x, vals) {
+  n_active_connections <- sum(!list_empty_connections(x, vals))
   isTRUE(n_active_connections < length(block_inputs(x)))
 }
 
@@ -381,11 +400,12 @@ network_server <- function(id, vals, debug = TRUE) {
         }
 
         # Create the connection
+        con_idx <- which(list_empty_connections(to_blk, vals) == TRUE)[[1]]
         edges <- add_edge(
           from = input$new_edge$from,
           to = input$new_edge$to,
           # TO DO: the connection must be made to the latest available input slot
-          label = block_inputs(to_blk)[[1]],
+          label = block_inputs(to_blk)[[con_idx]],
           edges = rv$edges
         )
         rv$added_edge <- edges$added
