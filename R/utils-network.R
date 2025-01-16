@@ -18,7 +18,9 @@ add_node <- function(new, rv) {
     title = block_uid(new),
     shape = "circle",
     stack = NA,
-    icon.code = NA
+    icon.code = NA,
+    x = NA,
+    y = NA
   )
 
   rv$nodes <- if (nrow(rv$nodes) == 0) {

@@ -10,10 +10,13 @@ $(function () {
   }
 
   Shiny.addCustomMessageHandler("bind-network-keyboard-shortcuts", (m) => {
+
+    let widget = HTMLWidgets.find(m.id).network;
+
     $(document).on("keydown", (e) => {
       // Shift + E
       if (e.shiftKey && e.keyCode == 69) {
-        HTMLWidgets.find(m.id).network.addEdgeMode();
+        widget.addEdgeMode();
         $("button.vis-back").hide();
         $(".vis-separator-line").hide();
       }
@@ -22,7 +25,8 @@ $(function () {
     $(document).on("keydown", (e) => {
       // esc
       if (e.key === "Escape") {
-        HTMLWidgets.find(m.id).network.enableEditMode();
+        widget.disableEditMode();
+        widget.enableEditMode();
         $(".vis-close").hide();
         $(".vis-edit").hide();
         $(".vis-separator-line").hide();

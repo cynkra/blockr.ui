@@ -116,6 +116,14 @@ network_server <- function(id, vals, debug = TRUE) {
         ) |>
         visEdges(length = 200, smooth = FALSE) |>
         visEvents(
+          select = sprintf(
+            "function(e) {
+              if (e.nodes.length > 1) {
+                Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
+              }
+            }",
+            ns("selected_nodes")
+          ),
           oncontext = sprintf(
             "function(e) {
               e.event.preventDefault(); // avoid showing web inspector ...
@@ -131,17 +139,15 @@ network_server <- function(id, vals, debug = TRUE) {
           ),
           controlNodeDragEnd = sprintf(
             "function(e) {
-
-            console.log(e);
-            Shiny.setInputValue('%s', e.controlEdge);
-            let target = $(`.${e.event.target.offsetParent.className}`)
-              .closest('.visNetwork')
-              .attr('id');
-            // Re-enable add edge mode: TO DO -> seems to break input$network_graphChange
-            //setTimeout(() => {
-            //  window.HTMLWidgets.find(`#${target}`).network.addEdgeMode();
-            //}, 500);
-          ;}",
+              Shiny.setInputValue('%s', e.controlEdge, {priority: 'event'});
+              let target = $(`.${e.event.target.offsetParent.className}`)
+                .closest('.visNetwork')
+                .attr('id');
+              // Re-enable add edge mode
+              setTimeout(() => {
+                window.HTMLWidgets.find(`#${target}`).network.addEdgeMode();
+              }, 500);
+            ;}",
             ns("new_edge")
           ) #,
           #hoverNode = sprintf(
@@ -163,17 +169,23 @@ network_server <- function(id, vals, debug = TRUE) {
         #  container = sprintf("dropdown-menu-%s", ns("network_options"))
         #) |>
         visPhysics(
-          enabled = FALSE #,
-          #solver = "repulsion",
-          #stabilization = FALSE,
+          solver = "repulsion",
+          stabilization = FALSE,
           ## Make sure nodes are not too far away when created ...
-          #repulsion = list(centralGravity = 0.8, nodeDistance = 150)
+          repulsion = list(
+            centralGravity = 0.8,
+            nodeDistance = 150
+          )
         )
     })
 
     #observeEvent(input$network_selected, {
     #  browser()
     #})
+
+    observeEvent(input$selected_nodes, {
+      browser()
+    })
 
     #observeEvent(input$hovered_node, {
     #  showNotification(input$hovered_node)
@@ -185,10 +197,18 @@ network_server <- function(id, vals, debug = TRUE) {
 
     # Bind shift+e and esc to toggle the add edge mode
     # on keyboard events
-    session$sendCustomMessage(
-      "bind-network-keyboard-shortcuts",
-      list(id = sprintf("#%s", ns("network")))
-    )
+    observeEvent(req(input$network_initialized), {
+      session$sendCustomMessage(
+        "bind-network-keyboard-shortcuts",
+        list(id = sprintf("#%s", ns("network")))
+      )
+    })
+
+    # To capture what happens on the client (modify network data)
+    # TO DO: maybe we want to expose callbacks to the R API
+    #observeEvent(input$network_graphChange, {
+    #  browser()
+    #})
 
     # Tweaks UI so that edge mode appears when it should.
     # Also workaround a bug that always activate editNode by default.
@@ -447,7 +467,17 @@ network_server <- function(id, vals, debug = TRUE) {
       removeModal()
     })
 
-    # TODO: capture nodes position for serialization
+    # Capture nodes position for serialization
+    observeEvent(req(nrow(rv$nodes) > 0), {
+      visNetworkProxy(ns("network")) |>
+        visGetPositions()
+    })
+    observeEvent(input$network_positions, {
+      lapply(names(input$network_positions), \(id) {
+        rv$nodes[rv$nodes$id == id, "x"] <- input$network_positions[[id]]$x
+        rv$nodes[rv$nodes$id == id, "y"] <- input$network_positions[[id]]$y
+      })
+    })
 
     # TODO: handle node update. Change of color due to block validity change ...
     # This needs input parameter from the parent module which contains
