@@ -113,7 +113,7 @@ remove_edge <- function(selected, rv) {
     stop(sprintf("Can't find edge with id %s in the data", selected))
   }
 
-  rv$removed_edge <- to_remove
+  rv$removed_edge <- rv$edges[to_remove, "id"]
   rv$edges <- rv$edges[-to_remove, ]
   rv
 }

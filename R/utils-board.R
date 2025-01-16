@@ -138,7 +138,6 @@ add_connection <- function(con, edges, rv) {
   # is not yet made. This needs an observer to listen to any change
   # in the upstream block result.
   obs_id <- sprintf("%s_%s_%s", from_id, to_id, con_label)
-
   rv$obs[[obs_id]] <- observeEvent(rv$blocks[[from_id]]$server$result(), {
     rv$connections[[to_id]][[con_label]](rv$blocks[[from_id]]$server$result())
   })
@@ -161,7 +160,7 @@ remove_connection <- function(con, rv) {
   }
 
   # Destroy all update observers
-  obs_to_destroy <- grep(id_from, names(rv$obs), value = TRUE)
+  obs_to_destroy <- grep(con, names(rv$obs), value = TRUE)
   for (el in obs_to_destroy) {
     rv$obs[[el]]$destroy()
     rv$obs[[el]] <- NULL

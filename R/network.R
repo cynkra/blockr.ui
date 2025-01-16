@@ -51,7 +51,7 @@ network_ui <- function(id, debug = TRUE) {
       if (debug) {
         accordion(
           id = ns("canvas_debug_accordion"),
-          open = TRUE,
+          open = FALSE,
           class = "accordion-flush",
           accordion_panel(
             title = "Debug info",
@@ -94,7 +94,13 @@ network_server <- function(id, vals, debug = TRUE) {
         height = "100vh",
         width = "100%"
       ) |>
-        visInteraction(hover = FALSE, multiselect = TRUE) |>
+        visInteraction(
+          hover = FALSE,
+          multiselect = TRUE,
+          # avoid to select edge when selecting node ...
+          # since we have a select edge callback
+          selectConnectedEdges = FALSE
+        ) |>
         visOptions(
           # To get currently selected node
           nodesIdSelection = TRUE,
@@ -125,9 +131,16 @@ network_server <- function(id, vals, debug = TRUE) {
           ),
           controlNodeDragEnd = sprintf(
             "function(e) {
-            console.log(e.event.target.offsetParent.className);
+
+            console.log(e);
             Shiny.setInputValue('%s', e.controlEdge);
-            //window.HTMLWidgets.find(`#$('.${e.event.target.offsetParent.className}').parent().parent().parent().attr('id')`)
+            let target = $(`.${e.event.target.offsetParent.className}`)
+              .closest('.visNetwork')
+              .attr('id');
+            // Re-enable add edge mode: TO DO -> seems to break input$network_graphChange
+            //setTimeout(() => {
+            //  window.HTMLWidgets.find(`#${target}`).network.addEdgeMode();
+            //}, 500);
           ;}",
             ns("new_edge")
           ) #,
@@ -150,10 +163,11 @@ network_server <- function(id, vals, debug = TRUE) {
         #  container = sprintf("dropdown-menu-%s", ns("network_options"))
         #) |>
         visPhysics(
-          solver = "repulsion",
-          stabilization = FALSE,
-          # Make sure nodes are not too far away when created ...
-          repulsion = list(centralGravity = 0.8, nodeDistance = 150)
+          enabled = FALSE #,
+          #solver = "repulsion",
+          #stabilization = FALSE,
+          ## Make sure nodes are not too far away when created ...
+          #repulsion = list(centralGravity = 0.8, nodeDistance = 150)
         )
     })
 
@@ -239,6 +253,8 @@ network_server <- function(id, vals, debug = TRUE) {
           return(NULL)
         }
 
+        rv$added_edge <- NULL
+
         # Rule 4: need to track the available connections for a given node
         to_blk <- vals$blocks[[input$new_edge$to]]$block
         if (!check_connections(to_blk, vals)) {
@@ -262,6 +278,9 @@ network_server <- function(id, vals, debug = TRUE) {
         )
 
         visNetworkProxy(ns("network")) |>
+          # vis.js adds the edge on the client on drag. However,
+          # there is no callback to the backend
+          visRemoveEdges(input$network_graphChange$id) |>
           visUpdateEdges(rv$edges)
       }
     )
@@ -465,6 +484,7 @@ network_server <- function(id, vals, debug = TRUE) {
     })
 
     observeEvent(input$remove_edge, {
+      rv$removed_edge <- NULL
       rv <- remove_edge(input$selected_edge, rv)
 
       # TO DO: check why the disconnected node still get input data
