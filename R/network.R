@@ -294,30 +294,7 @@ network_server <- function(id, vals, debug = TRUE) {
 
     # Adding a block, we update the rv$nodes so the graph is updated
     observeEvent(input$scoutbar, {
-      # Construct block with empty defaults
-      # TODO: maybe we want to provide more choices
-      # but that would require more UI elements
-      rv$new_block <- create_block(input$scoutbar)
-
-      # Update node vals for the network rendering
-      rv <- add_node(rv$new_block, rv)
-
-      visNetworkProxy(ns("network")) |>
-        visUpdateNodes(rv$nodes) |>
-        visSelectNodes(id = utils::tail(rv$nodes$id, n = 1))
-
-      # Handle add_block_to where we also setup the connections
-      if (rv$append_block) {
-        rv <- add_edge(
-          from = input$network_selected,
-          to = block_uid(rv$new_block),
-          label = block_inputs(rv$new_block)[[1]],
-          rv = rv
-        )
-
-        visNetworkProxy(ns("network")) |>
-          visUpdateEdges(rv$edges)
-      }
+      rv <- create_node(rv, session)
     })
 
     # Selected block object

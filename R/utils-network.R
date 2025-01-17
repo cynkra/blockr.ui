@@ -267,3 +267,47 @@ create_edge <- function(rv, vals, session) {
     visUpdateEdges(rv$edges)
   rv
 }
+
+#' Create a new node it to the network
+#'
+#' This is different from \link{add_node}, the later
+#' is just involved to add a row in a dataframe.
+#' The rv are updated and the graph
+#' proxy is also updated. We handle either adding new node
+#' or append new node to an existing one. The later case,
+#' involves some edge creation (connection). No validation is
+#' required in practice as a node can theoretically feed
+#' as many children nodes as required.
+#'
+#' @param rv Local reactive values.
+#' @param session Shiny session object.
+#' @export
+create_node <- function(rv, session) {
+  input <- session$input
+  ns <- session$ns
+  # Construct block with empty defaults
+  # TODO: maybe we want to provide more choices
+  # but that would require more UI elements
+  rv$new_block <- create_block(input$scoutbar)
+
+  # Update node vals for the network rendering
+  rv <- add_node(rv$new_block, rv)
+
+  visNetworkProxy(ns("network")) |>
+    visUpdateNodes(rv$nodes) |>
+    visSelectNodes(id = utils::tail(rv$nodes$id, n = 1))
+
+  # Handle add_block_to where we also setup the connections
+  if (rv$append_block) {
+    rv <- add_edge(
+      from = input$network_selected,
+      to = block_uid(rv$new_block),
+      label = block_inputs(rv$new_block)[[1]],
+      rv = rv
+    )
+
+    visNetworkProxy(ns("network")) |>
+      visUpdateEdges(rv$edges)
+  }
+  rv
+}
