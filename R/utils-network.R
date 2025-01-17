@@ -59,7 +59,8 @@ add_edge <- function(from, to, label, rv) {
     from = from,
     to = to,
     label = label,
-    arrows = "to"
+    arrows = "to",
+    width = 4
   )
 
   if (nrow(rv$edges) == 0) {
