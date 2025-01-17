@@ -17,6 +17,7 @@ add_node <- function(new, rv) {
     label = paste(attr(new, "class")[1], "\n id:", block_uid(new)),
     title = block_uid(new),
     shape = "circle",
+    color = "#D2E5FF",
     stack = NA,
     icon.code = NA,
     x = NA,
@@ -158,4 +159,111 @@ check_connections.data_block <- function(x, vals) {
 check_connections.block <- function(x, vals) {
   n_active_connections <- sum(!list_empty_connections(x, vals))
   isTRUE(n_active_connections < length(block_inputs(x)))
+}
+
+#' Check whether the node can receive connection
+#'
+#' @param x Block object.
+#' @param con Connection. List containing from and to data.
+#' @param vals Reactive values
+#' @export
+can_connect <- function(x, con, vals) {
+  UseMethod("can_connect")
+}
+
+check_invalid_target <- function(con) {
+  if (is.null(con$to)) {
+    showNotification(
+      "Unable to connect node. Please select a valid target.",
+      type = "error"
+    )
+    FALSE
+  } else {
+    TRUE
+  }
+}
+
+check_loop <- function(con) {
+  if (con$from == con$to) {
+    showNotification(
+      "Can't create a connection on the same block.",
+      type = "error"
+    )
+    FALSE
+  } else {
+    TRUE
+  }
+}
+
+#' @export
+can_connect.data_block <- function(x, con, vals) {
+  showNotification(
+    "Data blocks don't accept any incoming connection (data input).",
+    type = "error"
+  )
+  FALSE
+}
+
+#' @export
+can_connect.block <- function(x, con, vals) {
+  if (!check_connections(x, vals)) {
+    showNotification(
+      "The target block can't receive anymore data input.",
+      type = "error"
+    )
+    FALSE
+  } else {
+    TRUE
+  }
+}
+
+validate_edge_creation <- function(con, vals) {
+  res <- list()
+  res$check_target <- check_invalid_target(con)
+  # Rule 2
+  res$check_loop <- check_loop(con)
+  # Rule 3
+  res$check_cons <- can_connect(
+    vals$blocks[[con$to]]$block,
+    con,
+    vals
+  )
+
+  if (length(which(res == FALSE)) > 0) FALSE else TRUE
+}
+
+#' Create an edge and add it to the network
+#'
+#' This is different from \link{add_edge}, the later
+#' is just involved to add a row in a dataframe.
+#' There is a validation layer prior to knowing whether
+#' we can add the edge. Then rv are updated and the graph
+#' proxy is also updated.
+#'
+#' @param rv Local reactive values.
+#' @param vals Parent reactive values.
+#' @param session Shiny session object.
+#' @export
+create_edge <- function(rv, vals, session) {
+  input <- session$input
+  ns <- session$ns
+  con <- input$new_edge
+
+  rv$added_edge <- NULL
+  if (!validate_edge_creation(con, vals)) return(NULL)
+
+  # Create the connection
+  to_blk <- vals$blocks[[con$to]]$block
+  con_idx <- which(list_empty_connections(to_blk, vals) == TRUE)[[1]]
+  rv <- add_edge(
+    from = con$from,
+    to = con$to,
+    # TO DO: the connection must be made to the latest available input slot
+    label = block_inputs(to_blk)[[con_idx]],
+    rv = rv
+  )
+
+  visNetworkProxy(ns("network")) |>
+    visUpdateEdges(rv$edges)
+  rv
 }

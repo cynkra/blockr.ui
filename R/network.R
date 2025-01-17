@@ -114,7 +114,7 @@ network_server <- function(id, vals, debug = TRUE) {
           ),
           collapse = TRUE
         ) |>
-        visEdges(length = 200, smooth = FALSE) |>
+        visEdges(length = 300, smooth = FALSE) |>
         visEvents(
           select = sprintf(
             "function(e) {
@@ -226,85 +226,40 @@ network_server <- function(id, vals, debug = TRUE) {
         )
       }
     )
-    # TODO: implement edge creation
-    # This is different from add_to. Ideally we can drag from one node
+
+    # Implement edge creation, we can drag from one node
     # to another to connect them.
-    # TODO: we need a validation mechanism to allow connections or not...
+    # Validation mechanism to allow connections or not...
     # Rules:
     # - The dragged target must exist.
     # - We can't drag the edge on the current selected node (avoid loops).
-    # - data block can't receive input data. Transform block receive
-    # as many input data as slot they have (1 for select, 2 for join, ...).
     # - A node that has already all input slots connected can't received any incoming connection.
+    # data block can't receive input data. Transform block receive
+    # as many input data as slot they have (1 for select, 2 for join, ...).
+    observeEvent(
+      {
+        req(input$network_graphChange$cmd == "addEdge")
+      },
+      {
+        # vis.js adds the edge on the client on drag. However,
+        # there is no callback to the backend. Since add it via the proxy
+        # we need to remove the client one.
+        visNetworkProxy(ns("network")) |>
+          visRemoveEdges(input$network_graphChange$id)
+      }
+    )
+
     observeEvent(
       {
         input$new_edge
         req(input$new_edge$from)
       },
       {
-        # Rule 1
-        if (is.null(input$new_edge$to)) {
-          showNotification(
-            "Unable to connect node. Please select a valid target.",
-            type = "error"
-          )
-          return(NULL)
-        }
-
-        # Rule 2
-        if (input$new_edge$from == input$new_edge$to) {
-          showNotification(
-            "Can't create a connection on the same block.",
-            type = "error"
-          )
-          return(NULL)
-        }
-
-        # Rule 3.
-        # TODO: ultimately we create S3 method
-        if (inherits(vals$blocks[[input$new_edge$to]]$block, "data_block")) {
-          showNotification(
-            "Data blocks don't accept any incoming connection (data input).",
-            type = "error"
-          )
-          # Recover the addEdge with input$network_graphChange and remove it right away.
-          visNetworkProxy(ns("network")) |>
-            visRemoveEdges(input$network_graphChange$id)
-          return(NULL)
-        }
-
-        rv$added_edge <- NULL
-
-        # Rule 4: need to track the available connections for a given node
-        to_blk <- vals$blocks[[input$new_edge$to]]$block
-        if (!check_connections(to_blk, vals)) {
-          showNotification(
-            "The target block can't receive anymore data input.",
-            type = "error"
-          )
-          visNetworkProxy(ns("network")) |>
-            visRemoveEdges(input$network_graphChange$id)
-          return(NULL)
-        }
-
-        # Create the connection
-        con_idx <- which(list_empty_connections(to_blk, vals) == TRUE)[[1]]
-        rv <- add_edge(
-          from = input$new_edge$from,
-          to = input$new_edge$to,
-          # TO DO: the connection must be made to the latest available input slot
-          label = block_inputs(to_blk)[[con_idx]],
-          rv = rv
-        )
-
-        visNetworkProxy(ns("network")) |>
-          # vis.js adds the edge on the client on drag. However,
-          # there is no callback to the backend
-          visRemoveEdges(input$network_graphChange$id) |>
-          visUpdateEdges(rv$edges)
+        rv <- create_edge(rv, vals, session)
       }
     )
 
+    # Debug info
     if (debug) {
       output$edges <- renderPrint(rv$edges)
       output$nodes <- renderPrint(rv$nodes)
@@ -482,6 +437,26 @@ network_server <- function(id, vals, debug = TRUE) {
     # TODO: handle node update. Change of color due to block validity change ...
     # This needs input parameter from the parent module which contains
     # the list of block server functions.
+    observeEvent(
+      {
+        req(length(vals$blocks) > 0)
+        lapply(names(vals$blocks), \(nme) {
+          check_connections(vals$blocks[[nme]]$block, vals)
+        })
+      },
+      {
+        for (nme in names(vals$blocks)) {
+          res <- check_connections(vals$blocks[[nme]]$block, vals)
+          if (res) {
+            rv$nodes[rv$nodes$id == nme, "color"] <- "#ffd6d2"
+          } else {
+            rv$nodes[rv$nodes$id == nme, "color"] <- "#D2E5FF"
+          }
+        }
+        visNetworkProxy(ns("network")) |>
+          visUpdateNodes(rv$nodes)
+      }
+    )
 
     # Remove a block
     # TODO: how do we handle multi block removal?
