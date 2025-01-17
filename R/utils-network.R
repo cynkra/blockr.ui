@@ -218,18 +218,19 @@ can_connect.block <- function(x, con, vals) {
 }
 
 validate_edge_creation <- function(con, vals) {
-  res <- list()
-  res$check_target <- check_invalid_target(con)
+  # Rule 1
+  if (!check_invalid_target(con)) return(FALSE)
   # Rule 2
-  res$check_loop <- check_loop(con)
+  if (!check_loop(con)) return(FALSE)
   # Rule 3
-  res$check_cons <- can_connect(
+  check_cons <- can_connect(
     vals$blocks[[con$to]]$block,
     con,
     vals
   )
+  if (!check_cons) return(FALSE)
 
-  if (length(which(res == FALSE)) > 0) FALSE else TRUE
+  return(TRUE)
 }
 
 #' Create an edge and add it to the network
