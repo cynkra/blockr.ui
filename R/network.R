@@ -169,12 +169,77 @@ network_server <- function(id, vals, debug = TRUE) {
         #  container = sprintf("dropdown-menu-%s", ns("network_options"))
         #) |>
         visPhysics(
-          solver = "repulsion",
-          stabilization = FALSE,
-          ## Make sure nodes are not too far away when created ...
-          repulsion = list(
-            centralGravity = 0.8,
-            nodeDistance = 150
+          stabilization = list(
+            enabled = TRUE,
+            iterations = 1000,
+            updateInterval = 100,
+            onlyDynamicEdges = FALSE,
+            fit = TRUE
+          ),
+          minVelocity = 0.1, # Minimum velocity before node stops moving
+          maxVelocity = 50, # Maximum velocity of nodes
+          solver = "forceAtlas2Based",
+          timestep = 0.5, # Lower values make movement more precise but slower
+          adaptiveTimestep = TRUE
+        ) |>
+        visEvents(
+          type = "once",
+          # Code to show connection points with edges
+          stabilized = sprintf(
+            "function() {
+              var network = this;
+              
+              network.on('afterDrawing', function(ctx) {
+                var edges = network.body.edges;
+                var nodes = network.body.nodes;
+                
+                Object.keys(edges).forEach(function(edgeId) {
+                  var edge = edges[edgeId];
+                  var fromNode = nodes[edge.fromId];
+                  var toNode = nodes[edge.toId];
+                  
+                  // Calculate intersection points
+                  if (fromNode && toNode) {
+                    // Get positions
+                    var fromX = fromNode.x;
+                    var fromY = fromNode.y;
+                    var toX = toNode.x;
+                    var toY = toNode.y;
+                    
+                    // Calculate angles and distances
+                    var angle = Math.atan2(toY - fromY, toX - fromX);
+                    var reverseAngle = Math.atan2(fromY - toY, fromX - toX);
+                    
+                    // Get node radii (using shape.width since shape.radius might not be available)
+                    var fromRadius = fromNode.shape.width / 2;
+                    var toRadius = toNode.shape.width / 2;
+                    
+                    // Calculate intersection points
+                    var fromIntersectX = fromX + (Math.cos(angle) * fromRadius);
+                    var fromIntersectY = fromY + (Math.sin(angle) * fromRadius);
+                    var toIntersectX = toX + (Math.cos(reverseAngle) * toRadius);
+                    var toIntersectY = toY + (Math.sin(reverseAngle) * toRadius);
+                    
+                    // Draw connection points at intersection
+                    ctx.beginPath();
+                    ctx.arc(fromIntersectX, fromIntersectY, 4, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#2B7CE9';
+                    ctx.fill();
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.arc(toIntersectX, toIntersectY, 4, 0, 2 * Math.PI);
+                    ctx.fillStyle = '#2B7CE9';
+                    ctx.fill();
+                    ctx.strokeStyle = 'white';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                  }
+                });
+              });
+            }"
           )
         )
     })
