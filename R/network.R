@@ -31,7 +31,6 @@ network_ui <- function(id, debug = TRUE) {
         icon = icon("circle-plus"),
         class = "btn-light"
       ),
-      uiOutput(ns("data_source_ui")),
       actionButton(
         ns("remove"),
         "Remove block",
@@ -248,9 +247,9 @@ network_server <- function(id, vals, debug = TRUE) {
     #  browser()
     #})
 
-    observeEvent(input$selected_nodes, {
-      browser()
-    })
+    #observeEvent(input$selected_nodes, {
+    #  browser()
+    #})
 
     #observeEvent(input$hovered_node, {
     #  showNotification(input$hovered_node)
@@ -270,7 +269,6 @@ network_server <- function(id, vals, debug = TRUE) {
     })
 
     # To capture what happens on the client (modify network data)
-    # TO DO: maybe we want to expose callbacks to the R API
     #observeEvent(input$network_graphChange, {
     #  browser()
     #})
@@ -371,98 +369,45 @@ network_server <- function(id, vals, debug = TRUE) {
       vals$blocks[[input$network_selected]]$block
     })
 
-    # Returns other nodes ids, without the selected one
-    # This is useful to prevent to connect the node to itself
-    other_nodes <- reactive({
-      req(
-        nchar(input$network_selected) > 0,
-        input$network_selected %in% rv$nodes$id
-      )
-      rv$nodes[rv$nodes$id != input$network_selected, ]
-    })
+    # TODO: create block with custom defaults
+    # observeEvent(input$scoutbar, {
+    #   dummy_block <- create_block(input$scoutbar)
+    #   browser()
+    #   blk_name <- attr(dummy_block, "class")[1]
+    #   blk_parms <- formals(blockr.core::available_blocks()[[input$scoutbar]])
 
-    # Connect block to existing blocks.
-    # We only show it if the node can be connected,
-    # that is, check that the number of connections don't exceed
-    # the number of input slots of the given block
-    can_update_data_sources <- reactive({
-      req(
-        nchar(input$network_selected) > 0,
-        input$network_selected %in% rv$nodes$id
-      )
-      # Check that node number is enough (excluding the current node from the total)
-      n_nodes <- length(rv$nodes[rv$nodes$id != input$network_selected, "id"])
-      req(n_nodes >= length(block_inputs(selected_block())))
-      check_connections(selected_block(), vals)
-    })
+    #   params_ui <- lapply(blk_parms, \(parm) {
+    #   })
 
-    output$data_source_ui <- renderUI({
-      req(can_update_data_sources())
-      actionButton(
-        ns("manage_sources"),
-        "Data sources",
-        icon = icon("share-nodes"),
-        class = "btn-light"
-      )
-    })
-
-    # TODO: create S3 method that does display contextual menu
-    # based on the current block selection inputs slot.
-    # The join block would allow to select 2 nodes, while the select block only 1.
-    # This only works if the block does not have existing connections.
-    observeEvent(input$manage_sources, {
-      connect_ui <- lapply(block_inputs(selected_block()), \(slot) {
-        selectInput(
-          ns(sprintf("%s-%s_input_slot", input$network_selected, slot)),
-          sprintf("%s input slot", slot),
-          # TO DO: subset choices to avoid the existing connections and the current block
-          choices = stats::setNames(
-            other_nodes()$id,
-            paste(other_nodes()$label, other_nodes()$id)
-          )
-        )
-      })
-
-      # TODO: we don't necessarily need a modal, this UI could be visible at all time
-      # in the sidebar...
-      showModal(
-        modalDialog(
-          size = "s",
-          title = sprintf(
-            "Manage node %s connections",
-            block_uid(selected_block())
-          ),
-          connect_ui,
-          actionButton(
-            ns("update_sources"),
-            "Update"
-          )
-        )
-      )
-    })
-
-    # Draw new edges
-    observeEvent(input$update_sources, {
-      lapply(block_inputs(selected_block()), \(slot) {
-        edges <- add_edge(
-          from = input[[
-            sprintf("%s-%s_input_slot", input$network_selected, slot)
-          ]],
-          to = input$network_selected,
-          label = slot,
-          rv$edges
-        )
-        if (!(edges$added %in% rv$edges$id)) {
-          rv$edges <- edges$res
-          rv$added_edge <- c(rv$added_edge, edges$added)
-        }
-      })
-
-      visNetworkProxy(ns("network")) |>
-        visUpdateEdges(rv$edges)
-
-      removeModal()
-    })
+    #   connect_ui <- lapply(block_inputs(dummy_block), \(slot) {
+    #     selectInput(
+    #       ns(sprintf("%s-%s_input_slot", blk_name, slot)),
+    #       sprintf("%s input slot", slot),
+    #       # Can connect any compatible existing block
+    #       choices = stats::setNames(
+    #         rv$nodes$id,
+    #         paste(rv$nodes$label, rv$nodes$id)
+    #       )
+    #     )
+    #   })
+    #
+    #  # TODO: we don't necessarily need a modal, this UI could be visible at all time
+    #  # in the sidebar...
+    #  showModal(
+    #    modalDialog(
+    #      size = "s",
+    #      title = sprintf(
+    #        "Create a new %s block",
+    #        blk_name
+    #      ),
+    #      connect_ui,
+    #      actionButton(
+    #        ns("create_block"),
+    #        "Create block"
+    #      )
+    #    )
+    #  )
+    #})
 
     # Capture nodes position for serialization
     observeEvent(req(nrow(rv$nodes) > 0), {
@@ -520,7 +465,7 @@ network_server <- function(id, vals, debug = TRUE) {
         visRemoveNodes(input$network_selected)
     })
 
-    # TODO: implement remove edge (user selects the edge).
+    # Remove edge (user selects the edge).
     observeEvent(input$selected_edge, {
       showModal(
         modalDialog(
