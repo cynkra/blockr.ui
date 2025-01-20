@@ -9,7 +9,44 @@ $(function () {
     return widgetObj;
   }
 
-  // Hdide sidebar toggles
+  Shiny.addCustomMessageHandler("bind-network-keyboard-shortcuts", (m) => {
+
+    let widget = HTMLWidgets.find(m.id).network;
+
+    $(document).on("keydown", (e) => {
+      // Shift + E
+      if (e.shiftKey && e.keyCode == 69) {
+        widget.addEdgeMode();
+        $("button.vis-back").hide();
+        $(".vis-separator-line").hide();
+      }
+    })
+
+    $(document).on("keydown", (e) => {
+      // esc
+      if (e.key === "Escape") {
+        widget.disableEditMode();
+        widget.enableEditMode();
+        $(".vis-close").hide();
+        $(".vis-edit").hide();
+        $(".vis-separator-line").hide();
+      }
+    })
+  })
+
+  // Handle manipulation ui visibility
+  Shiny.addCustomMessageHandler("toggle-manipulation-ui", (m) => {
+    $(".vis-close").hide();
+    $(".vis-edit").hide();
+    $(".vis-separator-line").hide();
+    if (m.value) {
+      $(".vis-manipulation").show();
+    } else {
+      $(".vis-manipulation").hide();
+    }
+  })
+
+  // Hide sidebar toggles
   Shiny.addCustomMessageHandler("hide-sidebars-toggles", (m) => {
     $(`button[aria-controls=\"${m.ns}-dashboard\"]`).css('visibility', 'hidden');
     $(`button[aria-controls=\"${m.ns}-properties\"]`).css('visibility', 'hidden');
