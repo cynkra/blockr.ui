@@ -15,6 +15,7 @@ test_that("Board works", {
   app$click(
     selector = ".scout__bar-wrapper button[aria-label=\"dataset_block\"]"
   )
+  app$wait_for_idle()
   app$expect_values()
 
   # Select a block: does not have input binding

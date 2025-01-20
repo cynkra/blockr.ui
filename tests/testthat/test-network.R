@@ -1,62 +1,75 @@
 library(blockr.core)
 library(blockr.dplyr)
 
-testServer(network_server, {
-  # Init state
-  session$setInputs(add_block = 0)
-  expect_s3_class(rv$edges, "data.frame")
-  expect_s3_class(rv$nodes, "data.frame")
-  expect_true(nrow(rv$edges) == 0)
-  expect_true(nrow(rv$nodes) == 0)
-  expect_null(rv$new_block)
-  expect_length(rv$added_edge, 0)
-  expect_length(rv$removed_edge, 0)
-  output$network
+testServer(
+  network_server,
+  {
+    # Init state
+    session$setInputs(add_block = 0)
+    expect_s3_class(rv$edges, "data.frame")
+    expect_s3_class(rv$nodes, "data.frame")
+    expect_true(nrow(rv$edges) == 0)
+    expect_true(nrow(rv$nodes) == 0)
+    expect_null(rv$new_block)
+    expect_length(rv$added_edge, 0)
+    expect_length(rv$removed_edge, 0)
+    output$network
 
-  # Add data block
-  session$setInputs(add_block = 1)
-  session$setInputs(scoutbar = "dataset_block")
-  expect_s3_class(rv$new_block, c("dataset_block", "data_block", "block"))
-  expect_true(nrow(rv$nodes) == 1)
+    # Add data block
+    session$setInputs(add_block = 1)
+    session$setInputs(scoutbar = "dataset_block")
+    expect_s3_class(rv$new_block, c("dataset_block", "data_block", "block"))
+    expect_true(nrow(rv$nodes) == 1)
 
-  # Add new block again
-  session$setInputs(add_block = 2)
-  expect_null(rv$new_block)
-  session$setInputs(scoutbar = "select_block")
-  expect_s3_class(rv$new_block, c("select_block", "transform_block", "block"))
-  expect_true(nrow(rv$nodes) == 2)
+    # Add new block again
+    session$setInputs(add_block = 2)
+    expect_null(rv$new_block)
+    session$setInputs(scoutbar = "select_block")
+    expect_s3_class(rv$new_block, c("select_block", "transform_block", "block"))
+    expect_true(nrow(rv$nodes) == 2)
 
-  # Remove last added block
-  session$setInputs(network_selected = tail(rv$nodes$id, n = 1), remove = 1)
-  expect_true(nrow(rv$nodes) == 1)
+    # Remove last added block
+    session$setInputs(network_selected = tail(rv$nodes$id, n = 1), remove = 1)
+    expect_true(nrow(rv$nodes) == 1)
 
-  # TODO: test append block
+    # TODO: test append block
 
-  # Inspect returned values
-  expect_equal(
-    names(session$returned),
-    c(
-      "edges",
-      "nodes",
-      "selected_node",
-      "added_node",
-      "removed_node",
-      "added_edge",
-      "removed_edge"
+    # Inspect returned values
+    expect_equal(
+      names(session$returned),
+      c(
+        "edges",
+        "nodes",
+        "selected_node",
+        "added_node",
+        "removed_node",
+        "added_edge",
+        "removed_edge"
+      )
+    )
+    invisible(
+      lapply(names(session$returned), \(val) {
+        expect_true(is.reactive(session$returned[[val]]))
+      })
+    )
+
+    expect_equal(session$returned$added_node(), rv$new_block)
+    expect_equal(session$returned$removed_node(), input$network_selected)
+    expect_equal(session$returned$added_edge(), rv$added_edge)
+    expect_equal(session$returned$removed_edge(), rv$removed_edge)
+    expect_equal(session$returned$selected_node(), input$network_selected)
+  },
+  args = list(
+    vals = reactiveValues(
+      blocks = list(),
+      connections = list(),
+      obs = list(),
+      # Cache where nodes should be in the dashboard mode.
+      grid = data.frame(),
+      mode = "network"
     )
   )
-  invisible(
-    lapply(names(session$returned), \(val) {
-      expect_true(is.reactive(session$returned[[val]]))
-    })
-  )
-
-  expect_equal(session$returned$added_node(), rv$new_block)
-  expect_equal(session$returned$removed_node(), input$network_selected)
-  expect_equal(session$returned$added_edge(), rv$added_edge)
-  expect_equal(session$returned$removed_edge(), rv$removed_edge)
-  expect_equal(session$returned$selected_node(), input$network_selected)
-})
+)
 
 test_that("Add nodes works", {
   rv <- list(nodes = data.frame())
@@ -114,5 +127,5 @@ test_that("Remove edge works", {
   expect_error(remove_edge(2, rv))
   rv <- remove_edge("1_2", rv)
   expect_true(nrow(rv$edges) == 0)
-  expect_identical(rv$removed_edge, 1L)
+  expect_identical(rv$removed_edge, "1_2")
 })

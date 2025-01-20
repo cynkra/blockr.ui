@@ -3,8 +3,18 @@
     "DataTables_Table_1_length": "5",
     "board-dag-add_block": 1,
     "board-dag-append_block": 1,
-    "board-dag-canvas_debug_accordion": "Debug info",
+    "board-dag-canvas_debug_accordion": null,
     "board-dag-network_initialized": true,
+    "board-dag-network_positions": {
+      "udrztahoztxbdte": {
+        "x": 45,
+        "y": 16
+      },
+      "tkbuyepwijxjfco": {
+        "x": 181,
+        "y": 81
+      }
+    },
     "board-dag-network_selected": "tkbuyepwijxjfco",
     "board-dag-remove": 0,
     "board-dag-scoutbar": "select_block",
@@ -259,16 +269,6 @@
     }
   },
   "output": {
-    "board-dag-data_source_ui": {
-      "message": "",
-      "call": "NULL",
-      "type": [
-        "shiny.silent.error",
-        "validation"
-      ]
-    },
-    "board-dag-edges": "                               id            from              to label arrows\n1 udrztahoztxbdte_tkbuyepwijxjfco udrztahoztxbdte tkbuyepwijxjfco  data     to",
-    "board-dag-graph_events": "NULL",
     "board-dag-network": {
       "x": {
         "nodes": {
@@ -296,19 +296,26 @@
           "interaction": {
             "hover": false,
             "multiselect": true,
+            "selectConnectedEdges": false,
             "zoomSpeed": 1
           },
           "edges": {
-            "length": 200,
+            "length": 300,
             "smooth": false
           },
           "physics": {
-            "solver": "repulsion",
-            "stabilization": false,
-            "repulsion": {
-              "centralGravity": 0.8,
-              "nodeDistance": 150
-            }
+            "solver": "forceAtlas2Based",
+            "maxVelocity": 50,
+            "minVelocity": 0.1,
+            "timestep": 0.5,
+            "stabilization": {
+              "enabled": true,
+              "iterations": 1000,
+              "updateInterval": 100,
+              "onlyDynamicEdges": false,
+              "fit": true
+            },
+            "adaptiveTimestep": true
           }
         },
         "groups": null,
@@ -364,14 +371,20 @@
         },
         "events": {
           "oncontext": "function(e) {\n              e.event.preventDefault(); // avoid showing web inspector ...\n              Shiny.setInputValue('board-dag-node_right_clicked', e.nodes, {priority: 'event'});\n            }",
+          "select": "function(e) {\n              if (e.nodes.length > 1) {\n                Shiny.setInputValue('board-dag-selected_nodes', e.nodes, {priority: 'event'});\n              }\n            }",
           "selectEdge": "function(e) {\n              Shiny.setInputValue('board-dag-selected_edge', e.edges[0], {priority: 'event'});\n            }",
-          "controlNodeDragEnd": "function(e) {\n            console.log(e.event.target.offsetParent.className);\n            Shiny.setInputValue('board-dag-new_edge', e.controlEdge);\n            //window.HTMLWidgets.find(`#$('.${e.event.target.offsetParent.className}').parent().parent().parent().attr('id')`)\n          ;}"
+          "controlNodeDragEnd": "function(e) {\n              Shiny.setInputValue('board-dag-new_edge', e.controlEdge, {priority: 'event'});\n              let target = $(`.${e.event.target.offsetParent.className}`)\n                .closest('.visNetwork')\n                .attr('id');\n              // Re-enable add edge mode\n              setTimeout(() => {\n                window.HTMLWidgets.find(`#${target}`).network.addEdgeMode();\n              }, 500);\n            ;}"
+        },
+        "OnceEvents": {
+          "stabilized": "function() {\n              var network = this;\n              \n              network.on('afterDrawing', function(ctx) {\n                var edges = network.body.edges;\n                var nodes = network.body.nodes;\n                \n                Object.keys(edges).forEach(function(edgeId) {\n                  var edge = edges[edgeId];\n                  var fromNode = nodes[edge.fromId];\n                  var toNode = nodes[edge.toId];\n                  \n                  // Calculate intersection points\n                  if (fromNode && toNode) {\n                    // Get positions\n                    var fromX = fromNode.x;\n                    var fromY = fromNode.y;\n                    var toX = toNode.x;\n                    var toY = toNode.y;\n                    \n                    // Calculate angles and distances\n                    var angle = Math.atan2(toY - fromY, toX - fromX);\n                    var reverseAngle = Math.atan2(fromY - toY, fromX - toX);\n                    \n                    // Get node radii (using shape.width since shape.radius might not be available)\n                    var fromRadius = fromNode.shape.width / 2;\n                    var toRadius = toNode.shape.width / 2;\n                    \n                    // Calculate intersection points\n                    var fromIntersectX = fromX + (Math.cos(angle) * fromRadius);\n                    var fromIntersectY = fromY + (Math.sin(angle) * fromRadius);\n                    var toIntersectX = toX + (Math.cos(reverseAngle) * toRadius);\n                    var toIntersectY = toY + (Math.sin(reverseAngle) * toRadius);\n                    \n                    // Draw connection points at intersection\n                    ctx.beginPath();\n                    ctx.arc(fromIntersectX, fromIntersectY, 4, 0, 2 * Math.PI);\n                    ctx.fillStyle = '#2B7CE9';\n                    ctx.fill();\n                    ctx.strokeStyle = 'white';\n                    ctx.lineWidth = 1;\n                    ctx.stroke();\n                    \n                    ctx.beginPath();\n                    ctx.arc(toIntersectX, toIntersectY, 4, 0, 2 * Math.PI);\n                    ctx.fillStyle = '#2B7CE9';\n                    ctx.fill();\n                    ctx.strokeStyle = 'white';\n                    ctx.lineWidth = 1;\n                    ctx.stroke();\n                  }\n                });\n              });\n            }"
         }
       },
       "evals": [
         "events.oncontext",
+        "events.select",
         "events.selectEdge",
-        "events.controlNodeDragEnd"
+        "events.controlNodeDragEnd",
+        "OnceEvents.stabilized"
       ],
       "jsHooks": [
 
@@ -380,7 +393,6 @@
 
       ]
     },
-    "board-dag-nodes": "               id                                label           title  shape\n1 udrztahoztxbdte dataset_block \\n id: udrztahoztxbdte udrztahoztxbdte circle\n2 tkbuyepwijxjfco  select_block \\n id: tkbuyepwijxjfco tkbuyepwijxjfco circle\n  stack icon.code\n1    NA        NA\n2    NA        NA",
     "board-grid": {
       "x": {
         "html": "",

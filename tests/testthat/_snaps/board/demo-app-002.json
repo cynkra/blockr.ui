@@ -2,8 +2,14 @@
   "input": {
     "board-dag-add_block": 1,
     "board-dag-append_block": 0,
-    "board-dag-canvas_debug_accordion": "Debug info",
+    "board-dag-canvas_debug_accordion": null,
     "board-dag-network_initialized": true,
+    "board-dag-network_positions": {
+      "udrztahoztxbdte": {
+        "x": 45,
+        "y": 16
+      }
+    },
     "board-dag-network_selected": "udrztahoztxbdte",
     "board-dag-remove": 0,
     "board-dag-scoutbar": "dataset_block",
@@ -80,13 +86,77 @@
       ]
     },
     "board-mode": true,
-    "board-properties": false,
+    "board-properties": true,
     "board-udrztahoztxbdte-expression-dataset": "BOD",
-    "board-udrztahoztxbdte-mode": false
+    "board-udrztahoztxbdte-mode": false,
+    "board-udrztahoztxbdte-result_cell_clicked": {
+
+    },
+    "board-udrztahoztxbdte-result_cells_selected": [
+
+    ],
+    "board-udrztahoztxbdte-result_columns_selected": null,
+    "board-udrztahoztxbdte-result_rows_all": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "board-udrztahoztxbdte-result_rows_current": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "board-udrztahoztxbdte-result_rows_selected": null,
+    "board-udrztahoztxbdte-result_search": "",
+    "board-udrztahoztxbdte-result_state": {
+      "start": 0,
+      "length": 5,
+      "order": [
+
+      ],
+      "search": {
+        "search": "",
+        "smart": true,
+        "regex": false,
+        "caseInsensitive": true
+      },
+      "columns": [
+        {
+          "visible": true,
+          "search": {
+            "search": "",
+            "smart": true,
+            "regex": false,
+            "caseInsensitive": true
+          }
+        },
+        {
+          "visible": true,
+          "search": {
+            "search": "",
+            "smart": true,
+            "regex": false,
+            "caseInsensitive": true
+          }
+        },
+        {
+          "visible": true,
+          "search": {
+            "search": "",
+            "smart": true,
+            "regex": false,
+            "caseInsensitive": true
+          }
+        }
+      ]
+    }
   },
   "output": {
-    "board-dag-edges": "data frame with 0 columns and 0 rows",
-    "board-dag-graph_events": "NULL",
     "board-dag-network": {
       "x": {
         "nodes": {
@@ -114,19 +184,26 @@
           "interaction": {
             "hover": false,
             "multiselect": true,
+            "selectConnectedEdges": false,
             "zoomSpeed": 1
           },
           "edges": {
-            "length": 200,
+            "length": 300,
             "smooth": false
           },
           "physics": {
-            "solver": "repulsion",
-            "stabilization": false,
-            "repulsion": {
-              "centralGravity": 0.8,
-              "nodeDistance": 150
-            }
+            "solver": "forceAtlas2Based",
+            "maxVelocity": 50,
+            "minVelocity": 0.1,
+            "timestep": 0.5,
+            "stabilization": {
+              "enabled": true,
+              "iterations": 1000,
+              "updateInterval": 100,
+              "onlyDynamicEdges": false,
+              "fit": true
+            },
+            "adaptiveTimestep": true
           }
         },
         "groups": null,
@@ -182,14 +259,20 @@
         },
         "events": {
           "oncontext": "function(e) {\n              e.event.preventDefault(); // avoid showing web inspector ...\n              Shiny.setInputValue('board-dag-node_right_clicked', e.nodes, {priority: 'event'});\n            }",
+          "select": "function(e) {\n              if (e.nodes.length > 1) {\n                Shiny.setInputValue('board-dag-selected_nodes', e.nodes, {priority: 'event'});\n              }\n            }",
           "selectEdge": "function(e) {\n              Shiny.setInputValue('board-dag-selected_edge', e.edges[0], {priority: 'event'});\n            }",
-          "controlNodeDragEnd": "function(e) {\n            console.log(e.event.target.offsetParent.className);\n            Shiny.setInputValue('board-dag-new_edge', e.controlEdge);\n            //window.HTMLWidgets.find(`#$('.${e.event.target.offsetParent.className}').parent().parent().parent().attr('id')`)\n          ;}"
+          "controlNodeDragEnd": "function(e) {\n              Shiny.setInputValue('board-dag-new_edge', e.controlEdge, {priority: 'event'});\n              let target = $(`.${e.event.target.offsetParent.className}`)\n                .closest('.visNetwork')\n                .attr('id');\n              // Re-enable add edge mode\n              setTimeout(() => {\n                window.HTMLWidgets.find(`#${target}`).network.addEdgeMode();\n              }, 500);\n            ;}"
+        },
+        "OnceEvents": {
+          "stabilized": "function() {\n              var network = this;\n              \n              network.on('afterDrawing', function(ctx) {\n                var edges = network.body.edges;\n                var nodes = network.body.nodes;\n                \n                Object.keys(edges).forEach(function(edgeId) {\n                  var edge = edges[edgeId];\n                  var fromNode = nodes[edge.fromId];\n                  var toNode = nodes[edge.toId];\n                  \n                  // Calculate intersection points\n                  if (fromNode && toNode) {\n                    // Get positions\n                    var fromX = fromNode.x;\n                    var fromY = fromNode.y;\n                    var toX = toNode.x;\n                    var toY = toNode.y;\n                    \n                    // Calculate angles and distances\n                    var angle = Math.atan2(toY - fromY, toX - fromX);\n                    var reverseAngle = Math.atan2(fromY - toY, fromX - toX);\n                    \n                    // Get node radii (using shape.width since shape.radius might not be available)\n                    var fromRadius = fromNode.shape.width / 2;\n                    var toRadius = toNode.shape.width / 2;\n                    \n                    // Calculate intersection points\n                    var fromIntersectX = fromX + (Math.cos(angle) * fromRadius);\n                    var fromIntersectY = fromY + (Math.sin(angle) * fromRadius);\n                    var toIntersectX = toX + (Math.cos(reverseAngle) * toRadius);\n                    var toIntersectY = toY + (Math.sin(reverseAngle) * toRadius);\n                    \n                    // Draw connection points at intersection\n                    ctx.beginPath();\n                    ctx.arc(fromIntersectX, fromIntersectY, 4, 0, 2 * Math.PI);\n                    ctx.fillStyle = '#2B7CE9';\n                    ctx.fill();\n                    ctx.strokeStyle = 'white';\n                    ctx.lineWidth = 1;\n                    ctx.stroke();\n                    \n                    ctx.beginPath();\n                    ctx.arc(toIntersectX, toIntersectY, 4, 0, 2 * Math.PI);\n                    ctx.fillStyle = '#2B7CE9';\n                    ctx.fill();\n                    ctx.strokeStyle = 'white';\n                    ctx.lineWidth = 1;\n                    ctx.stroke();\n                  }\n                });\n              });\n            }"
         }
       },
       "evals": [
         "events.oncontext",
+        "events.select",
         "events.selectEdge",
-        "events.controlNodeDragEnd"
+        "events.controlNodeDragEnd",
+        "OnceEvents.stabilized"
       ],
       "jsHooks": [
 
@@ -198,7 +281,6 @@
 
       ]
     },
-    "board-dag-nodes": "               id                                label           title  shape\n1 udrztahoztxbdte dataset_block \\n id: udrztahoztxbdte udrztahoztxbdte circle\n  stack icon.code\n1    NA        NA",
     "board-grid": {
       "x": {
         "html": "",
@@ -229,6 +311,150 @@
       ],
       "deps": [
 
+      ]
+    },
+    "board-udrztahoztxbdte-result": {
+      "x": {
+        "style": "bootstrap5",
+        "filter": "none",
+        "vertical": false,
+        "container": "<table class=\"table table-striped table-hover row-border order-column display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Time<\/th>\n      <th>demand<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>",
+        "options": {
+          "pageLength": 5,
+          "processing": false,
+          "columnDefs": [
+            {
+              "className": "dt-right",
+              "targets": [
+                1,
+                2
+              ]
+            },
+            {
+              "orderable": false,
+              "targets": 0
+            },
+            {
+              "name": " ",
+              "targets": 0
+            },
+            {
+              "name": "Time",
+              "targets": 1
+            },
+            {
+              "name": "demand",
+              "targets": 2
+            }
+          ],
+          "order": [
+
+          ],
+          "autoWidth": false,
+          "orderClasses": false,
+          "lengthMenu": [
+            5,
+            10,
+            25,
+            50,
+            100
+          ],
+          "ajax": {
+            "type": "POST",
+            "data": "function(d) {\nd.search.caseInsensitive = true;\nd.search.smart = true;\nd.escape = true;\nvar encodeAmp = function(x) { x.value = x.value.replace(/&/g, \"%26\"); }\nencodeAmp(d.search);\n$.each(d.columns, function(i, v) {encodeAmp(v.search);});\n}"
+          },
+          "serverSide": true
+        },
+        "selection": {
+          "mode": "none",
+          "selected": null,
+          "target": "row",
+          "selectable": null
+        }
+      },
+      "evals": [
+        "options.ajax.data"
+      ],
+      "jsHooks": [
+
+      ],
+      "deps": [
+        {
+          "name": "jquery",
+          "version": "3.6.0",
+          "src": {
+            "href": "jquery-3.6.0"
+          },
+          "meta": null,
+          "script": "jquery-3.6.0.min.js",
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        },
+        {
+          "name": "dt-core-bootstrap5",
+          "version": "1.13.6",
+          "src": {
+            "href": "dt-core-bootstrap5-1.13.6"
+          },
+          "meta": null,
+          "script": [
+            "js/jquery.dataTables.min.js",
+            "js/dataTables.bootstrap5.min.js"
+          ],
+          "stylesheet": "css/dataTables.bootstrap5.min.css",
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": false
+        },
+        {
+          "name": "bootstrap",
+          "version": "5.3.1",
+          "src": {
+            "href": "bootstrap-5.3.1"
+          },
+          "meta": {
+            "viewport": "width=device-width, initial-scale=1, shrink-to-fit=no"
+          },
+          "script": "bootstrap.bundle.min.js",
+          "stylesheet": "bootstrap.min.css",
+          "head": null,
+          "attachment": null,
+          "package": null,
+          "all_files": true
+        },
+        {
+          "name": "bs3compat",
+          "version": "0.8.0",
+          "src": {
+            "href": "bs3compat-0.8.0"
+          },
+          "meta": null,
+          "script": [
+            "transition.js",
+            "tabs.js",
+            "bs3compat.js"
+          ],
+          "stylesheet": null,
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        },
+        {
+          "name": "crosstalk",
+          "version": "1.2.1",
+          "src": {
+            "href": "crosstalk-1.2.1"
+          },
+          "meta": null,
+          "script": "js/crosstalk.min.js",
+          "stylesheet": "css/crosstalk.min.css",
+          "head": null,
+          "attachment": null,
+          "all_files": true
+        }
       ]
     }
   },
