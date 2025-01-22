@@ -13,7 +13,7 @@ main_ui <- function(id, board) {
     ns("board"),
     board,
     ser_deser = ser_deser_ui,
-    add_rm_block = add_rm_block_ui,
+    add_rm_block = app_add_rm_block_ui,
     add_rm_link = add_rm_link_ui
   )
 
@@ -77,7 +77,7 @@ main_server <- function(id, board) {
         "board",
         board,
         ser_deser = ser_deser_server,
-        add_rm_block = add_rm_block_server,
+        add_rm_block = app_add_rm_block_server,
         add_rm_link = add_rm_link_server,
         block_notifications = block_notification_server
       )
