@@ -1,6 +1,6 @@
 library(blockr.core)
-library(blockr.dplyr)
-library(blockr.ai)
+#library(blockr.dplyr)
+#library(blockr.ai)
 library(blockr.ui)
 library(bslib)
 library(shiny)
@@ -10,14 +10,16 @@ shiny::addResourcePath(
   system.file("examples/demo/www", package = "blockr.ui")
 )
 
+app_board <- new_board()
+
 ui <- page_fillable(
   shinyjs::useShinyjs(),
   tags$script(src = "assets/custom.js"),
-  main_ui("board")
+  main_ui("board", app_board)
 )
 
 server <- function(input, output, session) {
-  main_server("board")
+  main_server("board", app_board)
 }
 
 shinyApp(ui, server)
