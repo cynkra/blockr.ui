@@ -15,11 +15,11 @@ app_board <- new_board()
 ui <- page_fillable(
   shinyjs::useShinyjs(),
   tags$script(src = "assets/custom.js"),
-  main_ui("board", app_board)
+  main_ui("main", app_board)
 )
 
 server <- function(input, output, session) {
-  main_server("board", app_board)
+  main_server("main", app_board)
 }
 
 shinyApp(ui, server)

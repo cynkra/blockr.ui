@@ -77,8 +77,7 @@ properties_ui <- function(..., ns, width = "40%", title = "Block properties") {
 #' @rdname main
 #' @export
 actions_ui <- function(..., ns) {
-  div(
-    class = "d-flex justify-content-center align-items-center",
+  tagList(
     shinyWidgets::switchInput(
       ns("mode"),
       onStatus = "default",
@@ -88,9 +87,12 @@ actions_ui <- function(..., ns) {
       size = "mini"
     ),
     div(
-      class = "btn-group",
-      role = "group",
-      ...
+      class = "d-flex justify-content-center align-items-center",
+      div(
+        class = "btn-group",
+        role = "group",
+        ...
+      )
     )
   )
 }

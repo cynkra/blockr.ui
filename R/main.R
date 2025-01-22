@@ -36,12 +36,12 @@ main_ui <- function(id, board) {
         open = FALSE,
         width = "40%",
         position = "right",
-        "TBD block ui"
+        my_board_ui[[3]]
       ),
       # Action bar
-      actions_ui(ns = ns),
+      actions_ui(my_board_ui[[1]]$children, ns = ns),
       "TBD canvas",
-      my_board_ui
+      my_board_ui[[2]]
     )
   )
 }
@@ -70,7 +70,8 @@ main_server <- function(id, board) {
         if (input$mode) rv$mode <- "network" else rv$mode <- "dashboard"
       })
 
-      manage_sidebars(rv, reactive(""), session)
+      # TBD: the second parameter must be a selected node
+      #manage_sidebars(rv, reactive(""), session)
 
       board_out <- board_server(
         "board",
