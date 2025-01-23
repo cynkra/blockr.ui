@@ -88,3 +88,8 @@ off_canvas <- function(
     tags$div(class = "offcanvas-body", ...)
   )
 }
+
+block_uid <- function(blk) {
+  stopifnot(inherits(blk, "block"))
+  attr(blk, "uid")
+}

@@ -291,6 +291,7 @@ create_node <- function(rv, session) {
   # TODO: maybe we want to provide more choices
   # but that would require more UI elements
   rv$new_block <- create_block(input$scoutbar)
+  attr(rv$new_block, "uid") <- rand_names()
 
   # Update node vals for the network rendering
   rv <- add_node(rv$new_block, rv)

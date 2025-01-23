@@ -186,7 +186,7 @@ init_block_ui <- function(blk, session) {
       card(
         full_screen = TRUE,
         card_title(sprintf("Node %s properties", block_uid(blk))),
-        block_ui(blk, ns(NULL)),
+        block_ui(ns(block_uid(blk)), blk),
         card_footer(
           bslib::input_switch(
             ns(sprintf("%s-mode", block_uid(blk))),
@@ -261,6 +261,7 @@ init_block <- function(blk, rv, session) {
     # The server is the module from which we can
     # extract data, ...
     server = block_server(
+      block_uid(blk),
       blk,
       data = rv$connections[[block_uid(blk)]]
     ),
