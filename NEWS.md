@@ -1,3 +1,4 @@
-# blockr.ui 0.0.0.9000
+# blockr.ui 0.2.0
 
-- Initial CRAN submission.
+- Initial POC stable release (before big refactoring). Most of this app logic is now abstracted into blockr.core. Future releases,
+will include more of the block.core elements.
