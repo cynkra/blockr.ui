@@ -15,11 +15,16 @@ app_add_rm_block_server <- function(id, rv) {
   moduleServer(
     id,
     function(input, output, session) {
+      ns <- session$ns
       res <- reactiveValues(add = NULL, rm = NULL)
 
+      # Trigger add block
       observeEvent(
         input$add_block,
         {
+          rv$added_block <- NULL
+          # Reset add_block_to
+          rv$append_block <- FALSE
           update_scoutbar(
             session,
             "scoutbar",
@@ -28,8 +33,27 @@ app_add_rm_block_server <- function(id, rv) {
         }
       )
 
+      # TBD: implement add_block_to -> add a block after the selected one
+      # We need a contextual registry and update the scoutbar with relevant
+      # choices. I think we can use the same scoutbar as for the classic
+      # add block with all choices.
+      observeEvent(input$append_block, {
+        rv$added_block <- NULL
+        rv$append_block <- TRUE
+        update_scoutbar(
+          session,
+          "scoutbar",
+          revealScoutbar = TRUE
+        )
+      })
+
+      # Adding a block, we update the rv$added so the graph is updated
+      # in the links plugin
       observeEvent(input$scoutbar, {
         res$add <- as_blocks(create_block(input$scoutbar))
+        # TODO: maybe a better way to get the block uid ...
+        rv$added_block <- res$add[[1]]
+        attr(rv$added_block, "uid") <- names(res$add)
       })
 
       observe(
@@ -41,7 +65,7 @@ app_add_rm_block_server <- function(id, rv) {
       )
 
       observeEvent(
-        input$rm_block,
+        input$remove_block,
         {
           req(input$block_select)
           res$rm <- input$block_select
@@ -57,28 +81,35 @@ app_add_rm_block_server <- function(id, rv) {
 #' @rdname add_rm_block
 #' @export
 app_add_rm_block_ui <- function(id, board) {
-  tagList(
-    scoutbar(
-      NS(id, "scoutbar"),
-      placeholder = "Search for a block",
-      actions = blk_choices()
+  list(
+    toolbar = tagList(
+      scoutbar(
+        NS(id, "scoutbar"),
+        placeholder = "Search for a block",
+        actions = blk_choices()
+      ),
+      actionButton(
+        NS(id, "add_block"),
+        "New block",
+        icon = icon("circle-plus"),
+        class = "btn-light"
+      )
     ),
-    actionButton(
-      NS(id, "add_block"),
-      "New block",
-      icon = icon("circle-plus"),
-      class = "btn-light"
-    ),
-    selectInput(
-      NS(id, "block_select"),
-      "Select block from board",
-      choices = c("", board_block_ids(board))
-    ),
-    actionButton(
-      NS(id, "rm_block"),
-      "Remove block",
-      icon = icon("minus"),
-      class = "btn-danger"
+    sidebar = div(
+      class = "btn-group",
+      role = "group",
+      actionButton(
+        NS(id, "append_block"),
+        "Append block",
+        icon = icon("circle-plus"),
+        class = "btn-light"
+      ),
+      actionButton(
+        NS(id, "remove_block"),
+        "Remove block",
+        icon = icon("trash"),
+        class = "btn-light"
+      )
     )
   )
 }

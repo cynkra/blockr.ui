@@ -36,11 +36,13 @@ main_ui <- function(id, board) {
         open = FALSE,
         width = "40%",
         position = "right",
-        my_board_ui[[3]]
+        my_board_ui[[3]],
+        my_board_ui[[1]]$children[[2]]$sidebar
       ),
       # Action bar
-      actions_ui(my_board_ui[[1]]$children, ns = ns),
-      "TBD canvas",
+      actions_ui(my_board_ui[[1]]$children[[2]]$toolbar, ns = ns),
+      my_board_ui[[1]]$children[[3]],
+      # Notifications
       my_board_ui[[2]]
     )
   )

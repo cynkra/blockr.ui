@@ -281,30 +281,28 @@ create_edge <- function(rv, vals, session) {
 #' required in practice as a node can theoretically feed
 #' as many children nodes as required.
 #'
+#' @param new New block to add.
 #' @param rv Local reactive values.
+#' @param append Whether to append the node to an existing one.
 #' @param session Shiny session object.
 #' @export
-create_node <- function(rv, session) {
+create_node <- function(new, rv, append = FALSE, session) {
   input <- session$input
   ns <- session$ns
-  # Construct block with empty defaults
-  # TODO: maybe we want to provide more choices
-  # but that would require more UI elements
-  rv$new_block <- create_block(input$scoutbar)
 
   # Update node vals for the network rendering
-  rv <- add_node(rv$new_block, rv)
+  rv <- add_node(new, rv)
 
   visNetworkProxy(ns("network")) |>
     visUpdateNodes(rv$nodes) |>
     visSelectNodes(id = utils::tail(rv$nodes$id, n = 1))
 
   # Handle add_block_to where we also setup the connections
-  if (rv$append_block) {
+  if (append) {
     rv <- add_edge(
       from = input$network_selected,
-      to = block_uid(rv$new_block),
-      label = block_inputs(rv$new_block)[[1]],
+      to = block_uid(new),
+      label = block_inputs(rv$added_block)[[1]],
       rv = rv
     )
 
