@@ -82,7 +82,7 @@ add_edge <- function(from, to, label, rv) {
 #' @param selected UID (character string) of node to remove.
 #' @param rv Reactive values with dataframe representing nodes data.
 #' @keywords internal
-remove_node <- function(selected, rv) {
+remove_node <- function(selected, rv, session) {
   stopifnot(
     is.data.frame(rv$nodes),
     nrow(rv$nodes) > 0,
@@ -90,10 +90,16 @@ remove_node <- function(selected, rv) {
     nchar(selected) > 0
   )
 
+  ns <- session$ns
+
   to_remove <- which(rv$nodes$id == selected)
   if (length(to_remove) == 0) {
     stop(sprintf("Can't find node with id %s in the data", selected))
   }
+
+  visNetworkProxy(ns("network")) |>
+    visRemoveNodes(selected)
+
   rv$nodes <- rv$nodes[-to_remove, ]
   rv
 }

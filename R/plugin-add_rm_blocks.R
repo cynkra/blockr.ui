@@ -67,8 +67,7 @@ app_add_rm_block_server <- function(id, rv) {
       observeEvent(
         input$remove_block,
         {
-          req(input$block_select)
-          res$rm <- input$block_select
+          res$rm <- rv$removed_block <- rv$selected_block
         }
       )
 

@@ -234,6 +234,29 @@ add_rm_link_server <- function(id, rv) {
         )
       })
 
+      # Remove node
+      observeEvent(rv$removed_block, {
+        vals <- remove_node(input$network_selected, vals, session)
+        # TO DO: need to cleanup any edge associated with this node
+        # we can compare vals$edge$id with the links ids and
+        # remove all ids that are not in links id
+      })
+
+      # Communicate selected to upstream modules
+      observeEvent(
+        {
+          req(input$network_initialized)
+          input$network_selected
+        },
+        {
+          if (nchar(input$network_selected) == 0) {
+            rv$selected_block <- NULL
+          } else {
+            rv$selected_block <- input$network_selected
+          }
+        }
+      )
+
       res
     }
   )
