@@ -10,7 +10,7 @@ shiny::addResourcePath(
   system.file("examples/demo/www", package = "blockr.ui")
 )
 
-app_board <- new_board()
+app_board <- new_board(class = "custom_board")
 
 ui <- page_fillable(
   shinyjs::useShinyjs(),

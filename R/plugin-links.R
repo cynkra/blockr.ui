@@ -233,6 +233,16 @@ add_rm_link_server <- function(id, rv, ...) {
           rv$append_block,
           session
         )
+        # Send any created link back to the board
+        if (rv$append_block) {
+          browser()
+          res(
+            list(
+              add = vals$added_edge,
+              rm = character()
+            )
+          )
+        }
       })
 
       # Remove node

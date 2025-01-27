@@ -74,8 +74,13 @@ main_server <- function(id, board) {
         if (input$mode) rv$mode <- "network" else rv$mode <- "dashboard"
       })
 
-      # TBD: the second parameter must be a selected node
-      #manage_sidebars(rv, reactive(""), session)
+      # Toggle sidebars based on the mode and selected node
+      manage_sidebars(rv, reactive(board_out$selected_block), session)
+
+      # Re-hide sidebar when block is removed
+      observeEvent(board_out$removed_block, {
+        bslib::toggle_sidebar("properties", open = FALSE)
+      })
 
       board_out <- board_server(
         "board",
@@ -86,8 +91,10 @@ main_server <- function(id, board) {
           manage_links = add_rm_link_server,
           notify_user = block_notification_server
         ),
-        callbacks = list(),
-        rv
+        callbacks = list(
+          block_visibility = manage_block_visibility
+        ),
+        parent = rv
       )
     }
   )

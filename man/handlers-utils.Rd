@@ -7,7 +7,7 @@
 \usage{
 manage_sidebars(rv, selected, session)
 
-manage_block_visibility(rv, selected)
+manage_block_visibility(parent, rv)
 }
 \arguments{
 \item{rv}{Reactive values.}

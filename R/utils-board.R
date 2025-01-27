@@ -293,7 +293,7 @@ manage_sidebars <- function(rv, selected, session) {
   # or the dashboard sidebar, they can't be opened at the same time.
   observeEvent(c(rv$mode, selected()), {
     cond <- if (is.null(selected())) {
-      rv$mode == "network"
+      FALSE
     } else {
       (rv$mode == "network" && nchar(selected()) > 0)
     }
@@ -313,17 +313,16 @@ manage_sidebars <- function(rv, selected, session) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-manage_block_visibility <- function(rv, selected) {
+manage_block_visibility <- function(parent, rv) {
   observeEvent(
     {
-      req(rv$mode == "network")
-      selected()
+      req(parent$mode == "network")
+      rv$selected_block
     },
     {
-      browser()
-      to_hide <- which(names(rv$blocks) != selected())
+      to_hide <- which(names(rv$blocks) != rv$selected_block)
 
-      shinyjs::show(selected())
+      shinyjs::show(rv$selected_block)
       if (length(to_hide)) {
         lapply(names(rv$blocks)[to_hide], \(el) {
           shinyjs::hide(el)
@@ -331,6 +330,7 @@ manage_block_visibility <- function(rv, selected) {
       }
     }
   )
+  return(NULL)
 }
 
 #' Add block to grid

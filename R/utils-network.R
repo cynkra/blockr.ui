@@ -71,7 +71,13 @@ add_edge <- function(from, to, label, rv) {
       edge_data
     )
   }
-  rv$added_edge <- id
+  rv$added_edge <- as_links(
+    new_link(
+      from = edge_data$from,
+      to = edge_data$to,
+      input = edge_data$label
+    )
+  )
   rv
 }
 
@@ -305,14 +311,12 @@ create_node <- function(new, rv, append = FALSE, session) {
 
   # Handle add_block_to where we also setup the connections
   if (append) {
-    browser()
     rv <- add_edge(
       from = input$network_selected,
       to = block_uid(new),
       label = block_inputs(new)[[1]],
       rv = rv
     )
-
     visNetworkProxy(ns("network")) |>
       visUpdateEdges(rv$edges)
   }
