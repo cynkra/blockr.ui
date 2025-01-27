@@ -243,6 +243,45 @@ add_rm_link_server <- function(id, rv, ...) {
         })
       })
 
+      # Handle node update. Change of color due to block validity change ...
+      # This needs input parameter from the parent module which contains
+      # the list of block server functions.
+      # For Nicolas: why does rv$msgs() triggers
+      # infinitely?
+      observeEvent(
+        {
+          req(nrow(vals$nodes) > 0)
+          rv$msgs()
+        },
+        {
+          # Restore blue color if valid
+          if (is.null(rv$msgs())) {
+            if (all(vals$nodes$color == "#D2E5FF")) return(NULL)
+            vals$nodes$color <- rep("#D2E5FF", nrow(vals$nodes))
+          }
+
+          # Color invalid nodes in red
+          for (nme in names(rv$msgs())) {
+            curr <- rv$msgs()[[nme]]
+            has_state_error <- curr$state$error
+            has_data_error <- curr$data$error
+            has_eval_error <- curr$eval$error
+            if (
+              length(has_state_error) ||
+                length(has_data_error) ||
+                length(has_eval_error)
+            ) {
+              if (vals$nodes[vals$nodes$id == nme, "color"] == "#ffd6d2")
+                return(NULL)
+              vals$nodes[vals$nodes$id == nme, "color"] <- "#ffd6d2"
+            }
+          }
+          visNetworkProxy(ns("network")) |>
+            visUpdateNodes(vals$nodes)
+        },
+        ignoreNULL = FALSE
+      )
+
       # TODO: handle multi block action?
 
       # Add node to network rv$nodes so the graph is updated
