@@ -4,12 +4,14 @@
 \alias{remove_edge}
 \title{Remove an edge}
 \usage{
-remove_edge(selected, rv)
+remove_edge(selected, rv, session)
 }
 \arguments{
 \item{selected}{UID (character string) of edge to remove.}
 
 \item{rv}{Reactive values containing dataframe representing edges data.}
+
+\item{session}{Shiny session object.}
 }
 \description{
 Update dataframe for visNetwork graph

@@ -116,8 +116,9 @@ remove_node <- function(selected, rv, session) {
 #'
 #' @param selected UID (character string) of edge to remove.
 #' @param rv Reactive values containing dataframe representing edges data.
+#' @param session Shiny session object.
 #' @keywords internal
-remove_edge <- function(selected, rv) {
+remove_edge <- function(selected, rv, session) {
   stopifnot(
     is.data.frame(rv$edges),
     nrow(rv$edges) > 0,
@@ -129,8 +130,14 @@ remove_edge <- function(selected, rv) {
     stop(sprintf("Can't find edge with id %s in the data", selected))
   }
 
+  ns <- session$ns
+
   rv$removed_edge <- rv$edges[to_remove, "id"]
   rv$edges <- rv$edges[-to_remove, ]
+
+  visNetworkProxy(ns("network")) |>
+    visRemoveEdges(rv$removed_edge)
+
   rv
 }
 
@@ -317,6 +324,8 @@ create_node <- function(new, rv, append = FALSE, session) {
       label = block_inputs(new)[[1]],
       rv = rv
     )
+    # Erase dummy id by auto link ID
+    rv$edges[nrow(rv$edges), "id"] <- rv$added_edge$id
     visNetworkProxy(ns("network")) |>
       visUpdateEdges(rv$edges)
   }

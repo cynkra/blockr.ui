@@ -32,6 +32,8 @@ add_rm_link_server <- function(id, rv, ...) {
         list(add = links(), rm = character())
       )
 
+      links <- reactive(board_links(rv$board))
+
       output$network <- renderVisNetwork({
         # Initialized as empty, we'll update with the proxy
         visNetwork(
@@ -237,8 +239,7 @@ add_rm_link_server <- function(id, rv, ...) {
         if (rv$append_block) {
           res(
             list(
-              add = vals$added_edge,
-              rm = character()
+              add = vals$added_edge
             )
           )
         }
@@ -267,6 +268,27 @@ add_rm_link_server <- function(id, rv, ...) {
           }
         }
       )
+
+      # Remove edge (user selects the edge).
+      observeEvent(input$selected_edge, {
+        showModal(
+          modalDialog(
+            title = sprintf("Edge %s", input$selected_edge),
+            actionButton(ns("remove_edge"), "Remove"),
+          )
+        )
+      })
+
+      observeEvent(input$remove_edge, {
+        vals <- remove_edge(input$selected_edge, vals, session)
+        # Update link callback
+        res(
+          list(
+            rm = input$selected_edge
+          )
+        )
+        removeModal()
+      })
 
       res
     }

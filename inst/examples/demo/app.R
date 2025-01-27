@@ -1,5 +1,5 @@
 library(blockr.core)
-#library(blockr.dplyr)
+library(blockr.dplyr)
 #library(blockr.ai)
 library(blockr.ui)
 library(bslib)
