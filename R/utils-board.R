@@ -317,9 +317,10 @@ manage_block_visibility <- function(rv, selected) {
   observeEvent(
     {
       req(rv$mode == "network")
-      req(nchar(selected()) > 0)
+      selected()
     },
     {
+      browser()
       to_hide <- which(names(rv$blocks) != selected())
 
       shinyjs::show(selected())

@@ -305,10 +305,11 @@ create_node <- function(new, rv, append = FALSE, session) {
 
   # Handle add_block_to where we also setup the connections
   if (append) {
+    browser()
     rv <- add_edge(
       from = input$network_selected,
       to = block_uid(new),
-      label = block_inputs(rv$added_block)[[1]],
+      label = block_inputs(new)[[1]],
       rv = rv
     )
 

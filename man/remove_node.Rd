@@ -4,7 +4,7 @@
 \alias{remove_node}
 \title{Remove a node}
 \usage{
-remove_node(selected, rv)
+remove_node(selected, rv, session)
 }
 \arguments{
 \item{selected}{UID (character string) of node to remove.}

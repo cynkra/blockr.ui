@@ -2,8 +2,9 @@
 #'
 #' Customizable logic for adding/removing blocks to the board.
 #'
-#' @param id Namespace ID
-#' @param rv Reactive values object
+#' @param id Namespace ID.
+#' @param rv Reactive values object.
+#' @param ... Extra arguments passed from parent scope
 #'
 #' @return A [shiny::reactiveValues()] object with components `add` and `rm`,
 #' where `add` may be `NULL` or a `block` object and `rm` be `NULL` or a string
@@ -11,7 +12,7 @@
 #'
 #' @rdname add_rm_block
 #' @export
-app_add_rm_block_server <- function(id, rv) {
+add_rm_block_server <- function(id, rv, ...) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -79,7 +80,7 @@ app_add_rm_block_server <- function(id, rv) {
 #' @param board The initial `board` object
 #' @rdname add_rm_block
 #' @export
-app_add_rm_block_ui <- function(id, board) {
+add_rm_block_ui <- function(id, board) {
   list(
     toolbar = tagList(
       scoutbar(

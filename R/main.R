@@ -12,9 +12,11 @@ main_ui <- function(id, board) {
   my_board_ui <- board_ui(
     ns("board"),
     board,
-    ser_deser = ser_deser_ui,
-    add_rm_block = app_add_rm_block_ui,
-    add_rm_link = add_rm_link_ui
+    plugins = list(
+      preseve_board = ser_deser_ui,
+      manage_blocks = add_rm_block_ui,
+      manage_links = add_rm_link_ui
+    )
   )
 
   layout_sidebar(
@@ -78,10 +80,14 @@ main_server <- function(id, board) {
       board_out <- board_server(
         "board",
         board,
-        ser_deser = ser_deser_server,
-        add_rm_block = app_add_rm_block_server,
-        add_rm_link = add_rm_link_server,
-        block_notifications = block_notification_server
+        plugins = list(
+          preseve_board = ser_deser_server,
+          manage_blocks = add_rm_block_server,
+          manage_links = add_rm_link_server,
+          notify_user = block_notification_server
+        ),
+        callbacks = list(),
+        rv
       )
     }
   )
