@@ -235,7 +235,6 @@ add_rm_link_server <- function(id, rv, ...) {
         )
         # Send any created link back to the board
         if (rv$append_block) {
-          browser()
           res(
             list(
               add = vals$added_edge,
@@ -248,9 +247,10 @@ add_rm_link_server <- function(id, rv, ...) {
       # Remove node
       observeEvent(rv$removed_block, {
         vals <- remove_node(input$network_selected, vals, session)
-        # TO DO: need to cleanup any edge associated with this node
-        # we can compare vals$edge$id with the links ids and
-        # remove all ids that are not in links id
+        # Need to cleanup any edge associated with this node
+        if (nrow(vals$edges) > 0) {
+          remove_edge(input$network_selected, vals)
+        }
       })
 
       # Communicate selected to upstream modules

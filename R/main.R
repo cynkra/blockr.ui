@@ -82,6 +82,10 @@ main_server <- function(id, board) {
         bslib::toggle_sidebar("properties", open = FALSE)
       })
 
+      observeEvent(board_out$links, {
+        #browser()
+      })
+
       board_out <- board_server(
         "board",
         board,
