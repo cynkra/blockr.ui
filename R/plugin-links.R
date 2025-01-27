@@ -227,6 +227,24 @@ add_rm_link_server <- function(id, rv, ...) {
         }
       )
 
+      # Capture nodes position for serialization
+      observeEvent(req(nrow(vals$nodes) > 0), {
+        visNetworkProxy(ns("network")) |>
+          visGetPositions()
+      })
+      observeEvent(input$network_positions, {
+        lapply(names(input$network_positions), \(id) {
+          vals$nodes[vals$nodes$id == id, "x"] <- input$network_positions[[
+            id
+          ]]$x
+          vals$nodes[vals$nodes$id == id, "y"] <- input$network_positions[[
+            id
+          ]]$y
+        })
+      })
+
+      # TODO: handle multi block action?
+
       # Add node to network rv$nodes so the graph is updated
       observeEvent(rv$added_block, {
         vals <- create_node(
