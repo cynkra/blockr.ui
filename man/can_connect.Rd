@@ -4,14 +4,14 @@
 \alias{can_connect}
 \title{Check whether the node can receive connection}
 \usage{
-can_connect(x, con, vals)
+can_connect(x, con, rv)
 }
 \arguments{
 \item{x}{Block object.}
 
-\item{con}{Connection. List containing from and to data.}
+\item{con}{Connection information.}
 
-\item{vals}{Reactive values}
+\item{rv}{Reactive values}
 }
 \description{
 Check whether the node can receive connection

@@ -4,12 +4,12 @@
 \alias{create_edge}
 \title{Create an edge and add it to the network}
 \usage{
-create_edge(rv, vals, session)
+create_edge(vals, rv, session)
 }
 \arguments{
-\item{rv}{Local reactive values.}
+\item{vals}{Local reactive values.}
 
-\item{vals}{Parent reactive values.}
+\item{rv}{Parent reactive values.}
 
 \item{session}{Shiny session object.}
 }

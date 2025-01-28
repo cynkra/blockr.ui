@@ -221,7 +221,7 @@ add_rm_link_server <- function(id, rv, ...) {
           session$sendCustomMessage(
             "toggle-manipulation-ui",
             list(
-              value = length(board_links(rv$board)) > 1
+              value = length(rv$blocks) > 1
             )
           )
         }
@@ -280,6 +280,43 @@ add_rm_link_server <- function(id, rv, ...) {
             visUpdateNodes(vals$nodes)
         },
         ignoreNULL = FALSE
+      )
+
+      # Implement edge creation, we can drag from one node
+      # to another to connect them.
+      # Validation mechanism to allow connections or not...
+      # Rules:
+      # - The dragged target must exist.
+      # - We can't drag the edge on the current selected node (avoid loops).
+      # - A node that has already all input slots connected can't received any incoming connection.
+      # data block can't receive input data. Transform block receive
+      # as many input data as slot they have (1 for select, 2 for join, ...).
+      observeEvent(
+        {
+          req(input$network_graphChange$cmd == "addEdge")
+        },
+        {
+          # vis.js adds the edge on the client on drag. However,
+          # there is no callback to the backend. Since add it via the proxy
+          # we need to remove the client one.
+          visNetworkProxy(ns("network")) |>
+            visRemoveEdges(input$network_graphChange$id)
+        }
+      )
+
+      observeEvent(
+        {
+          input$new_edge
+          req(input$new_edge$from)
+        },
+        {
+          vals <- create_edge(vals, rv, session)
+          res(
+            list(
+              add = vals$added_edge
+            )
+          )
+        }
       )
 
       # TODO: handle multi block action?

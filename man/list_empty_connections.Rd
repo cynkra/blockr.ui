@@ -4,12 +4,14 @@
 \alias{list_empty_connections}
 \title{List node connections}
 \usage{
-list_empty_connections(x, vals)
+list_empty_connections(x, con, rv)
 }
 \arguments{
 \item{x}{block.}
 
-\item{vals}{Reactive values.}
+\item{con}{Connection information.}
+
+\item{rv}{Reactive values.}
 }
 \description{
 List node connections
