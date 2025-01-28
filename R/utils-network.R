@@ -2,19 +2,23 @@
 #'
 #' Update dataframe for visNetwork graph
 #'
-#' @param new New block to insert. Must be a valid
-#' block registry entry
-#' @param rv Reactive values with dataframe representing network data.
+#' @param new New block to add.
+#' @param vals Local reactive values.
+#' @param rv Global reactive values.
 #' @keywords internal
-add_node <- function(new, rv) {
+add_node <- function(new, vals, rv) {
   stopifnot(
     is_block(new),
-    is.data.frame(rv$nodes)
+    is.data.frame(vals$nodes)
   )
 
   node_data <- data.frame(
     id = block_uid(new),
-    label = paste(attr(new, "class")[1], "\n id:", block_uid(new)),
+    label = paste(
+      attr(new, "class")[1],
+      "\n id:",
+      block_uid(new)
+    ),
     title = block_uid(new),
     shape = "circle",
     color = "#D2E5FF",
@@ -24,15 +28,15 @@ add_node <- function(new, rv) {
     y = NA
   )
 
-  rv$nodes <- if (nrow(rv$nodes) == 0) {
+  vals$nodes <- if (nrow(vals$nodes) == 0) {
     node_data
   } else {
     rbind(
-      rv$nodes,
+      vals$nodes,
       node_data
     )
   }
-  rv
+  vals
 }
 
 #' Add a edge
@@ -43,19 +47,16 @@ add_node <- function(new, rv) {
 #' @param to Node it.
 #' @param label Edge label. This is useful to map the existing connected
 #' nodes to the input slots of the receiving node (for instance a join block).
-#' @param rv Reactive values, containing elements such as edges data.
+#' @param vals Reactive values, containing elements such as edges data.
 #' @keywords internal
-add_edge <- function(from, to, label, rv) {
+add_edge <- function(from, to, label, vals) {
   stopifnot(
     is.character(from),
     is.character(to),
-    is.data.frame(rv$edges)
+    is.data.frame(vals$edges)
   )
 
-  id <- sprintf("%s_%s", from, to)
   edge_data <- data.frame(
-    # ID is necessary to avoid duplicating edges with visUpdateEdges
-    id = id,
     from = from,
     to = to,
     label = label,
@@ -63,24 +64,28 @@ add_edge <- function(from, to, label, rv) {
     width = 4
   )
 
-  if (nrow(rv$edges) == 0) {
-    rv$edges <- edge_data
-  } else {
-    rv$edges <- rbind(
-      rv$edges,
-      edge_data
-    )
-  }
-  rv$added_edge <- as_links(
+  # Create link
+  vals$added_edge <- as_links(
     new_link(
       from = edge_data$from,
       to = edge_data$to,
       input = edge_data$label
     )
   )
-  # Replace dummy edge id, so that we can remove the edge and links later
-  rv$edges[nrow(rv$edges), "id"] <- rv$added_edge$id
-  rv
+
+  # Add link id for edge id to be able to remove it later ...
+  edge_data$id <- vals$added_edge$id
+
+  if (nrow(vals$edges) == 0) {
+    vals$edges <- edge_data
+  } else {
+    vals$edges <- rbind(
+      vals$edges,
+      edge_data
+    )
+  }
+
+  vals
 }
 
 #' Remove a node
@@ -146,57 +151,57 @@ remove_edge <- function(selected, rv, session) {
 #' List node connections
 #'
 #' @param x block.
-#' @param con Connection information.
+#' @param target Connection target id.
 #' @param rv Reactive values.
 #'
-list_empty_connections <- function(x, con, rv) {
+list_empty_connections <- function(x, target, rv) {
   UseMethod("list_empty_connections", x)
 }
 
 #' @export
-list_empty_connections.data_block <- function(x, con, rv) {
+list_empty_connections.data_block <- function(x, target, rv) {
   NULL
 }
 
 #' @export
-list_empty_connections.block <- function(x, con, rv) {
-  lgl_ply(rv$inputs[[con$to]], \(slot) is.null(slot()))
+list_empty_connections.block <- function(x, target, rv) {
+  lgl_ply(rv$inputs[[target]], \(slot) is.null(slot()))
 }
 
 #' Check node connection
 #'
 #' @param x block.
-#' @param con Connection information.
+#' @param target Connection target id.
 #' @param rv Reactive values.
 #'
 #' @export
-check_connections <- function(x, con, rv) {
+check_connections <- function(x, target, rv) {
   UseMethod("check_connections", x)
 }
 
 #' @export
-check_connections.data_block <- function(x, con, rv) {
+check_connections.data_block <- function(x, target, rv) {
   FALSE
 }
 
 #' @export
-check_connections.block <- function(x, con, rv) {
-  n_active_connections <- sum(!list_empty_connections(x, con, rv))
+check_connections.block <- function(x, target, rv) {
+  n_active_connections <- sum(!list_empty_connections(x, target, rv))
   isTRUE(n_active_connections < length(block_inputs(x)))
 }
 
 #' Check whether the node can receive connection
 #'
 #' @param x Block object.
-#' @param con Connection information.
+#' @param target Connection target id.
 #' @param rv Reactive values
 #' @export
-can_connect <- function(x, con, rv) {
+can_connect <- function(x, target, rv) {
   UseMethod("can_connect")
 }
 
 #' @export
-can_connect.data_block <- function(x, con, rv) {
+can_connect.data_block <- function(x, target, rv) {
   showNotification(
     "Data blocks don't accept any incoming connection (data input).",
     type = "error"
@@ -205,8 +210,8 @@ can_connect.data_block <- function(x, con, rv) {
 }
 
 #' @export
-can_connect.block <- function(x, con, rv) {
-  if (!check_connections(x, con, rv)) {
+can_connect.block <- function(x, target, rv) {
+  if (!check_connections(x, target, rv)) {
     showNotification(
       "The target block can't receive anymore data input.",
       type = "error"
@@ -217,10 +222,10 @@ can_connect.block <- function(x, con, rv) {
   }
 }
 
-validate_edge_creation <- function(con, rv) {
+validate_edge_creation <- function(target, rv) {
   check_cons <- can_connect(
-    rv$blocks[[con$to]]$block,
-    con,
+    rv$blocks[[target]]$block,
+    target,
     rv
   )
   if (!check_cons) return(FALSE)
@@ -236,27 +241,34 @@ validate_edge_creation <- function(con, rv) {
 #' we can add the edge. Then rv are updated and the graph
 #' proxy is also updated.
 #'
+#' @param new Edge data. A list like
+#' \code{list(from = "from_node_ID", to = "to_node_ID")}.
 #' @param vals Local reactive values.
 #' @param rv Parent reactive values.
 #' @param session Shiny session object.
 #' @export
-create_edge <- function(vals, rv, session) {
-  input <- session$input
+create_edge <- function(new, vals, rv, session) {
   ns <- session$ns
-  con <- input$new_edge
+  stopifnot(is.list(new))
 
-  if (!validate_edge_creation(con, rv)) return(NULL)
+  if (!validate_edge_creation(new$to, rv)) {
+    if (rv$append_block) {
+      remove_node(new$to, vals, session)
+      rv$cancelled_edge <- new$to
+    }
+    stop()
+  }
 
-  to_blk <- rv$blocks[[con$to]]$block
-  con_idx <- which(list_empty_connections(to_blk, con, rv) == TRUE)[[1]]
+  to_blk <- rv$blocks[[new$to]]$block
+  con_idx <- which(list_empty_connections(to_blk, new$to, rv) == TRUE)[[1]]
 
   # Create the connection
-  vals <- add_edge(
-    from = con$from,
-    to = con$to,
-    # TO DO: the connection must be made to the latest available input slot
+  add_edge(
+    from = new$from,
+    to = new$to,
+    # The connection is be made with the latest available input slot
     label = block_inputs(to_blk)[[con_idx]],
-    rv = vals
+    vals
   )
 
   visNetworkProxy(ns("network")) |>
@@ -276,31 +288,31 @@ create_edge <- function(vals, rv, session) {
 #' as many children nodes as required.
 #'
 #' @param new New block to add.
-#' @param rv Local reactive values.
-#' @param append Whether to append the node to an existing one.
+#' @param vals Local reactive values.
+#' @param rv Global reactive values.
 #' @param session Shiny session object.
 #' @export
-create_node <- function(new, rv, append = FALSE, session) {
+create_node <- function(new, vals, rv, session) {
   input <- session$input
   ns <- session$ns
 
   # Update node vals for the network rendering
-  rv <- add_node(new, rv)
+  add_node(new, vals, rv)
+  # Handle add_block_to where we also setup the connections
+  if (rv$append_block) {
+    create_edge(
+      new = list(
+        from = input$network_selected,
+        to = block_uid(new)
+      ),
+      vals,
+      rv,
+      session
+    )
+  }
 
   visNetworkProxy(ns("network")) |>
-    visUpdateNodes(rv$nodes) |>
-    visSelectNodes(id = utils::tail(rv$nodes$id, n = 1))
-
-  # Handle add_block_to where we also setup the connections
-  if (append) {
-    rv <- add_edge(
-      from = input$network_selected,
-      to = block_uid(new),
-      label = block_inputs(new)[[1]],
-      rv = rv
-    )
-    visNetworkProxy(ns("network")) |>
-      visUpdateEdges(rv$edges)
-  }
-  rv
+    visUpdateNodes(vals$nodes) |>
+    visSelectNodes(id = utils::tail(vals$nodes$id, n = 1))
+  vals
 }

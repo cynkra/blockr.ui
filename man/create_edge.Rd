@@ -4,9 +4,12 @@
 \alias{create_edge}
 \title{Create an edge and add it to the network}
 \usage{
-create_edge(vals, rv, session)
+create_edge(new, vals, rv, session)
 }
 \arguments{
+\item{new}{Edge data. A list like
+\code{list(from = "from_node_ID", to = "to_node_ID")}.}
+
 \item{vals}{Local reactive values.}
 
 \item{rv}{Parent reactive values.}

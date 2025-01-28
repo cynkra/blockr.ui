@@ -4,12 +4,12 @@
 \alias{check_connections}
 \title{Check node connection}
 \usage{
-check_connections(x, con, rv)
+check_connections(x, target, rv)
 }
 \arguments{
 \item{x}{block.}
 
-\item{con}{Connection information.}
+\item{target}{Connection target id.}
 
 \item{rv}{Reactive values.}
 }

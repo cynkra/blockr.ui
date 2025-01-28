@@ -4,14 +4,14 @@
 \alias{create_node}
 \title{Create a new node it to the network}
 \usage{
-create_node(new, rv, append = FALSE, session)
+create_node(new, vals, rv, session)
 }
 \arguments{
 \item{new}{New block to add.}
 
-\item{rv}{Local reactive values.}
+\item{vals}{Local reactive values.}
 
-\item{append}{Whether to append the node to an existing one.}
+\item{rv}{Global reactive values.}
 
 \item{session}{Shiny session object.}
 }

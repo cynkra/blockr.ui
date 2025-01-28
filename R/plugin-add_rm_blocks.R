@@ -65,12 +65,20 @@ add_rm_block_server <- function(id, rv, ...) {
         )
       )
 
+      # Remove block and node:
+      # - rv$removed_block is used to remove the node element.
+      # - res$rm is used to remove the block module.
       observeEvent(
         input$remove_block,
         {
           res$rm <- rv$removed_block <- rv$selected_block
         }
       )
+
+      # When a edge creation was cancelled
+      observeEvent(rv$cancelled_edge, {
+        res$rm <- rv$cancelled_edge
+      })
 
       res
     }

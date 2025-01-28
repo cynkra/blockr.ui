@@ -4,7 +4,7 @@
 \alias{add_edge}
 \title{Add a edge}
 \usage{
-add_edge(from, to, label, rv)
+add_edge(from, to, label, vals)
 }
 \arguments{
 \item{from}{Node id.}
@@ -14,7 +14,7 @@ add_edge(from, to, label, rv)
 \item{label}{Edge label. This is useful to map the existing connected
 nodes to the input slots of the receiving node (for instance a join block).}
 
-\item{rv}{Reactive values, containing elements such as edges data.}
+\item{vals}{Reactive values, containing elements such as edges data.}
 }
 \description{
 Update dataframe for visNetwork graph

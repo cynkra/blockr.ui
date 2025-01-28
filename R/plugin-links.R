@@ -251,6 +251,7 @@ add_rm_link_server <- function(id, rv, ...) {
       observeEvent(
         {
           req(nrow(vals$nodes) > 0)
+          req(nrow(vals$nodes) == length(rv$blocks))
           rv$msgs()
         },
         {
@@ -310,11 +311,24 @@ add_rm_link_server <- function(id, rv, ...) {
           req(input$new_edge$from)
         },
         {
-          vals <- create_edge(vals, rv, session)
-          res(
-            list(
-              add = vals$added_edge
-            )
+          rv$append_block <- FALSE
+          tryCatch(
+            {
+              create_edge(
+                new = list(from = input$new_edge$from, to = input$new_edge$to),
+                vals,
+                rv,
+                session
+              )
+              res(
+                list(
+                  add = vals$added_edge
+                )
+              )
+            },
+            error = function(e) {
+              e$message
+            }
           )
         }
       )
@@ -323,28 +337,44 @@ add_rm_link_server <- function(id, rv, ...) {
 
       # Add node to network rv$nodes so the graph is updated
       observeEvent(rv$added_block, {
-        vals <- create_node(
-          rv$added_block,
-          vals,
-          rv$append_block,
-          session
+        tryCatch(
+          {
+            create_node(rv$added_block, vals, rv, session)
+
+            # Send any created link back to the board
+            if (rv$append_block) {
+              res(
+                list(
+                  add = vals$added_edge
+                )
+              )
+            }
+          },
+          error = function(e) {
+            e$message
+          }
         )
-        # Send any created link back to the board
-        if (rv$append_block) {
-          res(
-            list(
-              add = vals$added_edge
-            )
-          )
-        }
       })
 
       # Remove node
       observeEvent(rv$removed_block, {
-        vals <- remove_node(input$network_selected, vals, session)
+        remove_node(input$network_selected, vals, session)
         # Need to cleanup any edge associated with this node
         if (nrow(vals$edges) > 0) {
-          remove_edge(input$network_selected, vals)
+          # loop over all edges where the target node is part
+          edges_to_remove <- c(
+            vals$edges[
+              vals$edges$from == input$network_selected,
+              "id"
+            ],
+            vals$edges[
+              vals$edges$to == input$network_selected,
+              "id"
+            ]
+          )
+          for (edge in edges_to_remove) {
+            remove_edge(edge, vals, session)
+          }
         }
       })
 
@@ -374,7 +404,7 @@ add_rm_link_server <- function(id, rv, ...) {
       })
 
       observeEvent(input$remove_edge, {
-        vals <- remove_edge(input$selected_edge, vals, session)
+        remove_edge(input$selected_edge, vals, session)
         # Update link callback
         res(
           list(

@@ -4,12 +4,12 @@
 \alias{can_connect}
 \title{Check whether the node can receive connection}
 \usage{
-can_connect(x, con, rv)
+can_connect(x, target, rv)
 }
 \arguments{
 \item{x}{Block object.}
 
-\item{con}{Connection information.}
+\item{target}{Connection target id.}
 
 \item{rv}{Reactive values}
 }
