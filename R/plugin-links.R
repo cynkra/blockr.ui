@@ -333,26 +333,10 @@ add_rm_link_server <- function(id, rv, ...) {
         )
       })
 
-      # Remove node
+      # Remove node + associated edges
       observeEvent(rv$removed_block, {
-        remove_node(input$network_selected, vals, session)
-        # Need to cleanup any edge associated with this node
-        if (nrow(vals$edges) > 0) {
-          # loop over all edges where the target node is part
-          edges_to_remove <- c(
-            vals$edges[
-              vals$edges$from == input$network_selected,
-              "id"
-            ],
-            vals$edges[
-              vals$edges$to == input$network_selected,
-              "id"
-            ]
-          )
-          for (edge in edges_to_remove) {
-            remove_edge(edge, vals, session)
-          }
-        }
+        # Note: links are cleaned in the add_rm_blocks plugin
+        cleanup_node(input$network_selected, vals, session)
       })
 
       # Communicate selected to upstream modules

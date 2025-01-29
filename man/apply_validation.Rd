@@ -9,7 +9,7 @@ apply_validation(vals, rv, session)
 \arguments{
 \item{vals}{Local reactive values.}
 
-\item{rv}{Global reactive values.}
+\item{rv}{Global parent reactive values.}
 
 \item{session}{Shiny session object.}
 }

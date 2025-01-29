@@ -4,12 +4,12 @@
 \alias{remove_edge}
 \title{Remove an edge}
 \usage{
-remove_edge(selected, rv, session)
+remove_edge(selected, vals, session)
 }
 \arguments{
 \item{selected}{UID (character string) of edge to remove.}
 
-\item{rv}{Reactive values containing dataframe representing edges data.}
+\item{vals}{Reactive values containing dataframe representing edges data.}
 
 \item{session}{Shiny session object.}
 }

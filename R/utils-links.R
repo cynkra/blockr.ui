@@ -93,19 +93,20 @@ add_edge <- function(from, to, label, vals) {
 #' Update dataframe for visNetwork graph
 #'
 #' @param selected UID (character string) of node to remove.
-#' @param rv Reactive values with dataframe representing nodes data.
+#' @param vals Reactive values with dataframe representing nodes data.
+#' @param session Shiny session object.
 #' @keywords internal
-remove_node <- function(selected, rv, session) {
+remove_node <- function(selected, vals, session) {
   stopifnot(
-    is.data.frame(rv$nodes),
-    nrow(rv$nodes) > 0,
+    is.data.frame(vals$nodes),
+    nrow(vals$nodes) > 0,
     is.character(selected),
     nchar(selected) > 0
   )
 
   ns <- session$ns
 
-  to_remove <- which(rv$nodes$id == selected)
+  to_remove <- which(vals$nodes$id == selected)
   if (length(to_remove) == 0) {
     stop(sprintf("Can't find node with id %s in the data", selected))
   }
@@ -113,8 +114,38 @@ remove_node <- function(selected, rv, session) {
   visNetworkProxy(ns("network")) |>
     visRemoveNodes(selected)
 
-  rv$nodes <- rv$nodes[-to_remove, ]
-  rv
+  vals$nodes <- vals$nodes[-to_remove, ]
+  vals
+}
+
+#' Remove a node and associated edges
+#'
+#' Combine \link{remove_node} with \link{remove_edge}.
+#'
+#' @param selected UID (character string) of node to remove.
+#' @param vals Reactive values with dataframe representing nodes data.
+#' @param session Shiny session object.
+#' @keywords internal
+cleanup_node <- function(selected, vals, session) {
+  remove_node(selected, vals, session)
+  # Need to cleanup any edge associated with this node
+  if (nrow(vals$edges) > 0) {
+    # loop over all edges where the target node is part
+    edges_to_remove <- c(
+      vals$edges[
+        vals$edges$from == selected,
+        "id"
+      ],
+      vals$edges[
+        vals$edges$to == selected,
+        "id"
+      ]
+    )
+    for (edge in edges_to_remove) {
+      remove_edge(edge, vals, session)
+    }
+  }
+  vals
 }
 
 #' Remove an edge
@@ -122,30 +153,30 @@ remove_node <- function(selected, rv, session) {
 #' Update dataframe for visNetwork graph
 #'
 #' @param selected UID (character string) of edge to remove.
-#' @param rv Reactive values containing dataframe representing edges data.
+#' @param vals Reactive values containing dataframe representing edges data.
 #' @param session Shiny session object.
 #' @keywords internal
-remove_edge <- function(selected, rv, session) {
+remove_edge <- function(selected, vals, session) {
   stopifnot(
-    is.data.frame(rv$edges),
-    nrow(rv$edges) > 0,
+    is.data.frame(vals$edges),
+    nrow(vals$edges) > 0,
     is.character(selected),
     nchar(selected) > 0
   )
-  to_remove <- grep(selected, rv$edges$id)
+  to_remove <- grep(selected, vals$edges$id)
   if (length(to_remove) == 0) {
     stop(sprintf("Can't find edge with id %s in the data", selected))
   }
 
   ns <- session$ns
 
-  rv$removed_edge <- rv$edges[to_remove, "id"]
-  rv$edges <- rv$edges[-to_remove, ]
+  vals$removed_edge <- vals$edges[to_remove, "id"]
+  vals$edges <- vals$edges[-to_remove, ]
 
   visNetworkProxy(ns("network")) |>
-    visRemoveEdges(rv$removed_edge)
+    visRemoveEdges(vals$removed_edge)
 
-  rv
+  vals
 }
 
 #' List node connections
@@ -289,7 +320,7 @@ create_edge <- function(new, vals, rv, session) {
 #'
 #' @param new New block to add.
 #' @param vals Local reactive values.
-#' @param rv Global reactive values.
+#' @param rv Global parent reactive values.
 #' @param session Shiny session object.
 #' @export
 create_node <- function(new, vals, rv, session) {
@@ -324,7 +355,7 @@ create_node <- function(new, vals, rv, session) {
 #' based on the valid status.
 #'
 #' @param vals Local reactive values.
-#' @param rv Global reactive values.
+#' @param rv Global parent reactive values.
 #' @param session Shiny session object.
 #' @export
 apply_validation <- function(vals, rv, session) {
