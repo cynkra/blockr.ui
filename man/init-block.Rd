@@ -3,22 +3,13 @@
 \name{init_block_ui}
 \alias{init_block_ui}
 \alias{init_block_callbacks}
-\alias{init_block}
 \title{Init block UI elements}
 \usage{
 init_block_ui(blk, session)
 
 init_block_callbacks(blk, rv, input)
-
-init_block(blk, rv, session)
 }
 \arguments{
-\item{blk}{Block object.}
-
-\item{session}{Shiny session object.}
-
-\item{rv}{Reactivevalues containing connections information.}
-
 \item{input}{Shiny input object.}
 }
 \description{
@@ -26,6 +17,4 @@ Insert block UI in the DOM.
 
 This initializes some observers needed
 during the block lifecycle.
-
-Insert all the pieces so that the block works.
 }

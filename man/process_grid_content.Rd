@@ -4,15 +4,15 @@
 \alias{process_grid_content}
 \title{Process grid layout}
 \usage{
-process_grid_content(rv, grid_layout, dashboard_blocks)
+process_grid_content(mode, vals, grid_layout)
 }
 \arguments{
-\item{rv}{Reactive values}
+\item{mode}{App mode.}
+
+\item{vals}{Local module reactive values.}
 
 \item{grid_layout}{Returned by input$<GRID_ID>_layout.
 Contains blocks coordinates, dimensions, ...}
-
-\item{dashboard_blocks}{Blocks that should be in the grid.}
 }
 \description{
 Process grid layout

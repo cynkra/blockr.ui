@@ -38,7 +38,7 @@ blk_choices <- function() {
 #' @param title Sidebar title
 #' @export
 #' @rdname main
-grid_ui <- function(ns, width = "75%", title = "Dashboard") {
+grid_ui_wrapper <- function(ns, width = "75%", title = "Dashboard") {
   sidebar(
     id = ns("dashboard"),
     title = title,
@@ -95,80 +95,6 @@ actions_ui <- function(..., ns) {
       )
     )
   )
-}
-
-#' Init connections for a block
-#'
-#' @param blk Block object.
-#' @export
-#' @rdname connections
-init_connection <- function(blk) {
-  stats::setNames(
-    lapply(block_inputs(blk), \(x) reactiveVal()),
-    block_inputs(blk)
-  )
-}
-
-#' Add connection between 2 blocks
-#'
-#' @param con Edge id. Character.
-#' @param edges Edges dataframe.
-#' @param rv Reactivevalues containing connections information.
-#' @rdname connections
-#' @export
-#' @return A list with new observers and connections reactive values.
-add_connection <- function(con, edges, rv) {
-  # edge id is made as follows: <FROM_NODE_ID>_<TO_NODE_ID>
-  ids <- strsplit(con, "_")[[1]]
-  from_id <- ids[1]
-  to_id <- ids[2]
-
-  from_blk <- rv$blocks[[from_id]]
-  to_blk <- rv$blocks[[to_id]]
-
-  # Check receiver block input slots
-  blk_inputs <- block_inputs(to_blk$block)
-  if (!length(block_inputs(to_blk$block))) return(NULL)
-
-  # Find connections
-  con_label <- edges[edges$id == con, "label"]
-
-  if (!length(con_label)) return(NULL)
-
-  # Add connections
-  # Inject result of connected downstream block if the connection
-  # is not yet made. This needs an observer to listen to any change
-  # in the upstream block result.
-  obs_id <- sprintf("%s_%s_%s", from_id, to_id, con_label)
-  rv$obs[[obs_id]] <- observeEvent(rv$blocks[[from_id]]$server$result(), {
-    rv$connections[[to_id]][[con_label]](rv$blocks[[from_id]]$server$result())
-  })
-
-  rv
-}
-
-#' Remove connection between 2 blocks
-#'
-#' @rdname connections
-#' @export
-remove_connection <- function(con, rv) {
-  ids <- strsplit(con, "_")[[1]]
-  id_from <- ids[1]
-  id_to <- ids[2]
-
-  # Reset connections
-  for (slot in names(rv$connections[[id_to]])) {
-    rv$connections[[id_to]][[slot]](NULL)
-  }
-
-  # Destroy all update observers
-  obs_to_destroy <- grep(con, names(rv$obs), value = TRUE)
-  for (el in obs_to_destroy) {
-    rv$obs[[el]]$destroy()
-    rv$obs[[el]] <- NULL
-  }
-
-  rv
 }
 
 #' Init block UI elements
@@ -242,46 +168,15 @@ init_block_callbacks <- function(blk, rv, input) {
   rv$obs
 }
 
-#' Init block ui and server module
-#'
-#' Insert all the pieces so that the block works.
-#'
-#' @param blk Block object.
-#' @param rv Reactivevalues containing connections information.
-#' @param session Shiny session object.
-#' @export
-#' @rdname init-block
-init_block <- function(blk, rv, session) {
-  input <- session$input
-  rv$connections[[block_uid(blk)]] <- init_connection(blk)
-
-  init_block_ui(blk, session)
-
-  rv$blocks[[block_uid(blk)]] <- list(
-    # We need the block object to access some of its elements
-    block = blk,
-    # The server is the module from which we can
-    # extract data, ...
-    server = block_server(
-      blk,
-      data = rv$connections[[block_uid(blk)]]
-    ),
-    mode = "editor"
-  )
-
-  rv$obs <- init_block_callbacks(blk, rv, input)
-
-  list(connections = rv$connections, blocks = rv$blocks, obs = rv$obs)
-}
-
 #' Manage board sidebars
 #'
 #' @param rv Reactive values.
-#' @param selected Selected node.
+#' @param selected Selected block.
+#' @param removed Any removed block.
 #' @param session Shiny session object.
 #' @keywords internal
 #' @rdname handlers-utils
-manage_sidebars <- function(rv, selected, session) {
+manage_sidebars <- function(rv, selected, removed, session) {
   ns <- session$ns
 
   # Hide the sidebar toggles to avoid accidental clicks by users
@@ -306,6 +201,11 @@ manage_sidebars <- function(rv, selected, session) {
       id = "dashboard",
       open = (rv$mode == "dashboard")
     )
+  })
+
+  # Re-hide sidebar when block is removed
+  observeEvent(removed(), {
+    bslib::toggle_sidebar("properties", open = FALSE)
   })
 }
 
@@ -336,7 +236,7 @@ manage_block_visibility <- function(parent, rv) {
 #' Add block to grid
 #'
 #' @rdname board-grid
-add_block_to_grid <- function(blk, rv, session) {
+add_block_to_grid <- function(id, vals, blocks_ns, session) {
   ns <- session$ns
   # Similar gs_proxy_add so that we can
   # move an element to the grid and call the JS method
@@ -346,15 +246,15 @@ add_block_to_grid <- function(blk, rv, session) {
 
   # Create default dims in case (new block)
   pars <- list(
-    id = ns(block_uid(blk)),
+    id = sprintf("%s-%s", blocks_ns, id),
     w = 4,
     h = 4
   )
 
   # If node was in the grid ...
-  if (nrow(rv$grid) && any(grepl(block_uid(blk), rv$grid$id))) {
+  if (nrow(vals$grid) && any(grepl(id, vals$grid$id))) {
     pars <- as.list(
-      rv$grid[rv$grid$id == ns(block_uid(blk)), ]
+      vals$grid[vals$grid$id == sprintf("%s-%s", blocks_ns, id), ]
     )
   }
 
@@ -366,50 +266,51 @@ add_block_to_grid <- function(blk, rv, session) {
     )
   )
   # The block may be hidden so we need to show it
-  shinyjs::show(block_uid(blk))
+  shinyjs::show(sprintf("#%s-%s", blocks_ns, id))
 }
 
 #' Remove block from grid
 #'
 #' @rdname board-grid
-remove_block_from_grid <- function(blk, session) {
+remove_block_from_grid <- function(id, blocks_ns, session) {
   ns <- session$ns
   # Move items back to properties panel
   session$sendCustomMessage(
     "move-widget-to-sidebar",
     list(
-      id = sprintf("#%s", ns("block_container_ui")),
-      block_id = sprintf("#%s", ns(block_uid(blk)))
+      id = sprintf("#%s_blocks", blocks_ns),
+      block_id = sprintf("#%s-%s", blocks_ns, id)
     )
   )
 }
 
 #' Manage board grid
 #'
-#' @param blk Block object.
-#' @param rv Reactive values.
-#' @param dashboard_blocks List of blocks that should be in the grid.
+#' @param mode App mode.
+#' @param vals Local reactive values.
+#' @param blocks_ns Blocks namespace.
 #' @param session Shiny session object.
 #' @rdname board-grid
-manage_board_grid <- function(rv, dashboard_blocks, session) {
+manage_board_grid <- function(mode, vals, blocks_ns, session) {
+  ns <- session$ns
   observeEvent(
     {
-      rv$mode
+      mode()
+      req(length(vals$in_grid), sum(unlist(vals$in_grid)) > 0)
     },
     {
-      if (!length(dashboard_blocks())) return(NULL)
-
-      lapply(dashboard_blocks(), \(blk) {
-        if (rv$mode == "dashboard") {
-          add_block_to_grid(blk$block, rv, session)
+      to_add <- which(vals$in_grid == TRUE)
+      lapply(names(vals$in_grid)[to_add], \(nme) {
+        if (mode() == "dashboard") {
+          add_block_to_grid(nme, vals, blocks_ns, session)
         } else {
-          remove_block_from_grid(blk$block, session)
+          remove_block_from_grid(nme, blocks_ns, session)
         }
       })
 
       # Cleanup grid in editor mode
-      if (rv$mode == "network") {
-        gs_proxy_remove_all("grid")
+      if (mode() == "network") {
+        gs_proxy_remove_all(ns("grid"))
       }
     }
   )
@@ -417,16 +318,16 @@ manage_board_grid <- function(rv, dashboard_blocks, session) {
 
 #' Process grid layout
 #'
-#' @param rv Reactive values
+#' @param mode App mode.
+#' @param vals Local module reactive values.
 #' @param grid_layout Returned by input$<GRID_ID>_layout.
 #' Contains blocks coordinates, dimensions, ...
-#' @param dashboard_blocks Blocks that should be in the grid.
 #' @keywords internal
-process_grid_content <- function(rv, grid_layout, dashboard_blocks) {
-  req(rv$mode == "dashboard")
+process_grid_content <- function(mode, vals, grid_layout) {
+  req(mode() == "dashboard")
   if (is.null(grid_layout)) return(data.frame())
-  if (!length(grid_layout$children) && length(dashboard_blocks()) > 0) {
-    return(rv$grid)
+  if (!length(grid_layout$children) && length(vals$in_grid) > 0) {
+    return(vals$grid)
   }
   res <- do.call(rbind.data.frame, grid_layout$children)
   #if (nrow(res) == 0) return(data.frame())

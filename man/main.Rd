@@ -3,7 +3,7 @@
 \name{main_ui}
 \alias{main_ui}
 \alias{main_server}
-\alias{grid_ui}
+\alias{grid_ui_wrapper}
 \alias{properties_ui}
 \alias{actions_ui}
 \title{Main ui for blockr2}
@@ -12,7 +12,7 @@ main_ui(id, board)
 
 main_server(id, board)
 
-grid_ui(ns, width = "75\%", title = "Dashboard")
+grid_ui_wrapper(ns, width = "75\%", title = "Dashboard")
 
 properties_ui(..., ns, width = "40\%", title = "Block properties")
 

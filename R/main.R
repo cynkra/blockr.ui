@@ -19,6 +19,11 @@ main_ui <- function(id, board) {
     )
   )
 
+  my_grid <- grid_ui(ns("grid"))
+
+  # TO DO: rework this my_board_ui[[1]]$children[[2]]$sidebar
+  # this is ugly and will break
+
   layout_sidebar(
     class = "p-0",
     sidebar = sidebar(
@@ -27,8 +32,8 @@ main_ui <- function(id, board) {
       position = "right",
       width = "60%",
       open = FALSE,
-      "Grid TBD"
       # GRID CONTENT
+      my_grid[c(2, 3)]
     ),
     layout_sidebar(
       border = FALSE,
@@ -39,6 +44,7 @@ main_ui <- function(id, board) {
         width = "40%",
         position = "right",
         my_board_ui[[3]],
+        my_grid[[1]],
         my_board_ui[[1]]$children[[2]]$sidebar
       ),
       # Action bar
@@ -64,28 +70,40 @@ main_server <- function(id, board) {
     function(input, output, session) {
       ns <- session$ns
 
-      rv <- reactiveValues(mode = NULL)
+      vals <- reactiveValues(mode = NULL)
 
       # For shinytest2 (don't remove)
-      exportTestValues(rv = rv)
+      exportTestValues(vals = vals)
 
       # App mode
       observeEvent(input$mode, {
-        if (input$mode) rv$mode <- "network" else rv$mode <- "dashboard"
+        if (input$mode) vals$mode <- "network" else vals$mode <- "dashboard"
       })
 
       # Toggle sidebars based on the mode and selected node
-      manage_sidebars(rv, reactive(board_out$selected_block), session)
+      manage_sidebars(
+        vals,
+        reactive(board_out$selected_block),
+        reactive(board_out$removed_block),
+        session
+      )
 
-      # Re-hide sidebar when block is removed
-      observeEvent(board_out$removed_block, {
-        bslib::toggle_sidebar("properties", open = FALSE)
-      })
+      # grid module
+      grid_server(
+        "grid",
+        reactive({
+          req(length(board_out$blocks) > 0)
+          board_out$blocks
+        }),
+        reactive({
+          req(board_out$selected_block)
+          board_out$selected_block
+        }),
+        reactive(vals$mode),
+        blocks_ns = "main-board"
+      )
 
-      observeEvent(board_out$links, {
-        #browser()
-      })
-
+      # Board module
       board_out <- board_server(
         "board",
         board,
@@ -98,7 +116,7 @@ main_server <- function(id, board) {
         callbacks = list(
           block_visibility = manage_block_visibility
         ),
-        parent = rv
+        parent = vals
       )
     }
   )
