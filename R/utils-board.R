@@ -326,7 +326,9 @@ manage_board_grid <- function(mode, vals, blocks_ns, session) {
 process_grid_content <- function(mode, vals, grid_layout) {
   req(mode() == "dashboard")
   if (is.null(grid_layout)) return(data.frame())
-  if (!length(grid_layout$children) && length(vals$in_grid) > 0) {
+  if (
+    !length(grid_layout$children) && length(which(vals$in_grid == TRUE)) > 0
+  ) {
     return(vals$grid)
   }
   res <- do.call(rbind.data.frame, grid_layout$children)
