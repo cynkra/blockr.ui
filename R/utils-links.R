@@ -316,3 +316,40 @@ create_node <- function(new, vals, rv, session) {
     visSelectNodes(id = utils::tail(vals$nodes$id, n = 1))
   vals
 }
+
+#' Apply block validation to network elements
+#'
+#' Block validation is made by the backend
+#' this function only updates the node color
+#' based on the valid status.
+#'
+#' @param vals Local reactive values.
+#' @param rv Global reactive values.
+#' @param session Shiny session object.
+#' @export
+apply_validation <- function(vals, rv, session) {
+  ns <- session$ns
+  # Restore blue color if valid
+  if (is.null(rv$msgs())) {
+    if (all(vals$nodes$color == "#D2E5FF")) return(NULL)
+    vals$nodes$color <- rep("#D2E5FF", nrow(vals$nodes))
+  }
+
+  # Color invalid nodes in red
+  for (nme in names(rv$msgs())) {
+    curr <- rv$msgs()[[nme]]
+    has_state_error <- curr$state$error
+    has_data_error <- curr$data$error
+    has_eval_error <- curr$eval$error
+    if (
+      length(has_state_error) ||
+        length(has_data_error) ||
+        length(has_eval_error)
+    ) {
+      if (vals$nodes[vals$nodes$id == nme, "color"] == "#ffd6d2") return(NULL)
+      vals$nodes[vals$nodes$id == nme, "color"] <- "#ffd6d2"
+    }
+  }
+  visNetworkProxy(ns("network")) |>
+    visUpdateNodes(vals$nodes)
+}
