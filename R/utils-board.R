@@ -265,8 +265,6 @@ add_block_to_grid <- function(id, vals, blocks_ns, session) {
       data = pars
     )
   )
-  # The block may be hidden so we need to show it
-  shinyjs::show(sprintf("#%s-%s", blocks_ns, id))
 }
 
 #' Remove block from grid
