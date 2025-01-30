@@ -22,7 +22,7 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
     )
   }
 
-  stopifnot(blockr.core:::is_string(id))
+  stopifnot(is.character(id) && length(id) == 1L)
 
   if (is.null(blocks)) {
     blocks <- sort(x)
@@ -33,7 +33,7 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
   stopifnot(is_blocks(blocks))
 
   tagList(
-    blockr.core:::map(
+    map(
       block_card,
       blocks,
       names(blocks),
@@ -46,7 +46,7 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
 #' @export
 remove_block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
   if (is.null(blocks)) {
-    stopifnot(is_string(id))
+    stopifnot(is.character(id) && length(id) == 1L)
 
     removeUI(
       paste0("#", id, "_blocks > div"),

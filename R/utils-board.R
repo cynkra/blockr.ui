@@ -77,7 +77,11 @@ properties_ui <- function(..., ns, width = "40%", title = "Block properties") {
 #' @rdname main
 #' @export
 actions_ui <- function(..., ns) {
-  tagList(
+  div(
+    class = paste(
+      "d-flex justify-content-evenly align-items-center",
+      "border rounded-4 m-2 gap-5 p-2"
+    ),
     shinyWidgets::switchInput(
       ns("mode"),
       onStatus = "default",
@@ -86,14 +90,8 @@ actions_ui <- function(..., ns) {
       value = TRUE,
       size = "mini"
     ),
-    div(
-      class = "d-flex justify-content-center align-items-center",
-      div(
-        class = "btn-group",
-        role = "group",
-        ...
-      )
-    )
+    v_rule(),
+    ...
   )
 }
 
@@ -159,5 +157,12 @@ manage_block_visibility <- function(parent, rv) {
       }
     }
   )
+  return(NULL)
+}
+
+capture_grid <- function(parent, rv) {
+  observeEvent(parent$grid, {
+    rv$board[["grid"]] <- parent$grid
+  })
   return(NULL)
 }

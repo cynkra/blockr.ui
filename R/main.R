@@ -18,7 +18,6 @@ main_ui <- function(id, board) {
       manage_links = add_rm_link_ui
     )
   )
-
   my_grid <- grid_ui(ns("grid"))
 
   # TO DO: rework this my_board_ui[[1]]$children[[2]]$sidebar
@@ -48,7 +47,12 @@ main_ui <- function(id, board) {
         my_board_ui[[1]]$children[[2]]$sidebar
       ),
       # Action bar
-      actions_ui(my_board_ui[[1]]$children[[2]]$toolbar, ns = ns),
+      actions_ui(
+        my_board_ui[[1]]$children[[1]],
+        v_rule(),
+        my_board_ui[[1]]$children[[2]]$toolbar,
+        ns = ns
+      ),
       my_board_ui[[1]]$children[[3]],
       # Notifications
       my_board_ui[[2]]
@@ -73,7 +77,7 @@ main_server <- function(id, board) {
       vals <- reactiveValues(mode = NULL)
 
       # For shinytest2 (don't remove)
-      exportTestValues(vals = vals)
+      exportTestValues(vals = vals, grid = list())
 
       # App mode
       observeEvent(input$mode, {
@@ -89,7 +93,7 @@ main_server <- function(id, board) {
       )
 
       # grid module
-      grid_server(
+      grid_out <- grid_server(
         "grid",
         reactive({
           req(length(board_out$blocks) > 0)
@@ -103,6 +107,10 @@ main_server <- function(id, board) {
         blocks_ns = "main-board"
       )
 
+      observeEvent(grid_out(), {
+        vals$grid <- grid_out()
+      })
+
       # Board module
       board_out <- board_server(
         "board",
@@ -114,7 +122,8 @@ main_server <- function(id, board) {
           notify_user = block_notification_server
         ),
         callbacks = list(
-          block_visibility = manage_block_visibility
+          block_visibility = manage_block_visibility,
+          capture_grid = capture_grid
         ),
         parent = vals
       )

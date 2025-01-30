@@ -23,3 +23,9 @@ firstup <- function(x) {
   substr(x, 1, 1) <- toupper(substr(x, 1, 1))
   x
 }
+
+map <- function(f, ..., use_names = FALSE) Map(f, ..., USE.NAMES = use_names)
+
+v_rule <- function() {
+  shiny::tags$div(class = "vr")
+}
