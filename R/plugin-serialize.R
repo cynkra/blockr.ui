@@ -19,7 +19,7 @@ ser_deser_ui <- function(id, board) {
 }
 
 #' @export
-blockr_ser.custom_board <- function(x) {
+blockr_ser.custom_board <- function(x, ...) {
   list(
     object = class(x),
     blocks = blockr_ser(board_blocks(x)),
