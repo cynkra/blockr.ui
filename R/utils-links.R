@@ -505,18 +505,12 @@ default_network_physics <- function(...) {
   default_network(
     visPhysics,
     list(
-      stabilization = list(
-        enabled = TRUE,
-        iterations = 1000,
-        updateInterval = 100,
-        onlyDynamicEdges = FALSE,
-        fit = TRUE
-      ),
-      minVelocity = 0.1, # Minimum velocity before node stops moving
-      maxVelocity = 50, # Maximum velocity of nodes
       solver = "forceAtlas2Based",
-      timestep = 0.5, # Lower values make movement more precise but slower
-      adaptiveTimestep = TRUE
+      forceAtlas2Based = list(
+        gravitationalConstant = -500,
+        damping = 1,
+        avoidOverlap = 1
+      )
     ),
     ...
   )
