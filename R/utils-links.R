@@ -384,3 +384,307 @@ apply_validation <- function(vals, rv, session) {
   visNetworkProxy(ns("network")) |>
     visUpdateNodes(vals$nodes)
 }
+
+#' Build configuration parameter list
+#'
+#' Used by all network utilities for default options
+#'
+#' @param func Function applied.
+#' @param defaults List of default parameters.
+#' @param ... Extra parameters not in defaults accepted by func.
+#' @keywords internal
+default_network <- function(func, defaults, ...) {
+  stopifnot(is.list(defaults))
+  pars <- list(...)
+  if (length(pars) == 1) pars <- unlist(pars)
+
+  incorrect_parm <- which(
+    !(names(pars) %in% names(formals(func))[-1])
+  )
+
+  if (length(incorrect_parm)) {
+    stop(
+      paste0(
+        "Params {",
+        paste(names(pars)[incorrect_parm], collapse = ", "),
+        "} are not part of ",
+        deparse(substitute(func)),
+        " API parameters."
+      )
+    )
+  }
+
+  duplicated <- which(names(pars) %in% names(defaults))
+
+  if (length(duplicated)) {
+    stop(
+      paste0(
+        "Params {",
+        paste(names(pars)[duplicated], collapse = ", "),
+        "} are duplicated"
+      )
+    )
+  }
+
+  c(
+    defaults,
+    pars
+  )
+}
+
+#' Default network interactions
+#'
+#' What interaction to support
+#'
+#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visInteraction}.
+#' @keywords internal
+default_network_interactions <- function(...) {
+  default_network(
+    visInteraction,
+    list(
+      hover = FALSE,
+      multiselect = TRUE,
+      # avoid to select edge when selecting node ...
+      # since we have a select edge callback
+      selectConnectedEdges = FALSE
+    ),
+    ...
+  )
+}
+
+#' Default network options
+#'
+#' What options to support
+#'
+#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visOptions}.
+#' @keywords internal
+default_network_options <- function(...) {
+  default_network(
+    visOptions,
+    list(
+      # To get currently selected node
+      nodesIdSelection = TRUE,
+      manipulation = list(
+        enabled = TRUE,
+        initiallyActive = TRUE,
+        addNode = FALSE,
+        deleteNode = FALSE,
+        deleteEdge = FALSE,
+        editEdge = FALSE
+      ),
+      collapse = TRUE
+    ),
+    ...
+  )
+}
+
+#' Default edges options
+#'
+#' What options to support
+#'
+#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visEdges}.
+#' @keywords internal
+default_edge_options <- function(...) {
+  default_network(
+    visEdges,
+    list(
+      length = 300,
+      smooth = FALSE
+    ),
+    ...
+  )
+}
+
+#' Default physics options
+#'
+#' What options to support
+#'
+#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visPhysics}.
+#' @keywords internal
+default_network_physics <- function(...) {
+  default_network(
+    visPhysics,
+    list(
+      stabilization = list(
+        enabled = TRUE,
+        iterations = 1000,
+        updateInterval = 100,
+        onlyDynamicEdges = FALSE,
+        fit = TRUE
+      ),
+      minVelocity = 0.1, # Minimum velocity before node stops moving
+      maxVelocity = 50, # Maximum velocity of nodes
+      solver = "forceAtlas2Based",
+      timestep = 0.5, # Lower values make movement more precise but slower
+      adaptiveTimestep = TRUE
+    ),
+    ...
+  )
+}
+
+#' Default events options
+#'
+#' What options to support
+#'
+#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visEvents}.
+#' @keywords internal
+default_network_events <- function(ns, ...) {
+  default_network(
+    visEvents,
+    list(
+      select = sprintf(
+        "function(e) {
+          if (e.nodes.length > 1) {
+            Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
+          }
+        }",
+        ns("selected_nodes")
+      ),
+      oncontext = sprintf(
+        "function(e) {
+          e.event.preventDefault(); // avoid showing web inspector ...
+          Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
+        }",
+        ns("node_right_clicked")
+      ),
+      selectEdge = sprintf(
+        "function(e) {
+          Shiny.setInputValue('%s', e.edges[0], {priority: 'event'});
+        }",
+        ns("selected_edge")
+      ),
+      controlNodeDragEnd = sprintf(
+        "function(e) {
+          Shiny.setInputValue('%s', e.controlEdge, {priority: 'event'});
+          let target = $(`.${e.event.target.offsetParent.className}`)
+            .closest('.visNetwork')
+            .attr('id');
+          // Re-enable add edge mode
+          setTimeout(() => {
+            window.HTMLWidgets.find(`#${target}`).network.addEdgeMode();
+          }, 500);
+        ;}",
+        ns("new_edge")
+      ) #,
+      #hoverNode = sprintf(
+      #  "function(e) {
+      #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
+      #;}",
+      #  ns("hovered_node")
+      #),
+      #blurNode = sprintf(
+      #  "function(e) {
+      #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
+      #;}",
+      #  ns("hovered_node")
+      #)
+    ),
+    ...
+  )
+}
+
+#' Create network widget
+#'
+#' Network is populated via a proxy. This function initialises an empty
+#' network with the right setup.
+#'
+#' @param ns Namespace.
+#' @param height Network height.
+#' @param width Network width.
+#' @param interactions See \link{default_network_interactions}.
+#' @param options See \link{default_network_options}.
+#' @param edges See \link{default_edges_options}.
+#' @param physics See \link{default_physics_options}.
+#' @param events See \link{default_events_options}.
+#'
+#' @return A visNetwork object.
+#' @keywords internal
+create_network_widget <- function(
+  ns,
+  height = "100vh",
+  width = "100%",
+  interactions = default_network_interactions(),
+  options = default_network_options(),
+  edges = default_edge_options(),
+  physics = default_network_physics(),
+  events = default_network_events(ns)
+) {
+  vis_network <- visNetwork(
+    data.frame(),
+    data.frame(),
+    height = height,
+    width = width
+  )
+
+  vis_network <- do.call(
+    visInteraction,
+    c(graph = quote(vis_network), interactions)
+  )
+
+  vis_network <- do.call(visOptions, c(graph = quote(vis_network), options))
+  vis_network <- do.call(visEdges, c(graph = quote(vis_network), edges))
+  vis_network <- do.call(visPhysics, c(graph = quote(vis_network), physics))
+  vis_network <- do.call(visEvents, c(graph = quote(vis_network), events))
+
+  vis_network |>
+    visEvents(
+      type = "once",
+      # Code to show connection points with edges
+      stabilized = sprintf(
+        "function() {
+          var network = this;
+          
+          network.on('afterDrawing', function(ctx) {
+            var edges = network.body.edges;
+            var nodes = network.body.nodes;
+            
+            Object.keys(edges).forEach(function(edgeId) {
+              var edge = edges[edgeId];
+              var fromNode = nodes[edge.fromId];
+              var toNode = nodes[edge.toId];
+              
+              // Calculate intersection points
+              if (fromNode && toNode) {
+                // Get positions
+                var fromX = fromNode.x;
+                var fromY = fromNode.y;
+                var toX = toNode.x;
+                var toY = toNode.y;
+                
+                // Calculate angles and distances
+                var angle = Math.atan2(toY - fromY, toX - fromX);
+                var reverseAngle = Math.atan2(fromY - toY, fromX - toX);
+                
+                // Get node radii (using shape.width since shape.radius might not be available)
+                var fromRadius = fromNode.shape.width / 2;
+                var toRadius = toNode.shape.width / 2;
+                
+                // Calculate intersection points
+                var fromIntersectX = fromX + (Math.cos(angle) * fromRadius);
+                var fromIntersectY = fromY + (Math.sin(angle) * fromRadius);
+                var toIntersectX = toX + (Math.cos(reverseAngle) * toRadius);
+                var toIntersectY = toY + (Math.sin(reverseAngle) * toRadius);
+                
+                // Draw connection points at intersection
+                ctx.beginPath();
+                ctx.arc(fromIntersectX, fromIntersectY, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = '#2B7CE9';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(toIntersectX, toIntersectY, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = '#2B7CE9';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+              }
+            });
+          });
+        }"
+      )
+    )
+}
