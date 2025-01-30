@@ -1,0 +1,690 @@
+#' Add a node
+#'
+#' Update dataframe for visNetwork graph
+#'
+#' @param new New block to add.
+#' @param vals Local reactive values.
+#' @param rv Global reactive values.
+#' @keywords internal
+add_node <- function(new, vals, rv) {
+  stopifnot(
+    is_block(new),
+    is.data.frame(vals$nodes)
+  )
+
+  node_data <- data.frame(
+    id = block_uid(new),
+    label = paste(
+      attr(new, "class")[1],
+      "\n id:",
+      block_uid(new)
+    ),
+    title = block_uid(new),
+    shape = "circle",
+    color = "#D2E5FF",
+    stack = NA,
+    icon.code = NA,
+    x = NA,
+    y = NA
+  )
+
+  vals$nodes <- if (nrow(vals$nodes) == 0) {
+    node_data
+  } else {
+    rbind(
+      vals$nodes,
+      node_data
+    )
+  }
+  vals
+}
+
+#' Add a edge
+#'
+#' Update dataframe for visNetwork graph
+#'
+#' @param from Node id.
+#' @param to Node it.
+#' @param label Edge label. This is useful to map the existing connected
+#' nodes to the input slots of the receiving node (for instance a join block).
+#' @param vals Reactive values, containing elements such as edges data.
+#' @keywords internal
+add_edge <- function(from, to, label, vals) {
+  stopifnot(
+    is.character(from),
+    is.character(to),
+    is.data.frame(vals$edges)
+  )
+
+  edge_data <- data.frame(
+    from = from,
+    to = to,
+    label = label,
+    arrows = "to",
+    width = 4
+  )
+
+  # Create link
+  vals$added_edge <- as_links(
+    new_link(
+      from = edge_data$from,
+      to = edge_data$to,
+      input = edge_data$label
+    )
+  )
+
+  # Add link id for edge id to be able to remove it later ...
+  edge_data$id <- vals$added_edge$id
+
+  if (nrow(vals$edges) == 0) {
+    vals$edges <- edge_data
+  } else {
+    vals$edges <- rbind(
+      vals$edges,
+      edge_data
+    )
+  }
+
+  vals
+}
+
+#' Remove a node
+#'
+#' Update dataframe for visNetwork graph
+#'
+#' @param selected UID (character string) of node to remove.
+#' @param vals Reactive values with dataframe representing nodes data.
+#' @param session Shiny session object.
+#' @keywords internal
+remove_node <- function(selected, vals, session) {
+  stopifnot(
+    is.data.frame(vals$nodes),
+    nrow(vals$nodes) > 0,
+    is.character(selected),
+    nchar(selected) > 0
+  )
+
+  ns <- session$ns
+
+  to_remove <- which(vals$nodes$id == selected)
+  if (length(to_remove) == 0) {
+    stop(sprintf("Can't find node with id %s in the data", selected))
+  }
+
+  visNetworkProxy(ns("network")) |>
+    visRemoveNodes(selected)
+
+  vals$nodes <- vals$nodes[-to_remove, ]
+  vals
+}
+
+#' Remove a node and associated edges
+#'
+#' Combine \link{remove_node} with \link{remove_edge}.
+#'
+#' @param selected UID (character string) of node to remove.
+#' @param vals Reactive values with dataframe representing nodes data.
+#' @param session Shiny session object.
+#' @keywords internal
+cleanup_node <- function(selected, vals, session) {
+  remove_node(selected, vals, session)
+  # Need to cleanup any edge associated with this node
+  if (nrow(vals$edges) > 0) {
+    # loop over all edges where the target node is part
+    edges_to_remove <- c(
+      vals$edges[
+        vals$edges$from == selected,
+        "id"
+      ],
+      vals$edges[
+        vals$edges$to == selected,
+        "id"
+      ]
+    )
+    for (edge in edges_to_remove) {
+      remove_edge(edge, vals, session)
+    }
+  }
+  vals
+}
+
+#' Remove an edge
+#'
+#' Update dataframe for visNetwork graph
+#'
+#' @param selected UID (character string) of edge to remove.
+#' @param vals Reactive values containing dataframe representing edges data.
+#' @param session Shiny session object.
+#' @keywords internal
+remove_edge <- function(selected, vals, session) {
+  stopifnot(
+    is.data.frame(vals$edges),
+    nrow(vals$edges) > 0,
+    is.character(selected),
+    nchar(selected) > 0
+  )
+  to_remove <- grep(selected, vals$edges$id)
+  if (length(to_remove) == 0) {
+    stop(sprintf("Can't find edge with id %s in the data", selected))
+  }
+
+  ns <- session$ns
+
+  vals$removed_edge <- vals$edges[to_remove, "id"]
+  vals$edges <- vals$edges[-to_remove, ]
+
+  visNetworkProxy(ns("network")) |>
+    visRemoveEdges(vals$removed_edge)
+
+  vals
+}
+
+#' List node connections
+#'
+#' @param x block.
+#' @param target Connection target id.
+#' @param rv Reactive values.
+#'
+list_empty_connections <- function(x, target, rv) {
+  UseMethod("list_empty_connections", x)
+}
+
+#' @export
+list_empty_connections.data_block <- function(x, target, rv) {
+  NULL
+}
+
+#' @export
+list_empty_connections.block <- function(x, target, rv) {
+  lgl_ply(rv$inputs[[target]], \(slot) is.null(slot()))
+}
+
+#' Check node connection
+#'
+#' @param x block.
+#' @param target Connection target id.
+#' @param rv Reactive values.
+#'
+#' @export
+check_connections <- function(x, target, rv) {
+  UseMethod("check_connections", x)
+}
+
+#' @export
+check_connections.data_block <- function(x, target, rv) {
+  FALSE
+}
+
+#' @export
+check_connections.block <- function(x, target, rv) {
+  n_active_connections <- sum(!list_empty_connections(x, target, rv))
+  isTRUE(n_active_connections < length(block_inputs(x)))
+}
+
+#' Check whether the node can receive connection
+#'
+#' @param x Block object.
+#' @param target Connection target id.
+#' @param rv Reactive values
+#' @export
+can_connect <- function(x, target, rv) {
+  UseMethod("can_connect")
+}
+
+#' @export
+can_connect.data_block <- function(x, target, rv) {
+  showNotification(
+    "Data blocks don't accept any incoming connection (data input).",
+    type = "error"
+  )
+  FALSE
+}
+
+#' @export
+can_connect.block <- function(x, target, rv) {
+  if (!check_connections(x, target, rv)) {
+    showNotification(
+      "The target block can't receive anymore data input.",
+      type = "error"
+    )
+    FALSE
+  } else {
+    TRUE
+  }
+}
+
+validate_edge_creation <- function(target, rv) {
+  check_cons <- can_connect(
+    rv$blocks[[target]]$block,
+    target,
+    rv
+  )
+  if (!check_cons) return(FALSE)
+
+  return(TRUE)
+}
+
+#' Create an edge and add it to the network
+#'
+#' This is different from \link{add_edge}, the later
+#' is just involved to add a row in a dataframe.
+#' There is a validation layer prior to knowing whether
+#' we can add the edge. Then rv are updated and the graph
+#' proxy is also updated.
+#'
+#' @param new Edge data. A list like
+#' \code{list(from = "from_node_ID", to = "to_node_ID")}.
+#' @param vals Local reactive values.
+#' @param rv Parent reactive values.
+#' @param session Shiny session object.
+#' @export
+create_edge <- function(new, vals, rv, session) {
+  ns <- session$ns
+  stopifnot(is.list(new))
+
+  if (!validate_edge_creation(new$to, rv)) {
+    if (rv$append_block) {
+      remove_node(new$to, vals, session)
+      rv$cancelled_edge <- new$to
+    }
+    stop()
+  }
+
+  to_blk <- rv$blocks[[new$to]]$block
+  con_idx <- which(list_empty_connections(to_blk, new$to, rv) == TRUE)[[1]]
+
+  # Create the connection
+  add_edge(
+    from = new$from,
+    to = new$to,
+    # The connection is be made with the latest available input slot
+    label = block_inputs(to_blk)[[con_idx]],
+    vals
+  )
+
+  visNetworkProxy(ns("network")) |>
+    visUpdateEdges(vals$edges)
+  vals
+}
+
+#' Create a new node it to the network
+#'
+#' This is different from \link{add_node}, the later
+#' is just involved to add a row in a dataframe.
+#' The rv are updated and the graph
+#' proxy is also updated. We handle either adding new node
+#' or append new node to an existing one. The later case,
+#' involves some edge creation (connection). No validation is
+#' required in practice as a node can theoretically feed
+#' as many children nodes as required.
+#'
+#' @param new New block to add.
+#' @param vals Local reactive values.
+#' @param rv Global parent reactive values.
+#' @param session Shiny session object.
+#' @export
+create_node <- function(new, vals, rv, session) {
+  input <- session$input
+  ns <- session$ns
+
+  # Update node vals for the network rendering
+  add_node(new, vals, rv)
+  # Handle add_block_to where we also setup the connections
+  if (rv$append_block) {
+    create_edge(
+      new = list(
+        from = input$network_selected,
+        to = block_uid(new)
+      ),
+      vals,
+      rv,
+      session
+    )
+  }
+
+  visNetworkProxy(ns("network")) |>
+    visUpdateNodes(vals$nodes) |>
+    visSelectNodes(id = utils::tail(vals$nodes$id, n = 1))
+  vals
+}
+
+#' Apply block validation to network elements
+#'
+#' Block validation is made by the backend
+#' this function only updates the node color
+#' based on the valid status.
+#'
+#' @param vals Local reactive values.
+#' @param rv Global parent reactive values.
+#' @param session Shiny session object.
+#' @export
+apply_validation <- function(vals, rv, session) {
+  ns <- session$ns
+  # Restore blue color if valid
+  if (is.null(rv$msgs())) {
+    if (all(vals$nodes$color == "#D2E5FF")) return(NULL)
+    vals$nodes$color <- rep("#D2E5FF", nrow(vals$nodes))
+  }
+
+  # Color invalid nodes in red
+  for (nme in names(rv$msgs())) {
+    curr <- rv$msgs()[[nme]]
+    has_state_error <- curr$state$error
+    has_data_error <- curr$data$error
+    has_eval_error <- curr$eval$error
+    if (
+      length(has_state_error) ||
+        length(has_data_error) ||
+        length(has_eval_error)
+    ) {
+      if (vals$nodes[vals$nodes$id == nme, "color"] == "#ffd6d2") return(NULL)
+      vals$nodes[vals$nodes$id == nme, "color"] <- "#ffd6d2"
+    }
+  }
+  visNetworkProxy(ns("network")) |>
+    visUpdateNodes(vals$nodes)
+}
+
+#' Build configuration parameter list
+#'
+#' Used by all network utilities for default options
+#'
+#' @param func Function applied.
+#' @param defaults List of default parameters.
+#' @param ... Extra parameters not in defaults accepted by func.
+#' @keywords internal
+default_network <- function(func, defaults, ...) {
+  stopifnot(is.list(defaults))
+  pars <- list(...)
+  if (length(pars) == 1) pars <- unlist(pars)
+
+  incorrect_parm <- which(
+    !(names(pars) %in% names(formals(func))[-1])
+  )
+
+  if (length(incorrect_parm)) {
+    stop(
+      paste0(
+        "Params {",
+        paste(names(pars)[incorrect_parm], collapse = ", "),
+        "} are not part of ",
+        deparse(substitute(func)),
+        " API parameters."
+      )
+    )
+  }
+
+  duplicated <- which(names(pars) %in% names(defaults))
+
+  if (length(duplicated)) {
+    stop(
+      paste0(
+        "Params {",
+        paste(names(pars)[duplicated], collapse = ", "),
+        "} are duplicated"
+      )
+    )
+  }
+
+  c(
+    defaults,
+    pars
+  )
+}
+
+#' Default network interactions
+#'
+#' What interaction to support
+#'
+#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visInteraction}.
+#' @keywords internal
+default_network_interactions <- function(...) {
+  default_network(
+    visInteraction,
+    list(
+      hover = FALSE,
+      multiselect = TRUE,
+      # avoid to select edge when selecting node ...
+      # since we have a select edge callback
+      selectConnectedEdges = FALSE
+    ),
+    ...
+  )
+}
+
+#' Default network options
+#'
+#' What options to support
+#'
+#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visOptions}.
+#' @keywords internal
+default_network_options <- function(...) {
+  default_network(
+    visOptions,
+    list(
+      # To get currently selected node
+      nodesIdSelection = TRUE,
+      manipulation = list(
+        enabled = TRUE,
+        initiallyActive = TRUE,
+        addNode = FALSE,
+        deleteNode = FALSE,
+        deleteEdge = FALSE,
+        editEdge = FALSE
+      ),
+      collapse = TRUE
+    ),
+    ...
+  )
+}
+
+#' Default edges options
+#'
+#' What options to support
+#'
+#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visEdges}.
+#' @keywords internal
+default_edges_options <- function(...) {
+  default_network(
+    visEdges,
+    list(
+      length = 300,
+      smooth = FALSE
+    ),
+    ...
+  )
+}
+
+#' Default physics options
+#'
+#' What options to support
+#'
+#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visPhysics}.
+#' @keywords internal
+default_network_physics <- function(...) {
+  default_network(
+    visPhysics,
+    list(
+      stabilization = list(
+        enabled = TRUE,
+        iterations = 1000,
+        updateInterval = 100,
+        onlyDynamicEdges = FALSE,
+        fit = TRUE
+      ),
+      minVelocity = 0.1, # Minimum velocity before node stops moving
+      maxVelocity = 50, # Maximum velocity of nodes
+      solver = "forceAtlas2Based",
+      timestep = 0.5, # Lower values make movement more precise but slower
+      adaptiveTimestep = TRUE
+    ),
+    ...
+  )
+}
+
+#' Default events options
+#'
+#' What options to support
+#'
+#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visEvents}.
+#' @keywords internal
+default_network_events <- function(ns, ...) {
+  default_network(
+    visEvents,
+    list(
+      select = sprintf(
+        "function(e) {
+          if (e.nodes.length > 1) {
+            Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
+          }
+        }",
+        ns("selected_nodes")
+      ),
+      oncontext = sprintf(
+        "function(e) {
+          e.event.preventDefault(); // avoid showing web inspector ...
+          Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
+        }",
+        ns("node_right_clicked")
+      ),
+      selectEdge = sprintf(
+        "function(e) {
+          Shiny.setInputValue('%s', e.edges[0], {priority: 'event'});
+        }",
+        ns("selected_edge")
+      ),
+      controlNodeDragEnd = sprintf(
+        "function(e) {
+          Shiny.setInputValue('%s', e.controlEdge, {priority: 'event'});
+          let target = $(`.${e.event.target.offsetParent.className}`)
+            .closest('.visNetwork')
+            .attr('id');
+          // Re-enable add edge mode
+          setTimeout(() => {
+            window.HTMLWidgets.find(`#${target}`).network.addEdgeMode();
+          }, 500);
+        ;}",
+        ns("new_edge")
+      ) #,
+      #hoverNode = sprintf(
+      #  "function(e) {
+      #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
+      #;}",
+      #  ns("hovered_node")
+      #),
+      #blurNode = sprintf(
+      #  "function(e) {
+      #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
+      #;}",
+      #  ns("hovered_node")
+      #)
+    ),
+    ...
+  )
+}
+
+#' Create network widget
+#'
+#' Network is populated via a proxy. This function initialises an empty
+#' network with the right setup.
+#'
+#' @param ns Namespace.
+#' @param height Network height.
+#' @param width Network width.
+#' @param interactions See \link{default_network_interactions}.
+#' @param options See \link{default_network_options}.
+#' @param edges See \link{default_edges_options}.
+#' @param physics See \link{default_network_physics}.
+#' @param events See \link{default_network_events}.
+#'
+#' @return A visNetwork object.
+#' @keywords internal
+create_network_widget <- function(
+  ns,
+  height = "100vh",
+  width = "100%",
+  interactions = default_network_interactions(),
+  options = default_network_options(),
+  edges = default_edges_options(),
+  physics = default_network_physics(),
+  events = default_network_events(ns)
+) {
+  vis_network <- visNetwork(
+    data.frame(),
+    data.frame(),
+    height = height,
+    width = width
+  )
+
+  vis_network <- do.call(
+    visInteraction,
+    c(graph = quote(vis_network), interactions)
+  )
+
+  vis_network <- do.call(visOptions, c(graph = quote(vis_network), options))
+  vis_network <- do.call(visEdges, c(graph = quote(vis_network), edges))
+  vis_network <- do.call(visPhysics, c(graph = quote(vis_network), physics))
+  vis_network <- do.call(visEvents, c(graph = quote(vis_network), events))
+
+  vis_network |>
+    visEvents(
+      type = "once",
+      # Code to show connection points with edges
+      stabilized = sprintf(
+        "function() {
+          var network = this;
+          
+          network.on('afterDrawing', function(ctx) {
+            var edges = network.body.edges;
+            var nodes = network.body.nodes;
+            
+            Object.keys(edges).forEach(function(edgeId) {
+              var edge = edges[edgeId];
+              var fromNode = nodes[edge.fromId];
+              var toNode = nodes[edge.toId];
+              
+              // Calculate intersection points
+              if (fromNode && toNode) {
+                // Get positions
+                var fromX = fromNode.x;
+                var fromY = fromNode.y;
+                var toX = toNode.x;
+                var toY = toNode.y;
+                
+                // Calculate angles and distances
+                var angle = Math.atan2(toY - fromY, toX - fromX);
+                var reverseAngle = Math.atan2(fromY - toY, fromX - toX);
+                
+                // Get node radii (using shape.width since shape.radius might not be available)
+                var fromRadius = fromNode.shape.width / 2;
+                var toRadius = toNode.shape.width / 2;
+                
+                // Calculate intersection points
+                var fromIntersectX = fromX + (Math.cos(angle) * fromRadius);
+                var fromIntersectY = fromY + (Math.sin(angle) * fromRadius);
+                var toIntersectX = toX + (Math.cos(reverseAngle) * toRadius);
+                var toIntersectY = toY + (Math.sin(reverseAngle) * toRadius);
+                
+                // Draw connection points at intersection
+                ctx.beginPath();
+                ctx.arc(fromIntersectX, fromIntersectY, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = '#2B7CE9';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.arc(toIntersectX, toIntersectY, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = '#2B7CE9';
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+              }
+            });
+          });
+        }"
+      )
+    )
+}

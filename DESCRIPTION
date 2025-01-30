@@ -1,6 +1,6 @@
 Package: blockr.ui
 Title: A 'shiny' powered user interface for 'blockr.core'
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: 
     c(
       person(
@@ -36,9 +36,7 @@ Imports:
     shinyWidgets,
     blockr.core,
     shinyjs,
-    gridstackr,
-    utils,
-    stats
+    gridstackr
 Remotes:
     cynkra/blockr.core,
     cynkra/blockr.dplyr,

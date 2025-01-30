@@ -10,3 +10,4 @@
 ^docs$
 ^pkgdown$
 _\.new\.png$
+inst/examples/demo/\.posit

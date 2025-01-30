@@ -63,6 +63,10 @@ $(function () {
       grid.addWidget(obj.data);
       // Move element from the sidebar to the grid slot
       $(`#grid-stack-item-content-${obj.data.id}`).append($(`#${obj.data.id}`));
+      // If the element is hidden by shinyjs, show it
+      if ($(`#${obj.data.id}`).is(":hidden")) {
+        $(`#${obj.data.id}`).show();
+      }
     }
   });
 

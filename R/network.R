@@ -461,8 +461,6 @@ network_server <- function(id, vals, debug = TRUE) {
           }
         )
       }
-      visNetworkProxy(ns("network")) |>
-        visRemoveNodes(input$network_selected)
     })
 
     # Remove edge (user selects the edge).

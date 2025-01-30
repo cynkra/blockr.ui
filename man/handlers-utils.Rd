@@ -5,14 +5,16 @@
 \alias{manage_block_visibility}
 \title{Manage board sidebars}
 \usage{
-manage_sidebars(rv, selected, session)
+manage_sidebars(rv, selected, removed, session)
 
-manage_block_visibility(rv, selected)
+manage_block_visibility(parent, rv)
 }
 \arguments{
 \item{rv}{Reactive values.}
 
-\item{selected}{Selected node.}
+\item{selected}{Selected block.}
+
+\item{removed}{Any removed block.}
 
 \item{session}{Shiny session object.}
 }
