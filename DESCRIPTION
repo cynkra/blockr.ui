@@ -1,6 +1,6 @@
 Package: blockr.ui
 Title: A 'shiny' powered user interface for 'blockr.core'
-Version: 0.0.0.9000
+Version: 0.3.0
 Authors@R: 
     c(
       person(
