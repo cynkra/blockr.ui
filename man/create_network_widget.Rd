@@ -10,7 +10,7 @@ create_network_widget(
   width = "100\%",
   interactions = default_network_interactions(),
   options = default_network_options(),
-  edges = default_edge_options(),
+  edges = default_edges_options(),
   physics = default_network_physics(),
   events = default_network_events(ns)
 )
@@ -28,9 +28,9 @@ create_network_widget(
 
 \item{edges}{See \link{default_edges_options}.}
 
-\item{physics}{See \link{default_physics_options}.}
+\item{physics}{See \link{default_network_physics}.}
 
-\item{events}{See \link{default_events_options}.}
+\item{events}{See \link{default_network_events}.}
 }
 \value{
 A visNetwork object.

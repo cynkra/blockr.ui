@@ -484,7 +484,7 @@ default_network_options <- function(...) {
 #'
 #' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visEdges}.
 #' @keywords internal
-default_edge_options <- function(...) {
+default_edges_options <- function(...) {
   default_network(
     visEdges,
     list(
@@ -594,8 +594,8 @@ default_network_events <- function(ns, ...) {
 #' @param interactions See \link{default_network_interactions}.
 #' @param options See \link{default_network_options}.
 #' @param edges See \link{default_edges_options}.
-#' @param physics See \link{default_physics_options}.
-#' @param events See \link{default_events_options}.
+#' @param physics See \link{default_network_physics}.
+#' @param events See \link{default_network_events}.
 #'
 #' @return A visNetwork object.
 #' @keywords internal
@@ -605,7 +605,7 @@ create_network_widget <- function(
   width = "100%",
   interactions = default_network_interactions(),
   options = default_network_options(),
-  edges = default_edge_options(),
+  edges = default_edges_options(),
   physics = default_network_physics(),
   events = default_network_events(ns)
 ) {

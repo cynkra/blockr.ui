@@ -2,7 +2,8 @@
 #'
 #' @param id Block module id.
 #' @param x Block object.
-#' @param blocks (Additional) blocks (or IDs) for which to generate the UI
+#' @param blocks (Additional) blocks (or IDs) for which to generate the UI.
+#' @param ... Generic consistency.
 #'
 #' @export
 #' @rdname custom-board

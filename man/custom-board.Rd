@@ -14,7 +14,9 @@
 
 \item{x}{Block object.}
 
-\item{blocks}{(Additional) blocks (or IDs) for which to generate the UI}
+\item{blocks}{(Additional) blocks (or IDs) for which to generate the UI.}
+
+\item{...}{Generic consistency.}
 }
 \description{
 Block custom UI

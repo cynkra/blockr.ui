@@ -1,5 +1,6 @@
 #' Add block to grid
 #'
+#' @param id Block id
 #' @rdname board-grid
 add_block_to_grid <- function(id, vals, blocks_ns, session) {
   ns <- session$ns

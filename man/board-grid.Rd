@@ -13,6 +13,8 @@ remove_block_from_grid(id, blocks_ns, session)
 manage_board_grid(mode, vals, blocks_ns, session)
 }
 \arguments{
+\item{id}{Block id}
+
 \item{vals}{Local reactive values.}
 
 \item{blocks_ns}{Blocks namespace.}
