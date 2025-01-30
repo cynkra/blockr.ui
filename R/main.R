@@ -13,7 +13,7 @@ main_ui <- function(id, board) {
     ns("board"),
     board,
     plugins = list(
-      preseve_board = ser_deser_ui,
+      preserve_board = ser_deser_ui,
       manage_blocks = add_rm_block_ui,
       manage_links = add_rm_link_ui
     )
@@ -116,7 +116,7 @@ main_server <- function(id, board) {
         "board",
         board,
         plugins = list(
-          preseve_board = ser_deser_server,
+          preserve_board = ser_deser_server,
           manage_blocks = add_rm_block_server,
           manage_links = add_rm_link_server,
           notify_user = block_notification_server
