@@ -123,7 +123,14 @@ main_server <- function(id, board) {
         ),
         callbacks = list(
           block_visibility = manage_block_visibility,
-          capture_grid = capture_grid
+          capture_grid = capture_grid,
+          capture_mode = function(parent, rv) {
+            # For serialisation
+            observeEvent(parent$mode, {
+              rv$board[["mode"]] <- parent$mode
+            })
+            return(NULL)
+          }
         ),
         parent = vals
       )

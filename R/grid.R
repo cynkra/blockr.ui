@@ -118,6 +118,6 @@ grid_server <- function(id, blocks, selected, mode, blocks_ns) {
     # Debug only
     output$grid_content <- renderPrint(grid_content())
 
-    return(reactive(input$grid_layout))
+    return(reactive(vals$grid))
   })
 }

@@ -18,14 +18,18 @@ ser_deser_ui <- function(id, board) {
   )
 }
 
+#' Ser/deser board
+#'
 #' @export
-blockr_ser.custom_board <- function(x, ...) {
+#' @rdname blockr_ser
+blockr_ser.custom_board <- function(x, blocks = NULL, ...) {
   list(
     object = class(x),
-    blocks = blockr_ser(board_blocks(x)),
+    blocks = blockr_ser(board_blocks(x), blocks),
     links = lapply(board_links(x), blockr_ser),
-    #nodes = blockr_ser(board_nodes(x)),
-    #grid = blockr_ser(board_grid(x)),
+    nodes = blockr_ser(board_nodes(x)),
+    grid = blockr_ser(board_grid(x)),
+    mode = board_mode(x),
     version = as.character(utils::packageVersion(utils::packageName()))
   )
 }
@@ -35,6 +39,19 @@ blockr_ser.data.frame <- function(x, ...) {
   list(
     object = class(x),
     payload = as.list(x)
+  )
+}
+
+#' @rdname blockr_ser
+#' @export
+blockr_deser.custom_board <- function(x, data, ...) {
+  new_board(
+    blockr_deser(data[["blocks"]]),
+    lapply(data[["links"]], blockr_deser),
+    nodes = blockr_deser(data[["nodes"]]),
+    grid = blockr_deser(data[["grid"]]),
+    mode = data[["mode"]],
+    class = setdiff(class(x), "board")
   )
 }
 
@@ -51,4 +68,9 @@ board_grid <- function(x) {
 board_nodes <- function(x) {
   stopifnot(is_board(x))
   x[["nodes"]]
+}
+
+board_mode <- function(x) {
+  stopifnot(is_board(x))
+  x[["mode"]]
 }
