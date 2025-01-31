@@ -166,3 +166,24 @@ capture_grid <- function(parent, rv) {
   })
   return(NULL)
 }
+
+capture_mode <- function(parent, rv) {
+  # For serialisation
+  observeEvent(parent$mode, {
+    rv$board[["mode"]] <- parent$mode
+  })
+  return(NULL)
+}
+
+board_restore <- function(parent, rv) {
+  board_refresh <- get("board_refresh", parent.frame(1))
+  observeEvent(
+    board_refresh(),
+    {
+      rv$refreshed <- FALSE
+      rv$refreshed <- board_refresh()
+    },
+    ignoreInit = TRUE
+  )
+  return(NULL)
+}

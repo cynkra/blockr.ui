@@ -130,26 +130,9 @@ main_server <- function(id, board) {
         callbacks = list(
           block_visibility = manage_block_visibility,
           capture_grid = capture_grid,
-          capture_mode = function(parent, rv) {
-            # For serialisation
-            observeEvent(parent$mode, {
-              rv$board[["mode"]] <- parent$mode
-            })
-            return(NULL)
-          },
+          capture_mode = capture_mode,
           # Callback to signal modules that the restore is done
-          on_board_restore = function(parent, rv) {
-            board_refresh <- get("board_refresh", parent.frame(1))
-            observeEvent(
-              board_refresh(),
-              {
-                rv$refreshed <- FALSE
-                rv$refreshed <- board_refresh()
-              },
-              ignoreInit = TRUE
-            )
-            return(NULL)
-          }
+          on_board_restore = board_restore
         ),
         parent = vals
       )
