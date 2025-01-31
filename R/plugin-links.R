@@ -29,28 +29,9 @@ add_rm_link_server <- function(id, rv, ...) {
       )
 
       # Restore network from serialisation
-      observeEvent(
-        rv$refreshed,
-        {
-          vals$nodes <- board_nodes(rv$board)
-          visNetworkProxy(ns("network")) |>
-            visUpdateNodes(vals$nodes)
-          lapply(names(links()), \(nme) {
-            link <- as.data.frame(links()[[nme]])
-            add_edge(
-              id = nme,
-              link$from,
-              link$to,
-              link$input,
-              vals,
-              create_link = FALSE
-            )
-          })
-          visNetworkProxy(ns("network")) |>
-            visUpdateEdges(vals$edges)
-        },
-        ignoreInit = TRUE
-      )
+      observeEvent(rv$refreshed, {
+        restore_network(links(), vals, rv, session)
+      })
 
       # For serialisation
       observeEvent(vals$nodes, {

@@ -697,3 +697,40 @@ create_network_widget <- function(
       )
     )
 }
+
+#' Restore network from saved snapshot
+#'
+#' Network is updated via a proxy.
+#'
+#' @param links Board links.
+#' @param vals Local reactive values.
+#' @param rv Global parent reactive values.
+#' @param session Shiny session object
+#'
+#' @return A reactiveValues object.
+#' @keywords internal
+restore_network <- function(links, vals, rv, session) {
+  ns <- session$ns
+
+  # Restore nodes
+  vals$nodes <- board_nodes(rv$board)
+  visNetworkProxy(ns("network")) |>
+    visUpdateNodes(vals$nodes)
+
+  # For each link re-creates the edges
+  lapply(names(links), \(nme) {
+    link <- as.data.frame(links[[nme]])
+    add_edge(
+      id = nme,
+      link$from,
+      link$to,
+      link$input,
+      vals,
+      create_link = FALSE
+    )
+  })
+  visNetworkProxy(ns("network")) |>
+    visUpdateEdges(vals$edges)
+
+  vals
+}
