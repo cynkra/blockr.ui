@@ -30,7 +30,7 @@ add_rm_link_server <- function(id, rv, ...) {
 
       # Restore network from serialisation
       observeEvent(
-        rv$board,
+        rv$refreshed,
         {
           vals$nodes <- board_nodes(rv$board)
           visNetworkProxy(ns("network")) |>

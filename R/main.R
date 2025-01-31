@@ -84,6 +84,12 @@ main_server <- function(id, board) {
         if (input$mode) vals$mode <- "network" else vals$mode <- "dashboard"
       })
 
+      # When restoring a snapshot we restore the old mode
+      observeEvent(board_out$refreshed, {
+        val <- if (board_mode(board_out$board) == "dashboard") FALSE else TRUE
+        update_switch("mode", value = val)
+      })
+
       # Toggle sidebars based on the mode and selected node
       manage_sidebars(
         vals,
@@ -129,6 +135,19 @@ main_server <- function(id, board) {
             observeEvent(parent$mode, {
               rv$board[["mode"]] <- parent$mode
             })
+            return(NULL)
+          },
+          # Callback to signal modules that the restore is done
+          on_board_restore = function(parent, rv) {
+            board_refresh <- get("board_refresh", parent.frame(1))
+            observeEvent(
+              board_refresh(),
+              {
+                rv$refreshed <- FALSE
+                rv$refreshed <- board_refresh()
+              },
+              ignoreInit = TRUE
+            )
             return(NULL)
           }
         ),
