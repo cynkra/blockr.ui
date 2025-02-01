@@ -1,3 +1,61 @@
+#' Whether blocks should be in grid or not
+#'
+#' Whenever a new block is created or some blocks
+#' are removed, we update the mapping to know which
+#' block should be in the grid, so that \link{manage_board_grid}
+#' knows what to do.
+#'
+#' @param blocks Board blocks.
+#' @param vals Local reactive values.
+#' @keywords internal
+maintain_blocks_grid_state <- function(blocks, vals) {
+  # Add new block entries
+  lapply(names(blocks), \(nme) {
+    if (is.null(vals$in_grid[[nme]])) {
+      vals$in_grid[[nme]] <- FALSE
+    }
+  })
+
+  # Remove block entries from being tracked
+  to_remove <- which(!(names(vals$in_grid) %in% names(blocks)))
+  lapply(to_remove, \(blk) {
+    vals$in_grid[[blk]] <- NULL
+  })
+}
+
+#' Update block grid state
+#'
+#' For a given selected block, toggle its grid presence
+#' based on the specified value.
+#'
+#' @param selected Selected block.
+#' @param value New value.
+#' @param vals Local reactive values.
+#' @keywords internal
+update_block_grid_state <- function(selected, value, vals) {
+  if (vals$in_grid[[selected]] == value) return(NULL)
+  vals$in_grid[[selected]] <- value
+}
+
+#' Update switch input
+#'
+#' For a given selected block, update the switch input
+#' according to the block grid state (if values are different).
+#'
+#' @param selected Selected block.
+#' @param value New value.
+#' @param vals Local reactive values.
+#' @param session Shiny session object.
+#' @keywords internal
+update_block_grid_input <- function(selected, value, vals, session) {
+  if (vals$in_grid[[selected]] == value) return(NULL)
+  freezeReactiveValue(session$input, "add_to_grid")
+  update_switch(
+    "add_to_grid",
+    value = vals$in_grid[[selected]]
+  )
+}
+
 #' Add block to grid
 #'
 #' @param id Block id
@@ -57,27 +115,20 @@ remove_block_from_grid <- function(id, blocks_ns, session) {
 #' @rdname board-grid
 manage_board_grid <- function(mode, vals, blocks_ns, session) {
   ns <- session$ns
-  observeEvent(
-    {
-      mode()
-      req(length(vals$in_grid), sum(unlist(vals$in_grid)) > 0)
-    },
-    {
-      to_add <- which(vals$in_grid == TRUE)
-      lapply(names(vals$in_grid)[to_add], \(nme) {
-        if (mode() == "dashboard") {
-          add_block_to_grid(nme, vals, blocks_ns, session)
-        } else {
-          remove_block_from_grid(nme, blocks_ns, session)
-        }
-      })
 
-      # Cleanup grid in editor mode
-      if (mode() == "network") {
-        gs_proxy_remove_all(ns("grid"))
-      }
+  to_add <- which(vals$in_grid == TRUE)
+  lapply(names(vals$in_grid)[to_add], \(nme) {
+    if (mode() == "dashboard") {
+      add_block_to_grid(nme, vals, blocks_ns, session)
+    } else {
+      remove_block_from_grid(nme, blocks_ns, session)
     }
-  )
+  })
+
+  # Cleanup grid in editor mode
+  if (mode() == "network") {
+    gs_proxy_remove_all(ns("grid"))
+  }
 }
 
 #' Process grid layout
@@ -98,4 +149,18 @@ process_grid_content <- function(mode, vals, grid_layout) {
   res <- do.call(rbind.data.frame, grid_layout$children)
   #if (nrow(res) == 0) return(data.frame())
   res[, !names(res) %in% c("content")]
+}
+
+#' Restore grid state from board state
+#'
+#' @param board Board containing saved state.
+#' @param blocks_ns Blocks namespace.
+#' @param vals Local reactive values.
+#' Contains blocks coordinates, dimensions, ...
+#' @keywords internal
+restore_grid <- function(board, blocks_ns, vals) {
+  old_grid <- board_grid(board)
+  lapply(old_grid$id, \(id) {
+    vals$in_grid[[strsplit(id, paste0(blocks_ns, "-"))[[1]][2]]] <- TRUE
+  })
 }

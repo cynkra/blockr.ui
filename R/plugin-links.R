@@ -28,6 +28,11 @@ add_rm_link_server <- function(id, rv, ...) {
         removed_edge = character()
       )
 
+      # Restore network from serialisation
+      observeEvent(req(rv$refreshed == "board"), {
+        restore_network(links(), vals, rv, session)
+      })
+
       # For serialisation
       observeEvent(vals$nodes, {
         rv$board[["nodes"]] <- vals$nodes
@@ -152,6 +157,7 @@ add_rm_link_server <- function(id, rv, ...) {
                 rv,
                 session
               )
+              # Send callback to create corresponding link
               res(
                 list(
                   add = vals$added_edge
@@ -172,9 +178,8 @@ add_rm_link_server <- function(id, rv, ...) {
         tryCatch(
           {
             create_node(rv$added_block, vals, rv, session)
-
-            # Send any created link back to the board
             if (rv$append_block) {
+              # Send any created link back to the board
               res(
                 list(
                   add = vals$added_edge

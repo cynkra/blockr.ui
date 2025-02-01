@@ -43,18 +43,28 @@ add_node <- function(new, vals, rv) {
 #'
 #' Update dataframe for visNetwork graph
 #'
+#' @param id Edge id. If create_link is FALSE, id cannot be not NULL.
 #' @param from Node id.
 #' @param to Node it.
 #' @param label Edge label. This is useful to map the existing connected
 #' nodes to the input slots of the receiving node (for instance a join block).
 #' @param vals Reactive values, containing elements such as edges data.
+#' @param create_link Create a link in the board?
 #' @keywords internal
-add_edge <- function(from, to, label, vals) {
+add_edge <- function(id = NULL, from, to, label, vals, create_link = TRUE) {
   stopifnot(
     is.character(from),
     is.character(to),
     is.data.frame(vals$edges)
   )
+  if (
+    isTRUE(create_link) && !is.null(id) || isFALSE(create_link) && is.null(id)
+  ) {
+    stop(
+      "When create_link is TRUE, id must be NULL.
+      WHen create_link is FALSE, id can't be NULL."
+    )
+  }
 
   edge_data <- data.frame(
     from = from,
@@ -64,17 +74,22 @@ add_edge <- function(from, to, label, vals) {
     width = 4
   )
 
-  # Create link
-  vals$added_edge <- as_links(
-    new_link(
-      from = edge_data$from,
-      to = edge_data$to,
-      input = edge_data$label
-    )
-  )
+  if (!is.null(id)) {
+    edge_data <- cbind(id = id, edge_data)
+  }
 
-  # Add link id for edge id to be able to remove it later ...
-  edge_data$id <- vals$added_edge$id
+  # Create link
+  if (create_link) {
+    vals$added_edge <- as_links(
+      new_link(
+        from = edge_data$from,
+        to = edge_data$to,
+        input = edge_data$label
+      )
+    )
+    # Add link id for edge id to be able to remove it later ...
+    edge_data$id <- vals$added_edge$id
+  }
 
   if (nrow(vals$edges) == 0) {
     vals$edges <- edge_data
@@ -299,7 +314,7 @@ create_edge <- function(new, vals, rv, session) {
     to = new$to,
     # The connection is be made with the latest available input slot
     label = block_inputs(to_blk)[[con_idx]],
-    vals
+    vals = vals
   )
 
   visNetworkProxy(ns("network")) |>
@@ -681,4 +696,44 @@ create_network_widget <- function(
         }"
       )
     )
+}
+
+#' Restore network from saved snapshot
+#'
+#' Network is updated via a proxy.
+#'
+#' @param links Board links.
+#' @param vals Local reactive values.
+#' @param rv Global parent reactive values.
+#' @param session Shiny session object
+#'
+#' @return A reactiveValues object.
+#' @keywords internal
+restore_network <- function(links, vals, rv, session) {
+  ns <- session$ns
+
+  # Restore nodes
+  vals$nodes <- board_nodes(rv$board)
+  visNetworkProxy(ns("network")) |>
+    visUpdateNodes(vals$nodes) |>
+    visSelectNodes(id = board_selected_node(rv$board))
+
+  # For each link re-creates the edges
+  lapply(names(links), \(nme) {
+    link <- as.data.frame(links[[nme]])
+    add_edge(
+      id = nme,
+      link$from,
+      link$to,
+      link$input,
+      vals,
+      create_link = FALSE
+    )
+  })
+  visNetworkProxy(ns("network")) |>
+    visUpdateEdges(vals$edges)
+
+  rv$refreshed <- "network"
+
+  vals
 }

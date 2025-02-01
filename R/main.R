@@ -29,7 +29,7 @@ main_ui <- function(id, board) {
       id = ns("dashboard"),
       title = "Dashboard",
       position = "right",
-      width = "60%",
+      width = "75%",
       open = FALSE,
       # GRID CONTENT
       my_grid[c(2, 3)]
@@ -84,6 +84,12 @@ main_server <- function(id, board) {
         if (input$mode) vals$mode <- "network" else vals$mode <- "dashboard"
       })
 
+      # When restoring a snapshot we restore the old mode
+      observeEvent(board_out$refreshed, {
+        val <- if (board_mode(board_out$board) == "dashboard") FALSE else TRUE
+        update_switch("mode", value = val)
+      })
+
       # Toggle sidebars based on the mode and selected node
       manage_sidebars(
         vals,
@@ -91,25 +97,6 @@ main_server <- function(id, board) {
         reactive(board_out$removed_block),
         session
       )
-
-      # grid module
-      grid_out <- grid_server(
-        "grid",
-        reactive({
-          req(length(board_out$blocks) > 0)
-          board_out$blocks
-        }),
-        reactive({
-          req(board_out$selected_block)
-          board_out$selected_block
-        }),
-        reactive(vals$mode),
-        blocks_ns = "main-board"
-      )
-
-      observeEvent(grid_out(), {
-        vals$grid <- grid_out()
-      })
 
       # Board module
       board_out <- board_server(
@@ -123,10 +110,25 @@ main_server <- function(id, board) {
         ),
         callbacks = list(
           block_visibility = manage_block_visibility,
-          capture_grid = capture_grid
+          serialize_extra = capture_for_serialize,
+          # Callback to signal other modules that the restore is done.
+          # This allows to restore each part in the correct order.
+          on_board_restore = board_restore
         ),
         parent = vals
       )
+
+      # grid module
+      grid_out <- grid_server(
+        "grid",
+        board_out,
+        reactive(vals$mode),
+        blocks_ns = "main-board"
+      )
+
+      observeEvent(grid_out(), {
+        vals$grid <- grid_out()
+      })
     }
   )
 }

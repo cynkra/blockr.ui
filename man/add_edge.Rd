@@ -4,9 +4,11 @@
 \alias{add_edge}
 \title{Add a edge}
 \usage{
-add_edge(from, to, label, vals)
+add_edge(id = NULL, from, to, label, vals, create_link = TRUE)
 }
 \arguments{
+\item{id}{Edge id. If create_link is FALSE, id cannot be not NULL.}
+
 \item{from}{Node id.}
 
 \item{to}{Node it.}
@@ -15,6 +17,8 @@ add_edge(from, to, label, vals)
 nodes to the input slots of the receiving node (for instance a join block).}
 
 \item{vals}{Reactive values, containing elements such as edges data.}
+
+\item{create_link}{Create a link in the board?}
 }
 \description{
 Update dataframe for visNetwork graph

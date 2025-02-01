@@ -160,9 +160,28 @@ manage_block_visibility <- function(parent, rv) {
   return(NULL)
 }
 
-capture_grid <- function(parent, rv) {
+capture_for_serialize <- function(parent, rv) {
+  # For serialisation
+  observeEvent(parent$mode, {
+    rv$board[["mode"]] <- parent$mode
+  })
+  observeEvent(rv$selected, {
+    rv$board[["selected_node"]] <- rv$selected
+  })
   observeEvent(parent$grid, {
     rv$board[["grid"]] <- parent$grid
   })
+  return(NULL)
+}
+
+board_restore <- function(parent, rv) {
+  board_refresh <- get("board_refresh", parent.frame(1))
+  observeEvent(
+    board_refresh(),
+    {
+      rv$refreshed <- "board"
+    },
+    ignoreInit = TRUE
+  )
   return(NULL)
 }

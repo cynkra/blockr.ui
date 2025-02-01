@@ -17,13 +17,13 @@ grid_ui <- function(id) {
 
 #' Dashboard grid server
 #'
-#' @param blocks List of blocks.
-#' @param selected Selected block.
+#' @param board Board object. Contains info about blocks,
+#' selected block, refreshed status ...
 #' @param mode App mode.
 #' @param blocks_ns In which namespace are the blocks
 #' @rdname dashboard
 #' @export
-grid_server <- function(id, blocks, selected, mode, blocks_ns) {
+grid_server <- function(id, board, mode, blocks_ns) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -32,32 +32,43 @@ grid_server <- function(id, blocks, selected, mode, blocks_ns) {
       in_grid = list()
     )
 
+    # Restore grid from serialisation only when network is restored
+    observeEvent(
+      {
+        req(board$refreshed == "network")
+      },
+      {
+        restore_grid(board$board, blocks_ns, vals)
+      }
+    )
+
     # Initialise a mapping list containing all blocks
     # ids and whether they are in the grid. Must update
     # whenever a new block is created
-    observeEvent(blocks(), {
-      # Add new block entries
-      lapply(names(blocks()), \(nme) {
-        if (is.null(vals$in_grid[[nme]])) {
-          vals$in_grid[[nme]] <- FALSE
-        }
-      })
-
-      # Remove block entries from being tracked
-      to_remove <- which(!(names(vals$in_grid) %in% names(blocks())))
-      lapply(to_remove, \(blk) {
-        vals$in_grid[[blk]] <- NULL
-      })
-    })
+    observeEvent(
+      {
+        req(length(board$blocks) > 0)
+        board$blocks
+      },
+      {
+        maintain_blocks_grid_state(board$blocks, vals)
+      }
+    )
 
     # When we change block, update the switch to the value it should
     # be from vals$in_grid[[selected()]]
     observeEvent(
-      selected(),
       {
-        if (vals$in_grid[[selected()]] == input$add_to_grid) return(NULL)
-        freezeReactiveValue(input, "add_to_grid")
-        update_switch("add_to_grid", value = vals$in_grid[[selected()]])
+        req(board$selected_block)
+        board$selected_block
+      },
+      {
+        update_block_grid_input(
+          board$selected_block,
+          input$add_to_grid,
+          vals,
+          session
+        )
       }
     )
 
@@ -65,16 +76,24 @@ grid_server <- function(id, blocks, selected, mode, blocks_ns) {
     observeEvent(
       input$add_to_grid,
       {
-        if (vals$in_grid[[selected()]] == input$add_to_grid) return(NULL)
-        vals$in_grid[[selected()]] <- input$add_to_grid
-      }
+        update_block_grid_state(board$selected_block, input$add_to_grid, vals)
+      },
+      ignoreInit = TRUE
     )
 
     # Move items between properties tab and grid.
     # Since we can't rebuilt the UI of each block and preserve its state
     # we have to move elements from one place to another. This also avoids ID
     # duplication.
-    manage_board_grid(mode, vals, blocks_ns, session)
+    observeEvent(
+      {
+        mode()
+        req(length(vals$in_grid), sum(unlist(vals$in_grid)) > 0)
+      },
+      {
+        manage_board_grid(mode, vals, blocks_ns, session)
+      }
+    )
 
     # Render grid of block outputs in dashboard mode.
     # We rely on an rv cache to keep track of where a node was before switching from
@@ -118,6 +137,6 @@ grid_server <- function(id, blocks, selected, mode, blocks_ns) {
     # Debug only
     output$grid_content <- renderPrint(grid_content())
 
-    return(reactive(input$grid_layout))
+    return(reactive(vals$grid))
   })
 }
