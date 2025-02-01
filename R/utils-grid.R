@@ -28,7 +28,7 @@ maintain_blocks_grid_state <- function(blocks, vals) {
 #' For a given selected block, toggle its grid presence
 #' based on the specified value.
 #'
-#' @param blocks Board blocks.
+#' @param selected Selected block.
 #' @param value New value.
 #' @param vals Local reactive values.
 #' @keywords internal
@@ -42,7 +42,7 @@ update_block_grid_state <- function(selected, value, vals) {
 #' For a given selected block, update the switch input
 #' according to the block grid state (if values are different).
 #'
-#' @param blocks Board blocks.
+#' @param selected Selected block.
 #' @param value New value.
 #' @param vals Local reactive values.
 #' @param session Shiny session object.

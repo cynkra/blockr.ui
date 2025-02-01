@@ -7,13 +7,13 @@
 update_block_grid_input(selected, value, vals, session)
 }
 \arguments{
+\item{selected}{Selected block.}
+
 \item{value}{New value.}
 
 \item{vals}{Local reactive values.}
 
 \item{session}{Shiny session object.}
-
-\item{blocks}{Board blocks.}
 }
 \description{
 For a given selected block, update the switch input

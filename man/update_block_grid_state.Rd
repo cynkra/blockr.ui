@@ -7,11 +7,11 @@
 update_block_grid_state(selected, value, vals)
 }
 \arguments{
+\item{selected}{Selected block.}
+
 \item{value}{New value.}
 
 \item{vals}{Local reactive values.}
-
-\item{blocks}{Board blocks.}
 }
 \description{
 For a given selected block, toggle its grid presence
