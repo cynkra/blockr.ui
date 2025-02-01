@@ -1,3 +1,61 @@
+#' Whether blocks should be in grid or not
+#'
+#' Whenever a new block is created or some blocks
+#' are removed, we update the mapping to know which
+#' block should be in the grid, so that \link{manage_board_grid}
+#' knows what to do.
+#'
+#' @param blocks Board blocks.
+#' @param vals Local reactive values.
+#' @keywords internal
+maintain_blocks_grid_state <- function(blocks, vals) {
+  # Add new block entries
+  lapply(names(blocks), \(nme) {
+    if (is.null(vals$in_grid[[nme]])) {
+      vals$in_grid[[nme]] <- FALSE
+    }
+  })
+
+  # Remove block entries from being tracked
+  to_remove <- which(!(names(vals$in_grid) %in% names(blocks)))
+  lapply(to_remove, \(blk) {
+    vals$in_grid[[blk]] <- NULL
+  })
+}
+
+#' Update block grid state
+#'
+#' For a given selected block, toggle its grid presence
+#' based on the specified value.
+#'
+#' @param blocks Board blocks.
+#' @param value New value.
+#' @param vals Local reactive values.
+#' @keywords internal
+update_block_grid_state <- function(selected, value, vals) {
+  if (vals$in_grid[[selected]] == value) return(NULL)
+  vals$in_grid[[selected]] <- value
+}
+
+#' Update switch input
+#'
+#' For a given selected block, update the switch input
+#' according to the block grid state (if values are different).
+#'
+#' @param blocks Board blocks.
+#' @param value New value.
+#' @param vals Local reactive values.
+#' @param session Shiny session object.
+#' @keywords internal
+update_block_grid_input <- function(selected, value, vals, session) {
+  if (vals$in_grid[[selected]] == value) return(NULL)
+  freezeReactiveValue(session$input, "add_to_grid")
+  update_switch(
+    "add_to_grid",
+    value = vals$in_grid[[selected]]
+  )
+}
+
 #' Add block to grid
 #'
 #' @param id Block id

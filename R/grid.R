@@ -51,18 +51,7 @@ grid_server <- function(id, board, mode, blocks_ns) {
         board$blocks
       },
       {
-        # Add new block entries
-        lapply(names(board$blocks), \(nme) {
-          if (is.null(vals$in_grid[[nme]])) {
-            vals$in_grid[[nme]] <- FALSE
-          }
-        })
-
-        # Remove block entries from being tracked
-        to_remove <- which(!(names(vals$in_grid) %in% names(board$blocks)))
-        lapply(to_remove, \(blk) {
-          vals$in_grid[[blk]] <- NULL
-        })
+        maintain_blocks_grid_state(board$blocks, vals)
       }
     )
 
@@ -74,12 +63,11 @@ grid_server <- function(id, board, mode, blocks_ns) {
         board$selected_block
       },
       {
-        if (vals$in_grid[[board$selected_block]] == input$add_to_grid)
-          return(NULL)
-        freezeReactiveValue(input, "add_to_grid")
-        update_switch(
-          "add_to_grid",
-          value = vals$in_grid[[board$selected_block]]
+        update_block_grid_input(
+          board$selected_block,
+          input$add_to_grid,
+          vals,
+          session
         )
       }
     )
@@ -88,9 +76,7 @@ grid_server <- function(id, board, mode, blocks_ns) {
     observeEvent(
       input$add_to_grid,
       {
-        if (vals$in_grid[[board$selected_block]] == input$add_to_grid)
-          return(NULL)
-        vals$in_grid[[board$selected_block]] <- input$add_to_grid
+        update_block_grid_state(board$selected_block, input$add_to_grid, vals)
       },
       ignoreInit = TRUE
     )
