@@ -29,7 +29,7 @@ main_ui <- function(id, board) {
       id = ns("dashboard"),
       title = "Dashboard",
       position = "right",
-      width = "60%",
+      width = "75%",
       open = FALSE,
       # GRID CONTENT
       my_grid[c(2, 3)]
