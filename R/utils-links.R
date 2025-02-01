@@ -715,7 +715,8 @@ restore_network <- function(links, vals, rv, session) {
   # Restore nodes
   vals$nodes <- board_nodes(rv$board)
   visNetworkProxy(ns("network")) |>
-    visUpdateNodes(vals$nodes)
+    visUpdateNodes(vals$nodes) |>
+    visSelectNodes(id = board_selected_node(rv$board))
 
   # For each link re-creates the edges
   lapply(names(links), \(nme) {
@@ -731,6 +732,8 @@ restore_network <- function(links, vals, rv, session) {
   })
   visNetworkProxy(ns("network")) |>
     visUpdateEdges(vals$edges)
+
+  rv$refreshed <- "network"
 
   vals
 }

@@ -28,6 +28,7 @@ blockr_ser.custom_board <- function(x, blocks = NULL, ...) {
     blocks = blockr_ser(board_blocks(x), blocks),
     links = lapply(board_links(x), blockr_ser),
     nodes = blockr_ser(board_nodes(x)),
+    selected_node = board_selected_node(x),
     grid = blockr_ser(board_grid(x)),
     mode = board_mode(x),
     version = as.character(utils::packageVersion(utils::packageName()))
@@ -49,6 +50,7 @@ blockr_deser.custom_board <- function(x, data, ...) {
     blockr_deser(data[["blocks"]]),
     lapply(data[["links"]], blockr_deser),
     nodes = blockr_deser(data[["nodes"]]),
+    selected_node = data[["selected_node"]],
     grid = blockr_deser(data[["grid"]]),
     mode = data[["mode"]],
     class = setdiff(class(x), "board")
@@ -73,4 +75,9 @@ board_nodes <- function(x) {
 board_mode <- function(x) {
   stopifnot(is_board(x))
   x[["mode"]]
+}
+
+board_selected_node <- function(x) {
+  stopifnot(is_board(x))
+  x[["selected_node"]]
 }

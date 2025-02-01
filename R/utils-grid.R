@@ -57,27 +57,20 @@ remove_block_from_grid <- function(id, blocks_ns, session) {
 #' @rdname board-grid
 manage_board_grid <- function(mode, vals, blocks_ns, session) {
   ns <- session$ns
-  observeEvent(
-    {
-      mode()
-      req(length(vals$in_grid), sum(unlist(vals$in_grid)) > 0)
-    },
-    {
-      to_add <- which(vals$in_grid == TRUE)
-      lapply(names(vals$in_grid)[to_add], \(nme) {
-        if (mode() == "dashboard") {
-          add_block_to_grid(nme, vals, blocks_ns, session)
-        } else {
-          remove_block_from_grid(nme, blocks_ns, session)
-        }
-      })
 
-      # Cleanup grid in editor mode
-      if (mode() == "network") {
-        gs_proxy_remove_all(ns("grid"))
-      }
+  to_add <- which(vals$in_grid == TRUE)
+  lapply(names(vals$in_grid)[to_add], \(nme) {
+    if (mode() == "dashboard") {
+      add_block_to_grid(nme, vals, blocks_ns, session)
+    } else {
+      remove_block_from_grid(nme, blocks_ns, session)
     }
-  )
+  })
+
+  # Cleanup grid in editor mode
+  if (mode() == "network") {
+    gs_proxy_remove_all(ns("grid"))
+  }
 }
 
 #' Process grid layout
@@ -98,4 +91,18 @@ process_grid_content <- function(mode, vals, grid_layout) {
   res <- do.call(rbind.data.frame, grid_layout$children)
   #if (nrow(res) == 0) return(data.frame())
   res[, !names(res) %in% c("content")]
+}
+
+#' Restore grid state from board state
+#'
+#' @param board Board containing saved state.
+#' @param blocks_ns Blocks namespace.
+#' @param vals Local reactive values.
+#' Contains blocks coordinates, dimensions, ...
+#' @keywords internal
+restore_grid <- function(board, blocks_ns, vals) {
+  old_grid <- board_grid(board)
+  lapply(old_grid$id, \(id) {
+    vals$in_grid[[strsplit(id, paste0(blocks_ns, "-"))[[1]][2]]] <- TRUE
+  })
 }

@@ -29,7 +29,7 @@ add_rm_link_server <- function(id, rv, ...) {
       )
 
       # Restore network from serialisation
-      observeEvent(rv$refreshed, {
+      observeEvent(req(rv$refreshed == "board"), {
         restore_network(links(), vals, rv, session)
       })
 

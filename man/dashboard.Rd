@@ -7,14 +7,13 @@
 \usage{
 grid_ui(id)
 
-grid_server(id, blocks, selected, mode, blocks_ns)
+grid_server(id, board, mode, blocks_ns)
 }
 \arguments{
 \item{id}{Module id.}
 
-\item{blocks}{List of blocks.}
-
-\item{selected}{Selected block.}
+\item{board}{Board object. Contains info about blocks,
+selected block, refreshed status ...}
 
 \item{mode}{App mode.}
 
