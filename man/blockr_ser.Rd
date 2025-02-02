@@ -9,6 +9,11 @@
 
 \method{blockr_deser}{custom_board}(x, data, ...)
 }
+\arguments{
+\item{blocks}{Board blocks.}
+
+\item{...}{Generic consistency.}
+}
 \description{
 Ser/deser board
 }

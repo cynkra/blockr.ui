@@ -20,6 +20,8 @@ ser_deser_ui <- function(id, board) {
 
 #' Ser/deser board
 #'
+#' @param blocks Board blocks.
+#' @param ... Generic consistency.
 #' @export
 #' @rdname blockr_ser
 blockr_ser.custom_board <- function(x, blocks = NULL, ...) {
