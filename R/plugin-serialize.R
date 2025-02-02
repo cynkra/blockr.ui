@@ -20,6 +20,7 @@ ser_deser_ui <- function(id, board) {
 
 #' Ser/deser board
 #'
+#' @param x Board.
 #' @param blocks Board blocks.
 #' @param ... Generic consistency.
 #' @export
@@ -46,6 +47,7 @@ blockr_ser.data.frame <- function(x, ...) {
 }
 
 #' @rdname blockr_ser
+#' @param data Data to restore.
 #' @export
 blockr_deser.custom_board <- function(x, data, ...) {
   new_board(
