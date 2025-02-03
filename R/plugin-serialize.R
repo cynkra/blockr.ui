@@ -26,19 +26,41 @@ ser_deser_server <- function(id, rv, ...) {
         write_board_to_disk(rv)
       )
 
+      # Cleanup old files on start
+      observeEvent(
+        vals$backup_list,
+        {
+          if (length(vals$backup_list)) {
+            lapply(vals$backup_list, file.remove)
+          }
+          vals$backup_list <- list()
+        },
+        once = TRUE
+      )
+
       # Auto save
       observeEvent(
         {
-          req(length(rv$blocks) > 0, is.null(rv$refreshed))
-          c(rv$nodes, rv$blocks, rv$links, rv$selected_block, rv$board)
+          req(length(rv$blocks) > 0)
+          c(rv$blocks, rv$links, rv$board)
         },
         {
+          # Reset refreshed
+          if (!is.null(rv$refreshed)) {
+            if (rv$refreshed != "grid") return(NULL)
+            rv$refreshed <- NULL
+            return(NULL)
+          }
           file_name <- board_filename(rv)()
           write_board_to_disk(rv)(file_name)
           vals$backup_list <- list.files(pattern = ".json$")
           vals$current_backup <- length(vals$backup_list)
         }
       )
+
+      observeEvent(vals$current_backup, {
+        showNotification(vals$current_backup)
+      })
 
       observeEvent(
         c(vals$current_backup, vals$backup_list),
@@ -108,11 +130,12 @@ ser_deser_ui <- function(id, board) {
     downloadButton(
       NS(id, "serialize"),
       "Save",
-      class = "btn-light"
+      class = "btn-light btn-sm"
     ),
     fileInput(
       NS(id, "restore"),
-      "Restore"
+      label = "",
+      placeholder = "Select file to restore"
     ),
     div(
       class = "btn-group",

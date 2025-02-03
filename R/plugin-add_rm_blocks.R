@@ -106,7 +106,7 @@ add_rm_block_ui <- function(id, board) {
         NS(id, "add_block"),
         "New block",
         icon = icon("circle-plus"),
-        class = "btn-light"
+        class = "btn-light btn-sm"
       )
     ),
     sidebar = div(
