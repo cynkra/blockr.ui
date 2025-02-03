@@ -80,7 +80,7 @@ actions_ui <- function(..., ns) {
   div(
     class = paste(
       "d-flex justify-content-evenly align-items-center",
-      "border rounded-4 m-2 gap-5 p-2"
+      "border rounded-4 m-1 gap-2"
     ),
     shinyWidgets::switchInput(
       ns("mode"),
@@ -170,6 +170,10 @@ capture_for_serialize <- function(parent, rv) {
   })
   observeEvent(parent$grid, {
     rv$board[["grid"]] <- parent$grid
+  })
+
+  observeEvent(parent$grid_restored, {
+    rv$refreshed <- "grid"
   })
   return(NULL)
 }
