@@ -58,10 +58,6 @@ ser_deser_server <- function(id, rv, ...) {
         }
       )
 
-      observeEvent(vals$current_backup, {
-        showNotification(vals$current_backup)
-      })
-
       observeEvent(
         c(vals$current_backup, vals$backup_list),
         {
