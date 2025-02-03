@@ -165,8 +165,8 @@ capture_for_serialize <- function(parent, rv) {
   observeEvent(parent$mode, {
     rv$board[["mode"]] <- parent$mode
   })
-  observeEvent(rv$selected, {
-    rv$board[["selected_node"]] <- rv$selected
+  observeEvent(rv$selected_block, {
+    rv$board[["selected_node"]] <- rv$selected_block
   })
   observeEvent(parent$grid, {
     rv$board[["grid"]] <- parent$grid

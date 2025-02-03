@@ -29,7 +29,7 @@ ser_deser_server <- function(id, rv, ...) {
       # Auto save
       observeEvent(
         {
-          req(length(rv$blocks) > 0)
+          req(length(rv$blocks) > 0, is.null(rv$refreshed))
           lapply(rv, \(el) {
             el
           })
@@ -41,31 +41,32 @@ ser_deser_server <- function(id, rv, ...) {
         }
       )
 
-      # Init backup counter
+      # Init backup counter. Will follow vals$backup_list
+      # until any of undo or redo is clicked.
       observeEvent(
-        vals$backup_list,
+        {
+          req(input$undo < 1, input$redo < 1)
+          vals$backup_list
+        },
         {
           vals$current_backup <- length(vals$backup_list)
-        },
-        once = TRUE
+        }
       )
 
       observeEvent(
-        vals$current_backup,
+        vals$backup_list,
         {
           undo_cond <- if (!length(vals$backup_list)) {
-            isTRUE(length(vals$backup_list))
+            FALSE
           } else {
             vals$current_backup > 1
           }
 
           redo_cond <- if (!length(vals$backup_list)) {
-            isTRUE(length(vals$backup_list))
+            FALSE
           } else {
             vals$current_backup < length(vals$backup_list)
           }
-
-          browser()
 
           shinyjs::toggleState(
             "undo",
@@ -91,7 +92,6 @@ ser_deser_server <- function(id, rv, ...) {
       observeEvent(
         c(input$undo, input$redo),
         {
-          browser()
           res(
             from_json(vals$backup_list[[vals$current_backup]])
           )
@@ -195,6 +195,11 @@ blockr_deser.custom_board <- function(x, data, ...) {
 
 #' @export
 blockr_deser.data.frame <- function(x, data, ...) {
+  # null becomes NA ...
+  data[["payload"]] <- lapply(data[["payload"]], \(el) {
+    if (is.null(el)) el <- NA
+    el
+  })
   as.data.frame(data[["payload"]])
 }
 
