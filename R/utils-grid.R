@@ -161,20 +161,22 @@ process_grid_content <- function(mode, vals, grid_layout) {
 restore_grid <- function(board, blocks_ns, vals) {
   vals$in_grid <- NULL
 
-  in_grid <- board_grid(board)
+  grid <- board_grid(board)
   ids <- board_block_ids(board)
 
   # When the grid was empty, we still need to initialise the block state
   # and all values are false
-  if (!nrow(in_grid)) {
+  if (!nrow(grid)) {
     lapply(ids, \(id) {
       vals$in_grid[[id]] <- FALSE
     })
     return(NULL)
   }
 
+  vals$grid <- grid
+
   # Otherwise we spread elements between the grid and the network
-  in_grid_ids <- chr_ply(strsplit(in_grid$id, paste0(blocks_ns, "-")), `[[`, 2)
+  in_grid_ids <- chr_ply(strsplit(grid$id, paste0(blocks_ns, "-")), `[[`, 2)
   not_in_grid <- which(!(ids %in% in_grid_ids))
 
   lapply(in_grid_ids, \(id) {
