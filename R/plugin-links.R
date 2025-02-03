@@ -37,9 +37,6 @@ add_rm_link_server <- function(id, rv, ...) {
       observeEvent(vals$nodes, {
         rv$board[["nodes"]] <- vals$nodes
       })
-      observeEvent(vals$edges, {
-        rv$edges <- vals$edges
-      })
 
       res <- reactiveVal(
         list(add = links(), rm = character())
