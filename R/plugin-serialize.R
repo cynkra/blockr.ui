@@ -30,31 +30,18 @@ ser_deser_server <- function(id, rv, ...) {
       observeEvent(
         {
           req(length(rv$blocks) > 0, is.null(rv$refreshed))
-          lapply(rv, \(el) {
-            el
-          })
+          c(rv$nodes, rv$blocks, rv$links, rv$selected_block, rv$board)
         },
         {
           file_name <- board_filename(rv)()
           write_board_to_disk(rv)(file_name)
           vals$backup_list <- list.files(pattern = ".json$")
-        }
-      )
-
-      # Init backup counter. Will follow vals$backup_list
-      # until any of undo or redo is clicked.
-      observeEvent(
-        {
-          req(input$undo < 1, input$redo < 1)
-          vals$backup_list
-        },
-        {
           vals$current_backup <- length(vals$backup_list)
         }
       )
 
       observeEvent(
-        vals$backup_list,
+        c(vals$current_backup, vals$backup_list),
         {
           undo_cond <- if (!length(vals$backup_list)) {
             FALSE
