@@ -159,8 +159,19 @@ process_grid_content <- function(mode, vals, grid_layout) {
 #' Contains blocks coordinates, dimensions, ...
 #' @keywords internal
 restore_grid <- function(board, blocks_ns, vals) {
-  old_grid <- board_grid(board)
-  lapply(old_grid$id, \(id) {
-    vals$in_grid[[strsplit(id, paste0(blocks_ns, "-"))[[1]][2]]] <- TRUE
-  })
+  vals$in_grid <- NULL
+  ids <- board_grid(board)$id
+
+  if (length(ids)) {
+    lapply(ids, \(id) {
+      vals$in_grid[[strsplit(id, paste0(blocks_ns, "-"))[[1]][2]]] <- TRUE
+    })
+  } else {
+    # When the grid was empty, we still need to initialise the block state
+    # and all values are false
+    ids <- board_block_ids(board)
+    lapply(ids, \(id) {
+      vals$in_grid[[id]] <- FALSE
+    })
+  }
 }
