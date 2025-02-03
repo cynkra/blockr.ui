@@ -17,14 +17,20 @@ ser_deser_server <- function(id, rv, ...) {
     function(input, output, session) {
       res <- reactiveVal()
       vals <- reactiveValues(
+        saved = FALSE,
         current_backup = NULL,
         backup_list = list.files(pattern = ".json$")
       )
 
       output$serialize <- downloadHandler(
         board_filename(rv),
-        write_board_to_disk(rv)
+        write_board_to_disk(rv, save = TRUE)
       )
+
+      observeEvent(rv$saved, {
+        snapshots <- list.files(pattern = ".json$")
+        lapply(snapshots[-length(snapshots)], file.remove)
+      })
 
       # Cleanup old files on start
       observeEvent(
@@ -122,26 +128,21 @@ ser_deser_server <- function(id, rv, ...) {
 #' @rdname ser_deser
 #' @export
 ser_deser_ui <- function(id, board) {
-  tagList(
-    downloadButton(
-      NS(id, "serialize"),
-      "Save",
-      class = "btn-light btn-sm"
-    ),
-    fileInput(
-      NS(id, "restore"),
-      label = "",
-      placeholder = "Select file to restore"
-    ),
-    div(
+  list(
+    buttons = div(
       class = "btn-group",
       role = "group",
+      downloadButton(
+        NS(id, "serialize"),
+        "Save",
+        class = "btn-secondary btn-sm"
+      ),
       shinyjs::disabled(
         actionButton(
           NS(id, "undo"),
           label = "Undo",
           icon = icon("rotate-left"),
-          class = "btn-light btn-sm"
+          class = " btn-danger btn-sm"
         )
       ),
       shinyjs::disabled(
@@ -149,9 +150,14 @@ ser_deser_ui <- function(id, board) {
           NS(id, "redo"),
           label = "Redo",
           icon = icon("rotate-right"),
-          class = "btn-light btn-sm"
+          class = "btn-secondary btn-sm"
         )
       )
+    ),
+    restore = fileInput(
+      NS(id, "restore"),
+      label = "",
+      placeholder = "Select file to restore"
     )
   )
 }
@@ -240,8 +246,9 @@ board_filename <- function(rv) {
   }
 }
 
-write_board_to_disk <- function(rv) {
+write_board_to_disk <- function(rv, save = FALSE) {
   function(con) {
+    if (save) rv$saved <- TRUE
     blocks <- lapply(
       lst_xtr(rv$blocks, "server", "state"),
       lapply,

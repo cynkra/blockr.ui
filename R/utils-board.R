@@ -78,19 +78,18 @@ properties_ui <- function(..., ns, width = "40%", title = "Block properties") {
 #' @export
 actions_ui <- function(..., ns) {
   div(
-    class = paste(
-      "d-flex justify-content-evenly align-items-center",
-      "border rounded-4 m-1 gap-2"
-    ),
+    class = "btn-toolbar justify-content-center align-items-center gap-5",
+    role = "toolbar",
+    `aria-label` = "Toolbar with button groups",
     shinyWidgets::switchInput(
       ns("mode"),
       onStatus = "default",
       onLabel = icon("network-wired"),
       offLabel = icon("table-columns"),
       value = TRUE,
-      size = "mini"
+      inline = TRUE,
+      size = "normal"
     ),
-    v_rule(),
     ...
   )
 }

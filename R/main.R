@@ -26,9 +26,13 @@ main_ui <- function(id, board) {
   tagList(
     # Action bar
     actions_ui(
-      my_board_ui[[1]]$children[[1]],
-      v_rule(),
-      my_board_ui[[1]]$children[[2]]$toolbar,
+      div(
+        class = "btn-group",
+        role = "group",
+        my_board_ui[[1]]$children[[2]]$toolbar
+      ),
+      my_board_ui[[1]]$children[[1]]$restore,
+      my_board_ui[[1]]$children[[1]]$buttons,
       ns = ns
     ),
     layout_sidebar(
