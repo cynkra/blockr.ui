@@ -16,7 +16,10 @@ ser_deser_server <- function(id, rv, ...) {
     id,
     function(input, output, session) {
       res <- reactiveVal()
-      vals <- reactiveValues(current_backup = NULL, backup_list = NULL)
+      vals <- reactiveValues(
+        current_backup = NULL,
+        backup_list = list.files(pattern = ".json$")
+      )
 
       output$serialize <- downloadHandler(
         board_filename(rv),
@@ -34,7 +37,66 @@ ser_deser_server <- function(id, rv, ...) {
         {
           file_name <- board_filename(rv)()
           write_board_to_disk(rv)(file_name)
+          vals$backup_list <- list.files(pattern = ".json$")
         }
+      )
+
+      # Init backup counter
+      observeEvent(
+        vals$backup_list,
+        {
+          vals$current_backup <- length(vals$backup_list)
+        },
+        once = TRUE
+      )
+
+      observeEvent(
+        vals$current_backup,
+        {
+          undo_cond <- if (!length(vals$backup_list)) {
+            isTRUE(length(vals$backup_list))
+          } else {
+            vals$current_backup > 1
+          }
+
+          redo_cond <- if (!length(vals$backup_list)) {
+            isTRUE(length(vals$backup_list))
+          } else {
+            vals$current_backup < length(vals$backup_list)
+          }
+
+          browser()
+
+          shinyjs::toggleState(
+            "undo",
+            cond = undo_cond
+          )
+
+          shinyjs::toggleState(
+            "redo",
+            cond = redo_cond
+          )
+        },
+        ignoreNULL = TRUE
+      )
+
+      observeEvent(input$undo, {
+        vals$current_backup <- vals$current_backup - 1
+      })
+
+      observeEvent(input$redo, {
+        vals$current_backup <- vals$current_backup + 1
+      })
+
+      observeEvent(
+        c(input$undo, input$redo),
+        {
+          browser()
+          res(
+            from_json(vals$backup_list[[vals$current_backup]])
+          )
+        },
+        ignoreInit = TRUE
       )
 
       observeEvent(input$restore, {
@@ -68,17 +130,21 @@ ser_deser_ui <- function(id, board) {
     div(
       class = "btn-group",
       role = "group",
-      actionButton(
-        NS(id, "undo"),
-        label = "Undo",
-        icon = icon("rotate-right"),
-        class = "btn-light btn-sm"
+      shinyjs::disabled(
+        actionButton(
+          NS(id, "undo"),
+          label = "Undo",
+          icon = icon("rotate-left"),
+          class = "btn-light btn-sm"
+        )
       ),
-      actionButton(
-        NS(id, "redo"),
-        label = "Redo",
-        icon = icon("rotate-left"),
-        class = "btn-light btn-sm"
+      shinyjs::disabled(
+        actionButton(
+          NS(id, "redo"),
+          label = "Redo",
+          icon = icon("rotate-right"),
+          class = "btn-light btn-sm"
+        )
       )
     )
   )
