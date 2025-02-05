@@ -60,7 +60,7 @@ ser_deser_server <- function(id, rv, ...) {
           blk_state()
         )
       }) |>
-        debounce(1000)
+        debounce(2000)
 
       # Auto save
       observeEvent(
