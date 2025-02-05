@@ -17,20 +17,14 @@ ser_deser_server <- function(id, rv, ...) {
     function(input, output, session) {
       res <- reactiveVal()
       vals <- reactiveValues(
-        saved = FALSE,
         current_backup = NULL,
         backup_list = list.files(pattern = ".json$")
       )
 
       output$serialize <- downloadHandler(
         board_filename(rv),
-        write_board_to_disk(rv, save = TRUE)
+        write_board_to_disk(rv)
       )
-
-      observeEvent(rv$saved, {
-        snapshots <- list.files(pattern = ".json$")
-        lapply(snapshots[-length(snapshots)], file.remove)
-      })
 
       # Cleanup old files on start
       observeEvent(
@@ -45,24 +39,16 @@ ser_deser_server <- function(id, rv, ...) {
       )
 
       # Auto save
-      observeEvent(
-        {
-          req(length(rv$blocks) > 0)
-          c(rv$blocks, rv$links, rv$board)
-        },
-        {
-          # Reset refreshed
-          if (!is.null(rv$refreshed)) {
-            if (rv$refreshed != "grid") return(NULL)
-            rv$refreshed <- NULL
-            return(NULL)
-          }
-          file_name <- board_filename(rv)()
-          write_board_to_disk(rv)(file_name)
-          vals$backup_list <- list.files(pattern = ".json$")
-          vals$current_backup <- length(vals$backup_list)
-        }
-      )
+      observeEvent(input$snapshot, {
+        file_name <- board_filename(rv)()
+        write_board_to_disk(rv)(file_name)
+        vals$backup_list <- list.files(pattern = ".json$")
+        vals$current_backup <- length(vals$backup_list)
+      })
+
+      observeEvent(rv$blocks, {
+        shinyjs::toggleState("snapshot", condition = length(rv$blocks) > 0)
+      })
 
       observeEvent(
         c(vals$current_backup, vals$backup_list),
@@ -132,17 +118,20 @@ ser_deser_ui <- function(id, board) {
     buttons = div(
       class = "btn-group",
       role = "group",
-      downloadButton(
-        NS(id, "serialize"),
-        "Save",
-        class = "btn-secondary btn-sm"
+      shinyjs::disabled(
+        actionButton(
+          NS(id, "snapshot"),
+          label = "Snapshot",
+          icon = icon("camera"),
+          class = "btn-sm"
+        )
       ),
       shinyjs::disabled(
         actionButton(
           NS(id, "undo"),
           label = "Undo",
           icon = icon("rotate-left"),
-          class = " btn-danger btn-sm"
+          class = "btn-danger btn-sm"
         )
       ),
       shinyjs::disabled(
@@ -150,14 +139,22 @@ ser_deser_ui <- function(id, board) {
           NS(id, "redo"),
           label = "Redo",
           icon = icon("rotate-right"),
-          class = "btn-secondary btn-sm"
+          class = "btn-sm"
         )
       )
     ),
-    restore = fileInput(
-      NS(id, "restore"),
-      label = "",
-      placeholder = "Select file to restore"
+    restore = tagList(
+      downloadButton(
+        NS(id, "serialize"),
+        "Export",
+        icon = icon("file-export"),
+      ),
+      fileInput(
+        NS(id, "restore"),
+        label = "",
+        buttonLabel = "Import",
+        placeholder = "Select file to restore"
+      )
     )
   )
 }
@@ -246,9 +243,8 @@ board_filename <- function(rv) {
   }
 }
 
-write_board_to_disk <- function(rv, save = FALSE) {
+write_board_to_disk <- function(rv) {
   function(con) {
-    if (save) rv$saved <- TRUE
     blocks <- lapply(
       lst_xtr(rv$blocks, "server", "state"),
       lapply,

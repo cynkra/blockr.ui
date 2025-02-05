@@ -15,7 +15,8 @@ main_ui <- function(id, board) {
     plugins = list(
       preserve_board = ser_deser_ui,
       manage_blocks = add_rm_block_ui,
-      manage_links = add_rm_link_ui
+      manage_links = add_rm_link_ui,
+      generate_code = gen_code_ui
     )
   )
   my_grid <- grid_ui(ns("grid"))
@@ -31,8 +32,9 @@ main_ui <- function(id, board) {
         role = "group",
         my_board_ui[[1]]$children[[2]]$toolbar
       ),
-      my_board_ui[[1]]$children[[1]]$restore,
+      my_board_ui[[1]]$children[[4]],
       my_board_ui[[1]]$children[[1]]$buttons,
+      my_board_ui[[1]]$children[[1]]$restore,
       ns = ns
     ),
     layout_sidebar(
@@ -113,7 +115,8 @@ main_server <- function(id, board) {
           preserve_board = ser_deser_server,
           manage_blocks = add_rm_block_server,
           manage_links = add_rm_link_server,
-          notify_user = block_notification_server
+          notify_user = block_notification_server,
+          generate_code = gen_code_server
         ),
         callbacks = list(
           block_visibility = manage_block_visibility,
