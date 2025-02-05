@@ -78,19 +78,9 @@ properties_ui <- function(..., ns, width = "40%", title = "Block properties") {
 #' @export
 actions_ui <- function(..., ns) {
   div(
-    class = paste(
-      "d-flex justify-content-evenly align-items-center",
-      "border rounded-4 m-2 gap-5 p-2"
-    ),
-    shinyWidgets::switchInput(
-      ns("mode"),
-      onStatus = "default",
-      onLabel = icon("network-wired"),
-      offLabel = icon("table-columns"),
-      value = TRUE,
-      size = "mini"
-    ),
-    v_rule(),
+    class = "btn-toolbar",
+    role = "toolbar",
+    `aria-label` = "Toolbar with button groups",
     ...
   )
 }
@@ -165,11 +155,15 @@ capture_for_serialize <- function(parent, rv) {
   observeEvent(parent$mode, {
     rv$board[["mode"]] <- parent$mode
   })
-  observeEvent(rv$selected, {
-    rv$board[["selected_node"]] <- rv$selected
+  observeEvent(rv$selected_block, {
+    rv$board[["selected_node"]] <- rv$selected_block
   })
   observeEvent(parent$grid, {
     rv$board[["grid"]] <- parent$grid
+  })
+
+  observeEvent(parent$grid_restored, {
+    rv$refreshed <- "grid"
   })
   return(NULL)
 }

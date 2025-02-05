@@ -36,7 +36,8 @@ Imports:
     shinyWidgets,
     blockr.core,
     shinyjs,
-    gridstackr
+    gridstackr,
+    jsonlite
 Remotes:
     cynkra/blockr.core,
     cynkra/blockr.dplyr,

@@ -29,7 +29,8 @@ grid_server <- function(id, board, mode, blocks_ns) {
 
     vals <- reactiveValues(
       grid = data.frame(),
-      in_grid = list()
+      in_grid = list(),
+      grid_restored = NULL
     )
 
     # Restore grid from serialisation only when network is restored
@@ -38,7 +39,9 @@ grid_server <- function(id, board, mode, blocks_ns) {
         req(board$refreshed == "network")
       },
       {
+        vals$grid_restored <- NULL
         restore_grid(board$board, blocks_ns, vals)
+        vals$grid_restored <- "grid"
       }
     )
 
@@ -137,6 +140,11 @@ grid_server <- function(id, board, mode, blocks_ns) {
     # Debug only
     output$grid_content <- renderPrint(grid_content())
 
-    return(reactive(vals$grid))
+    return(
+      list(
+        grid = reactive(vals$grid),
+        grid_restored = reactive(vals$grid_restored)
+      )
+    )
   })
 }

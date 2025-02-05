@@ -15,7 +15,8 @@ main_ui <- function(id, board) {
     plugins = list(
       preserve_board = ser_deser_ui,
       manage_blocks = add_rm_block_ui,
-      manage_links = add_rm_link_ui
+      manage_links = add_rm_link_ui,
+      generate_code = gen_code_ui
     )
   )
   my_grid <- grid_ui(ns("grid"))
@@ -23,39 +24,68 @@ main_ui <- function(id, board) {
   # TO DO: rework this my_board_ui[[1]]$children[[2]]$sidebar
   # this is ugly and will break
 
-  layout_sidebar(
-    class = "p-0",
-    sidebar = sidebar(
-      id = ns("dashboard"),
-      title = "Dashboard",
-      position = "right",
-      width = "75%",
-      open = FALSE,
-      # GRID CONTENT
-      my_grid[c(2, 3)]
+  tagList(
+    div(
+      class = "d-flex align-items-center justify-content-around gap-5",
+      # Action bar
+      dropdown_button(
+        icon = icon("bars"),
+        tags$li(
+          tags$h6(
+            class = "dropdown-header",
+            "Save and Restore"
+          )
+        ),
+        my_board_ui[[1]]$children[[1]]$restore
+      ),
+      actions_ui(
+        div(
+          class = "btn-group",
+          role = "group",
+          my_board_ui[[1]]$children[[2]]$toolbar, # new block
+          my_board_ui[[1]]$children[[4]], # show code
+          my_board_ui[[1]]$children[[1]]$buttons # undo/redo
+        ),
+        ns = ns
+      ),
+      shinyWidgets::switchInput(
+        ns("mode"),
+        onStatus = "default",
+        onLabel = icon("network-wired"),
+        offLabel = icon("table-columns"),
+        value = TRUE,
+        inline = TRUE,
+        size = "small"
+      )
     ),
     layout_sidebar(
       border = FALSE,
+      class = "p-0",
       sidebar = sidebar(
-        id = ns("properties"),
-        title = "Block properties",
-        open = FALSE,
-        width = "40%",
+        id = ns("dashboard"),
+        title = "Dashboard",
         position = "right",
-        my_board_ui[[3]],
-        my_grid[[1]],
-        my_board_ui[[1]]$children[[2]]$sidebar
+        width = "75%",
+        open = FALSE,
+        # GRID CONTENT
+        my_grid[c(2, 3)]
       ),
-      # Action bar
-      actions_ui(
-        my_board_ui[[1]]$children[[1]],
-        v_rule(),
-        my_board_ui[[1]]$children[[2]]$toolbar,
-        ns = ns
-      ),
-      my_board_ui[[1]]$children[[3]],
-      # Notifications
-      my_board_ui[[2]]
+      layout_sidebar(
+        border = FALSE,
+        sidebar = sidebar(
+          id = ns("properties"),
+          title = "Block properties",
+          open = FALSE,
+          width = "40%",
+          position = "right",
+          my_board_ui[[3]],
+          my_grid[[1]],
+          my_board_ui[[1]]$children[[2]]$sidebar
+        ),
+        my_board_ui[[1]]$children[[3]],
+        # Notifications
+        my_board_ui[[2]]
+      )
     )
   )
 }
@@ -106,7 +136,8 @@ main_server <- function(id, board) {
           preserve_board = ser_deser_server,
           manage_blocks = add_rm_block_server,
           manage_links = add_rm_link_server,
-          notify_user = block_notification_server
+          notify_user = block_notification_server,
+          generate_code = gen_code_server
         ),
         callbacks = list(
           block_visibility = manage_block_visibility,
@@ -126,8 +157,12 @@ main_server <- function(id, board) {
         blocks_ns = "main-board"
       )
 
-      observeEvent(grid_out(), {
-        vals$grid <- grid_out()
+      observeEvent(grid_out$grid(), {
+        vals$grid <- grid_out$grid()
+      })
+
+      observeEvent(grid_out$grid_restored(), {
+        vals$grid_restored <- grid_out$grid_restored()
       })
     }
   )

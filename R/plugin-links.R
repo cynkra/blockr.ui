@@ -37,9 +37,6 @@ add_rm_link_server <- function(id, rv, ...) {
       observeEvent(vals$nodes, {
         rv$board[["nodes"]] <- vals$nodes
       })
-      observeEvent(vals$edges, {
-        rv$edges <- vals$edges
-      })
 
       res <- reactiveVal(
         list(add = links(), rm = character())
@@ -58,6 +55,10 @@ add_rm_link_server <- function(id, rv, ...) {
         session$sendCustomMessage(
           "bind-network-keyboard-shortcuts",
           list(id = sprintf("#%s", ns("network")))
+        )
+        session$sendCustomMessage(
+          "hide-vis-dropdown",
+          sprintf("#nodeSelect%s", ns("network"))
         )
       })
 

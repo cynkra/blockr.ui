@@ -29,3 +29,12 @@ map <- function(f, ..., use_names = FALSE) Map(f, ..., USE.NAMES = use_names)
 v_rule <- function() {
   shiny::tags$div(class = "vr")
 }
+
+lst_xtr <- function(x, ...) {
+  for (i in c(...)) {
+    x <- lapply(x, `[[`, i)
+  }
+  x
+}
+
+reval_if <- function(x) if (is.function(x)) x() else x

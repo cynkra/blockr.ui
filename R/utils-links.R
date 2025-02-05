@@ -712,6 +712,8 @@ create_network_widget <- function(
 restore_network <- function(links, vals, rv, session) {
   ns <- session$ns
 
+  # Cleanup old setup
+  visNetworkProxy(ns("network")) |> visRemoveNodes(vals$nodes$id)
   # Restore nodes
   vals$nodes <- board_nodes(rv$board)
   visNetworkProxy(ns("network")) |>
