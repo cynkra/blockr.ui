@@ -150,20 +150,20 @@ add_rm_link_server <- function(id, rv, ...) {
         },
         {
           rv$append_block <- FALSE
+          create_edge(
+            new = list(from = input$new_edge$from, to = input$new_edge$to),
+            vals,
+            rv,
+            session
+          )
+          # Send callback to create corresponding link
+          res(
+            list(
+              add = vals$added_edge
+            )
+          )
           tryCatch(
             {
-              create_edge(
-                new = list(from = input$new_edge$from, to = input$new_edge$to),
-                vals,
-                rv,
-                session
-              )
-              # Send callback to create corresponding link
-              res(
-                list(
-                  add = vals$added_edge
-                )
-              )
             },
             error = function(e) {
               e$message

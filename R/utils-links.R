@@ -236,6 +236,11 @@ check_connections.block <- function(x, target, rv) {
   isTRUE(n_active_connections < length(block_inputs(x)))
 }
 
+#' @export
+check_connections.rbind_block <- function(x, target, rv) {
+  TRUE
+}
+
 #' Check whether the node can receive connection
 #'
 #' @param x Block object.
@@ -279,6 +284,29 @@ validate_edge_creation <- function(target, rv) {
   return(TRUE)
 }
 
+#' Define connection label
+#'
+#' @param x Block object.
+#' @param target Connection target id.
+#' @param rv Reactive values
+#' @export
+define_conlabel <- function(x, target, rv) {
+  UseMethod("define_conlabel")
+}
+
+#' @export
+define_conlabel.block <- function(x, target, rv) {
+  con_idx <- which(list_empty_connections(x, target, rv) == TRUE)[[1]]
+  block_inputs(x)[[con_idx]]
+}
+
+#' @export
+define_conlabel.rbind_block <- function(x, target, rv) {
+  links <- names(rv$inputs[[target]]$...args)
+  res <- if (!length(links)) 1 else length(links) + 1
+  as.character(res)
+}
+
 #' Create an edge and add it to the network
 #'
 #' This is different from \link{add_edge}, the later
@@ -306,14 +334,13 @@ create_edge <- function(new, vals, rv, session) {
   }
 
   to_blk <- rv$blocks[[new$to]]$block
-  con_idx <- which(list_empty_connections(to_blk, new$to, rv) == TRUE)[[1]]
 
   # Create the connection
   add_edge(
     from = new$from,
     to = new$to,
     # The connection is be made with the latest available input slot
-    label = block_inputs(to_blk)[[con_idx]],
+    label = define_conlabel(to_blk, new$to, rv),
     vals = vals
   )
 
