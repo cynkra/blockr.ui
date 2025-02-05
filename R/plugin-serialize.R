@@ -17,10 +17,13 @@ ser_deser_server <- function(id, rv, ...) {
     function(input, output, session) {
       res <- reactiveVal()
       vals <- reactiveValues(
+        auto_snapshot = FALSE,
         current_backup = NULL,
         backup_list = list.files(pattern = ".json$")
       )
 
+      # Manual state saving. Use this to share the
+      # app state with another group.
       output$serialize <- downloadHandler(
         board_filename(rv),
         write_board_to_disk(rv)
@@ -38,13 +41,48 @@ ser_deser_server <- function(id, rv, ...) {
         once = TRUE
       )
 
-      # Auto save
-      observeEvent(input$snapshot, {
-        file_name <- board_filename(rv)()
-        write_board_to_disk(rv)(file_name)
-        vals$backup_list <- list.files(pattern = ".json$")
-        vals$current_backup <- length(vals$backup_list)
+      # Capture any block state change (input change, ...)
+      blk_state <- reactive({
+        req(length(board_blocks(rv$board)) > 0)
+        lapply(rv$blocks, \(blk) {
+          blk$server$result()
+        })
       })
+
+      # Debounce so that we don't record too
+      # many json files per change. This also leaves
+      # enough time for the network to stabilize properly
+      # and have the correct node coordinates.
+      snapshot_trigger <- reactive({
+        list(
+          board_links(rv$board),
+          board_grid(rv$board),
+          blk_state()
+        )
+      }) |>
+        debounce(1000)
+
+      # Auto save
+      observeEvent(
+        {
+          snapshot_trigger()
+        },
+        {
+          # Prevents undo/redo from triggering new snapshot
+          # after the previous or next state are restored.
+          # The vals$auto_snapshot is release so that any other
+          # change can retrigger a new snapshot round
+          if (vals$auto_snapshot) {
+            vals$auto_snapshot <- FALSE
+            return(NULL)
+          }
+
+          file_name <- board_filename(rv)()
+          write_board_to_disk(rv)(file_name)
+          vals$backup_list <- list.files(pattern = ".json$")
+          vals$current_backup <- length(vals$backup_list)
+        }
+      )
 
       observeEvent(rv$blocks, {
         shinyjs::toggleState("snapshot", condition = length(rv$blocks) > 0)
@@ -86,9 +124,11 @@ ser_deser_server <- function(id, rv, ...) {
         vals$current_backup <- vals$current_backup + 1
       })
 
+      # Move from one snapshot to another
       observeEvent(
         c(input$undo, input$redo),
         {
+          vals$auto_snapshot <- TRUE
           res(
             from_json(vals$backup_list[[vals$current_backup]])
           )
@@ -96,6 +136,7 @@ ser_deser_server <- function(id, rv, ...) {
         ignoreInit = TRUE
       )
 
+      # Restore workspace from json file
       observeEvent(input$restore, {
         res(
           from_json(input$restore$datapath)
@@ -115,17 +156,7 @@ ser_deser_server <- function(id, rv, ...) {
 #' @export
 ser_deser_ui <- function(id, board) {
   list(
-    buttons = div(
-      class = "btn-group",
-      role = "group",
-      shinyjs::disabled(
-        actionButton(
-          NS(id, "snapshot"),
-          label = "Snapshot",
-          icon = icon("camera"),
-          class = "btn-sm"
-        )
-      ),
+    buttons = tagList(
       shinyjs::disabled(
         actionButton(
           NS(id, "undo"),

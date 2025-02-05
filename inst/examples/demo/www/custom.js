@@ -34,6 +34,11 @@ $(function () {
     })
   })
 
+  // Hide visNetwork selection dropdown
+  Shiny.addCustomMessageHandler("hide-vis-dropdown", (m) => {
+    $(m).css("visibility", "hidden")
+  })
+
   // Handle manipulation ui visibility
   Shiny.addCustomMessageHandler("toggle-manipulation-ui", (m) => {
     $(".vis-close").hide();

@@ -25,17 +25,38 @@ main_ui <- function(id, board) {
   # this is ugly and will break
 
   tagList(
-    # Action bar
-    actions_ui(
-      div(
-        class = "btn-group",
-        role = "group",
-        my_board_ui[[1]]$children[[2]]$toolbar
+    div(
+      class = "d-flex align-items-center justify-content-around gap-5",
+      # Action bar
+      dropdown_button(
+        icon = icon("bars"),
+        tags$li(
+          tags$h6(
+            class = "dropdown-header",
+            "Save and Restore"
+          )
+        ),
+        my_board_ui[[1]]$children[[1]]$restore
       ),
-      my_board_ui[[1]]$children[[4]],
-      my_board_ui[[1]]$children[[1]]$buttons,
-      my_board_ui[[1]]$children[[1]]$restore,
-      ns = ns
+      actions_ui(
+        div(
+          class = "btn-group",
+          role = "group",
+          my_board_ui[[1]]$children[[2]]$toolbar, # new block
+          my_board_ui[[1]]$children[[4]], # show code
+          my_board_ui[[1]]$children[[1]]$buttons # undo/redo
+        ),
+        ns = ns
+      ),
+      shinyWidgets::switchInput(
+        ns("mode"),
+        onStatus = "default",
+        onLabel = icon("network-wired"),
+        offLabel = icon("table-columns"),
+        value = TRUE,
+        inline = TRUE,
+        size = "small"
+      )
     ),
     layout_sidebar(
       border = FALSE,

@@ -56,6 +56,10 @@ add_rm_link_server <- function(id, rv, ...) {
           "bind-network-keyboard-shortcuts",
           list(id = sprintf("#%s", ns("network")))
         )
+        session$sendCustomMessage(
+          "hide-vis-dropdown",
+          sprintf("#nodeSelect%s", ns("network"))
+        )
       })
 
       # To capture what happens on the client (modify network data)
