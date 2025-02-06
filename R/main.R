@@ -44,7 +44,13 @@ main_ui <- function(id, board) {
           role = "group",
           my_board_ui[[1]]$children[[2]]$toolbar, # new block
           my_board_ui[[1]]$children[[4]], # show code
-          my_board_ui[[1]]$children[[1]]$buttons # undo/redo
+          my_board_ui[[1]]$children[[1]]$buttons, # undo/redo
+          actionButton(
+            ns("preview"),
+            "Preview",
+            icon = icon("eye"),
+            class = "btn-sm"
+          )
         ),
         ns = ns
       ),
@@ -104,7 +110,7 @@ main_server <- function(id, board) {
     function(input, output, session) {
       ns <- session$ns
 
-      vals <- reactiveValues(mode = NULL)
+      vals <- reactiveValues(mode = NULL, preview = FALSE)
 
       # For shinytest2 (don't remove)
       exportTestValues(vals = vals, grid = list())
@@ -127,6 +133,11 @@ main_server <- function(id, board) {
         reactive(board_out$removed_block),
         session
       )
+
+      # Viewer mode: maximize dashboard view to save space
+      observeEvent(input$preview, {
+        toggle_preview(vals, session)
+      })
 
       # Board module
       board_out <- board_server(

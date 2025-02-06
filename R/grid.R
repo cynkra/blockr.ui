@@ -10,8 +10,7 @@ grid_ui <- function(id) {
       ns("add_to_grid"),
       "Use in dashboard?"
     ),
-    gridstackOutput(ns("grid")),
-    verbatimTextOutput(ns("grid_content"))
+    gridstackOutput(ns("grid"))
   )
 }
 
@@ -108,11 +107,11 @@ grid_server <- function(id, board, mode, blocks_ns) {
     # This allows us to know which block is where and restore the correct layout via a proxy (see
     # observer above).
     output$grid <- renderGridstack({
+      req(length(board$blocks) > 0)
       gridstack(
         margin = "10px",
-        cellHeight = "140px",
+        cellHeight = "200px",
         resize_handles = "all",
-        removable = TRUE,
         float = TRUE,
         options = list(
           acceptWidgets = TRUE
@@ -136,9 +135,6 @@ grid_server <- function(id, board, mode, blocks_ns) {
         vals$grid <- grid_content()
       }
     )
-
-    # Debug only
-    output$grid_content <- renderPrint(grid_content())
 
     return(
       list(

@@ -78,4 +78,51 @@ $(function () {
   Shiny.addCustomMessageHandler('move-widget-to-sidebar', (m) => {
     $(m.id).append($(m.block_id));
   });
+
+  // Viewer mode
+  Shiny.addCustomMessageHandler('toggle-view', (m) => {
+    if (!m.val) {
+      $(m.id)
+        .parent('.bslib-sidebar-layout')
+        .css('--_sidebar-width', '75%');
+      $(m.id).css('border-left', 'var(--_vert-border)');
+    } else {
+      $(m.id)
+        .parent('.bslib-sidebar-layout')
+        .css('--_sidebar-width', '100%');
+      $(m.id).css('border-left', 'none');
+    }
+  });
+
+  // Node dropdown menu
+  Shiny.addCustomMessageHandler("show-node-menu", (m) => {
+
+    let widget = HTMLWidgets.find(`#${m.parent}`).network;
+    let coords = widget.canvasToDOM(m.coords);
+
+    let dropTag = `<div class="dropdown" id="${m.id}">
+      <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        Dropdown trigger
+      </button>
+      <ul class="dropdown-menu px-4 py-3">
+        <div class="bslib-input-switch form-switch form-check">
+          <input 
+            id="${m.id}-add_to_grid"
+            class="form-check-input shinyjs-resettable shiny-bound-input"
+            type="checkbox"
+            role="switch"
+            data-shinyjs-resettable-id="${m.id}-add_to_grid"
+            data-shinyjs-resettable-type="Checkbox"
+            data-shinyjs-resettable-value="false">
+          <label class="form-check-label" for="${m.id}-add_to_grid">
+            <span>Use in dashboard?</span>
+          </label>
+        </div>
+      </ul>
+    </div>`
+    $(`#${m.parent}`).append(dropTag);
+    $(`#${m.id}`).css({ 'top': coords.y, 'left': coords.x });
+
+    new bootstrap.Dropdown($(`#${m.id}`)[0]).show();
+  });
 });

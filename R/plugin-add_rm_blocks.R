@@ -21,10 +21,10 @@ add_rm_block_server <- function(id, rv, ...) {
       dot_args <- list(...)
 
       # Hide add block in dashboard mode
-      observeEvent(dot_args$parent$mode, {
+      observeEvent(dot_args$parent$preview, {
         shinyjs::toggle(
           "add_block",
-          condition = dot_args$parent$mode == "network"
+          condition = !dot_args$parent$preview
         )
       })
 
