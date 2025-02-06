@@ -36,7 +36,14 @@ main_ui <- function(id, board) {
             "Save and Restore"
           )
         ),
-        my_board_ui[[1]]$children[[1]]$restore
+        my_board_ui[[1]]$children[[1]]$restore,
+        tags$li(
+          tags$h6(
+            class = "dropdown-header",
+            "Grid options"
+          )
+        ),
+        my_grid[[2]]
       ),
       actions_ui(
         div(
@@ -73,8 +80,9 @@ main_ui <- function(id, board) {
         position = "right",
         width = "75%",
         open = FALSE,
+        padding = c("0px", "10px"),
         # GRID CONTENT
-        my_grid[c(2, 3)]
+        my_grid[[3]]
       ),
       layout_sidebar(
         border = FALSE,
@@ -84,6 +92,7 @@ main_ui <- function(id, board) {
           open = FALSE,
           width = "40%",
           position = "right",
+          padding = c("0px", "10px"),
           my_board_ui[[3]],
           my_grid[[1]],
           my_board_ui[[1]]$children[[2]]$sidebar

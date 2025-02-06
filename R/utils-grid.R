@@ -187,3 +187,13 @@ restore_grid <- function(board, blocks_ns, vals) {
     vals$in_grid[[id]] <- FALSE
   })
 }
+
+handle_grid_zoom <- function(session) {
+  session$sendCustomMessage(
+    "update-grid-zoom",
+    list(
+      id = sprintf("#%s", session$ns("grid_zoom_target")),
+      zoom = session$input$grid_zoom
+    )
+  )
+}

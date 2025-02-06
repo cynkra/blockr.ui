@@ -10,7 +10,19 @@ grid_ui <- function(id) {
       ns("add_to_grid"),
       "Use in dashboard?"
     ),
-    gridstackOutput(ns("grid"))
+    numericInput(
+      ns("grid_zoom"),
+      "Grid zoom level",
+      min = 0.5,
+      max = 1,
+      value = 0.5,
+      step = 0.1,
+    ),
+    div(
+      id = ns("grid_zoom_target"),
+      style = "zoom: 0.5;",
+      gridstackOutput(ns("grid"))
+    )
   )
 }
 
@@ -110,15 +122,22 @@ grid_server <- function(id, board, mode, blocks_ns) {
       req(length(board$blocks) > 0)
       gridstack(
         margin = "10px",
-        cellHeight = "200px",
+        #cellHeight = "200px",
         resize_handles = "all",
-        float = TRUE,
+        float = TRUE, # allow to drop elements anywhere
         options = list(
-          acceptWidgets = TRUE
+          acceptWidgets = TRUE #,
+          # Avoids dead space and scrolling bars
+          #sizeToContent = TRUE
         )
       )
     })
     outputOptions(output, "grid", suspendWhenHidden = FALSE)
+
+    # Handle zoom on grid element
+    observeEvent(input$grid_zoom, {
+      handle_grid_zoom(session)
+    })
 
     # Format layout elements as dataframe for easier use
     grid_content <- reactive({

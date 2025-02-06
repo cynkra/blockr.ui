@@ -94,6 +94,11 @@ $(function () {
     }
   });
 
+  // Handle grid zoom
+  Shiny.addCustomMessageHandler('update-grid-zoom', (m) => {
+    $(m.id).css('zoom', m.zoom);
+  });
+
   // Node dropdown menu
   Shiny.addCustomMessageHandler("show-node-menu", (m) => {
 
