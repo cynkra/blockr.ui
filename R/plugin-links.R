@@ -28,6 +28,8 @@ add_rm_link_server <- function(id, rv, ...) {
         removed_edge = character()
       )
 
+      obs <- list()
+
       # Restore network from serialisation
       observeEvent(req(rv$refreshed == "board"), {
         restore_network(links(), vals, rv, session)
@@ -234,6 +236,67 @@ add_rm_link_server <- function(id, rv, ...) {
           )
         )
         removeModal()
+      })
+
+      # Node right click
+      observeEvent(input$node_right_clicked, {
+        coords <- vals$nodes[
+          vals$nodes$id == input$node_right_clicked,
+          c("x", "y")
+        ]
+        session$sendCustomMessage(
+          "show-node-menu",
+          list(
+            parent = ns("network"),
+            id = ns(input$node_right_clicked),
+            coords = coords
+          )
+        )
+      })
+
+      observeEvent(
+        {
+          req(rv$selected_block)
+          req(input[[sprintf("%s_dashboard", rv$selected_block)]])
+        },
+        {
+          if (
+            vals$nodes[vals$nodes$id == rv$selected_block, "in_dashboard"] ==
+              input[[sprintf("%s_dashboard", rv$selected_block)]]
+          )
+            return(NULL)
+          freezeReactiveValue(
+            session$input,
+            sprintf("%s_dashboard", rv$selected_block)
+          )
+          browser()
+          update_switch(
+            sprintf("%s_dashboard", rv$selected_block),
+            value = vals$nodes[
+              vals$nodes$id == rv$selected_block,
+              "in_dashboard"
+            ]
+          )
+        }
+      )
+
+      observeEvent(req(length(board_block_ids(rv$board)) > 0), {
+        lapply(board_block_ids(rv$board), \(id) {
+          if (is.null(obs[[id]])) {
+            obs[[id]] <- observeEvent(input[[sprintf("%s_dashboard", id)]], {
+              if (
+                vals$nodes[vals$nodes$id == id, "in_dashboard"] !=
+                  input[[
+                    sprintf("%s_dashboard", id)
+                  ]]
+              ) {
+                vals$nodes[vals$nodes$id == id, "in_dashboard"] <- input[[
+                  sprintf("%s_dashboard", id)
+                ]]
+              }
+            })
+          }
+        })
       })
 
       res
