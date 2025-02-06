@@ -20,7 +20,7 @@ add_rm_block_server <- function(id, rv, ...) {
       res <- reactiveValues(add = NULL, rm = NULL)
       dot_args <- list(...)
 
-      # Hide add block in dashboard mode
+      # Hide add block in preview mode
       observeEvent(dot_args$parent$preview, {
         shinyjs::toggle(
           "add_block",
