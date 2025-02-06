@@ -18,11 +18,14 @@ add_rm_block_server <- function(id, rv, ...) {
     function(input, output, session) {
       ns <- session$ns
       res <- reactiveValues(add = NULL, rm = NULL)
-      parent <- list(...)
+      dot_args <- list(...)
 
       # Hide add block in dashboard mode
-      observeEvent(parent$mode, {
-        shinyjs::toggle("add_block", condition = parent$mode == "network")
+      observeEvent(dot_args$parent$mode, {
+        shinyjs::toggle(
+          "add_block",
+          condition = dot_args$parent$mode == "network"
+        )
       })
 
       # Trigger add block
