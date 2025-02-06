@@ -1,6 +1,7 @@
 #' Code generation module
 #'
 #' Generate reproducible code from a board.
+#' @param id Module id.
 #' @param board The initial `board` object
 #' @rdname gen_code
 #' @export

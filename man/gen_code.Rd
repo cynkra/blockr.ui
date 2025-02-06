@@ -7,6 +7,8 @@
 gen_code_ui(id, board)
 }
 \arguments{
+\item{id}{Module id.}
+
 \item{board}{The initial \code{board} object}
 }
 \description{
