@@ -119,16 +119,15 @@ grid_server <- function(id, board, mode, blocks_ns) {
     # This allows us to know which block is where and restore the correct layout via a proxy (see
     # observer above).
     output$grid <- renderGridstack({
-      req(length(board$blocks) > 0)
       gridstack(
         margin = "10px",
         #cellHeight = "200px",
         resize_handles = "all",
         float = TRUE, # allow to drop elements anywhere
         options = list(
-          acceptWidgets = TRUE #,
+          acceptWidgets = TRUE,
           # Avoids dead space and scrolling bars
-          #sizeToContent = TRUE
+          sizeToContent = TRUE
         )
       )
     })
@@ -141,7 +140,8 @@ grid_server <- function(id, board, mode, blocks_ns) {
 
     # Format layout elements as dataframe for easier use
     grid_content <- reactive({
-      process_grid_content(mode, vals, input$grid_layout)
+      req(mode() == "dashboard")
+      process_grid_content(vals, input$grid_layout)
     })
 
     # Update rv cache to real time change in the grid only
