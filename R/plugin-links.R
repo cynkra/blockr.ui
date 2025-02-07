@@ -107,19 +107,10 @@ add_rm_link_server <- function(id, rv, ...) {
       # Handle node update. Change of color due to block validity change ...
       # This needs input parameter from the parent module which contains
       # the list of block server functions.
-      # For Nicolas: why does rv$msgs() triggers
-      # infinitely?
-      observeEvent(
-        {
-          req(nrow(vals$nodes) > 0)
-          req(nrow(vals$nodes) == length(rv$blocks))
-          rv$msgs()
-        },
-        {
-          apply_validation(vals, rv, session)
-        },
-        ignoreNULL = FALSE
-      )
+      # For Nicolas: why does rv$msgs() triggers infinitely?
+      observeEvent(rv$added_block, {
+        register_node_validation(vals, rv, session)
+      })
 
       # Implement edge creation, we can drag from one node
       # to another to connect them.

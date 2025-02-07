@@ -4,12 +4,14 @@
 \alias{apply_validation}
 \title{Apply block validation to network elements}
 \usage{
-apply_validation(vals, rv, session)
+apply_validation(message, id, vals, session)
 }
 \arguments{
-\item{vals}{Local reactive values.}
+\item{message}{Message.}
 
-\item{rv}{Global parent reactive values.}
+\item{id}{Node id.}
+
+\item{vals}{Local reactive values.}
 
 \item{session}{Shiny session object.}
 }

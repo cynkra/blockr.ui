@@ -390,39 +390,68 @@ create_node <- function(new, vals, rv, session) {
   vals
 }
 
+#' Register block validation observer
+#'
+#' For each block we register an observer that
+#' captures only the messages related to this block validation
+#' status. The observer is destroyed when the node is cleaned
+#' by cleanup_node.
+#'
+#' @param vals Local reactive values.
+#' @param rv Global reactive values.
+#' @param session Shiny session object.
+#' @export
+register_node_validation <- function(vals, rv, session) {
+  id <- block_uid(rv$added_block)
+  # We don't need to store the observers
+  # as we need them again while restoring
+  # a previous state where a removed block was
+  observeEvent(
+    {
+      req(
+        length(board_block_ids(rv$board)) > 0,
+        nrow(vals$nodes) == length(board_block_ids(rv$board)),
+        id %in% board_block_ids(rv$board)
+      )
+      rv$msgs()[[id]]
+    },
+    {
+      apply_validation(rv$msgs()[[id]], id, vals, session)
+    },
+    ignoreNULL = FALSE
+  )
+}
+
 #' Apply block validation to network elements
 #'
 #' Block validation is made by the backend
 #' this function only updates the node color
 #' based on the valid status.
 #'
+#' @param message Message.
+#' @param id Node id.
 #' @param vals Local reactive values.
-#' @param rv Global parent reactive values.
 #' @param session Shiny session object.
 #' @export
-apply_validation <- function(vals, rv, session) {
+apply_validation <- function(message, id, vals, session) {
   ns <- session$ns
   # Restore blue color if valid
-  if (is.null(rv$msgs())) {
-    if (all(vals$nodes$color == "#D2E5FF")) return(NULL)
-    vals$nodes$color <- rep("#D2E5FF", nrow(vals$nodes))
+  selected_color <- vals$nodes[vals$nodes$id == id, "color"]
+  if (is.null(message)) {
+    if (selected_color == "#D2E5FF") return(NULL)
+    vals$nodes[vals$nodes$id == id, "color"] <- "#D2E5FF"
   }
 
   # Color invalid nodes in red
-  for (nme in names(rv$msgs())) {
-    curr <- rv$msgs()[[nme]]
-    has_state_error <- curr$state$error
-    has_data_error <- curr$data$error
-    has_eval_error <- curr$eval$error
-    if (
-      length(has_state_error) ||
-        length(has_data_error) ||
-        length(has_eval_error)
-    ) {
-      if (vals$nodes[vals$nodes$id == nme, "color"] == "#ffd6d2") return(NULL)
-      vals$nodes[vals$nodes$id == nme, "color"] <- "#ffd6d2"
-    }
+  if (
+    length(message$state$error) ||
+      length(message$data$error) ||
+      length(message$eval$error)
+  ) {
+    if (selected_color == "#ffd6d2") return(NULL)
+    vals$nodes[vals$nodes$id == id, "color"] <- "#ffd6d2"
   }
+
   visNetworkProxy(ns("network")) |>
     visUpdateNodes(vals$nodes)
 }
