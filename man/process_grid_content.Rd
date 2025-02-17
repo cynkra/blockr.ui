@@ -4,11 +4,9 @@
 \alias{process_grid_content}
 \title{Process grid layout}
 \usage{
-process_grid_content(mode, vals, grid_layout)
+process_grid_content(vals, grid_layout)
 }
 \arguments{
-\item{mode}{App mode.}
-
 \item{vals}{Local module reactive values.}
 
 \item{grid_layout}{Returned by input$<GRID_ID>_layout.

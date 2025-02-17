@@ -116,30 +116,38 @@ remove_block_from_grid <- function(id, blocks_ns, session) {
 manage_board_grid <- function(mode, vals, blocks_ns, session) {
   ns <- session$ns
 
+  in_grid_ids <- chr_ply(session$input$grid_layout$children, `[[`, "id")
+
   to_add <- which(vals$in_grid == TRUE)
   lapply(names(vals$in_grid)[to_add], \(nme) {
     if (mode() == "dashboard") {
-      add_block_to_grid(nme, vals, blocks_ns, session)
+      # Don't try to re-add the same element
+      if (!any(grepl(nme, in_grid_ids))) {
+        add_block_to_grid(nme, vals, blocks_ns, session)
+      }
     } else {
-      remove_block_from_grid(nme, blocks_ns, session)
+      # Remove only if this is needed
+      if (length(in_grid_ids)) {
+        remove_block_from_grid(nme, blocks_ns, session)
+      }
     }
   })
 
   # Cleanup grid in editor mode
   if (mode() == "network") {
-    gs_proxy_remove_all(ns("grid"))
+    if (length(in_grid_ids)) {
+      gs_proxy_remove_all(ns("grid"))
+    }
   }
 }
 
 #' Process grid layout
 #'
-#' @param mode App mode.
 #' @param vals Local module reactive values.
 #' @param grid_layout Returned by input$<GRID_ID>_layout.
 #' Contains blocks coordinates, dimensions, ...
 #' @keywords internal
-process_grid_content <- function(mode, vals, grid_layout) {
-  req(mode() == "dashboard")
+process_grid_content <- function(vals, grid_layout) {
   if (is.null(grid_layout)) return(data.frame())
   if (
     !length(grid_layout$children) && length(which(vals$in_grid == TRUE)) > 0
@@ -186,4 +194,14 @@ restore_grid <- function(board, blocks_ns, vals) {
   lapply(ids[not_in_grid], \(id) {
     vals$in_grid[[id]] <- FALSE
   })
+}
+
+handle_grid_zoom <- function(session) {
+  session$sendCustomMessage(
+    "update-grid-zoom",
+    list(
+      id = sprintf("#%s", session$ns("grid_zoom_target")),
+      zoom = session$input$grid_zoom
+    )
+  )
 }

@@ -94,6 +94,11 @@ $(function () {
     }
   });
 
+  // Handle grid zoom
+  Shiny.addCustomMessageHandler('update-grid-zoom', (m) => {
+    $(m.id).css('zoom', m.zoom);
+  });
+
   // TBD How to prevent from unselecting node when clickin outside of it.
 
   const captureMouseLocation = (id, event) => {

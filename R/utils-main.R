@@ -1,7 +1,7 @@
 toggle_preview <- function(vals, session) {
   is_odd <- session$input$preview %% 2 == 0
   vals$preview <- if (is_odd) FALSE else TRUE
-  update_switch("mode", value = is_odd)
+  if (vals$mode != "dashboard") update_switch("mode", value = is_odd)
   updateActionButton(
     session,
     "preview",
