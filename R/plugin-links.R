@@ -91,10 +91,17 @@ add_rm_link_server <- function(id, rv, ...) {
       )
 
       # Capture nodes position for serialization
-      observeEvent(req(nrow(vals$nodes) > 0), {
-        visNetworkProxy(ns("network")) |>
-          visGetPositions()
-      })
+      observeEvent(
+        {
+          req(nrow(vals$nodes) > 0)
+          input$stabilized
+        },
+        {
+          visNetworkProxy(ns("network")) |>
+            visGetPositions()
+        }
+      )
+
       observeEvent(input$network_positions, {
         lapply(names(input$network_positions), \(id) {
           vals$nodes[vals$nodes$id == id, "x"] <- input$network_positions[[
@@ -238,60 +245,48 @@ add_rm_link_server <- function(id, rv, ...) {
         removeModal()
       })
 
-      # Node right click
-      observeEvent(input$node_right_clicked, {
-        coords <- vals$nodes[
-          vals$nodes$id == input$node_right_clicked,
-          c("x", "y")
-        ]
-        session$sendCustomMessage(
-          "show-node-menu",
-          list(
-            parent = ns("network"),
-            id = ns(input$node_right_clicked),
-            coords = coords
+      # Register event so that we know the mouse position oncontext
+      observeEvent(
+        req(input$network_initialized),
+        {
+          session$sendCustomMessage(
+            "capture-mouse-position",
+            ns("mouse_location")
           )
-        )
-      })
+        },
+        once = TRUE
+      )
 
+      # Node right click (needs mouse location to correctly insert
+      # the card in the DOM)
       observeEvent(
         {
-          req(rv$selected_block)
-          req(input[[sprintf("%s_dashboard", rv$selected_block)]])
+          req(input$mouse_location)
         },
         {
-          if (
-            vals$nodes[vals$nodes$id == rv$selected_block, "in_dashboard"] ==
-              input[[sprintf("%s_dashboard", rv$selected_block)]]
-          )
-            return(NULL)
-          freezeReactiveValue(
-            session$input,
-            sprintf("%s_dashboard", rv$selected_block)
-          )
-          browser()
-          update_switch(
-            sprintf("%s_dashboard", rv$selected_block),
-            value = vals$nodes[
-              vals$nodes$id == rv$selected_block,
-              "in_dashboard"
-            ]
+          session$sendCustomMessage(
+            "show-node-menu",
+            list(
+              id = ns(input$node_right_clicked),
+              coords = input$mouse_location
+            )
           )
         }
       )
 
+      # Register add_to_grid observers
       observeEvent(req(length(board_block_ids(rv$board)) > 0), {
         lapply(board_block_ids(rv$board), \(id) {
           if (is.null(obs[[id]])) {
-            obs[[id]] <- observeEvent(input[[sprintf("%s_dashboard", id)]], {
+            obs[[id]] <- observeEvent(input[[sprintf("%s-add_to_grid", id)]], {
               if (
                 vals$nodes[vals$nodes$id == id, "in_dashboard"] !=
                   input[[
-                    sprintf("%s_dashboard", id)
+                    sprintf("%s-add_to_grid", id)
                   ]]
               ) {
                 vals$nodes[vals$nodes$id == id, "in_dashboard"] <- input[[
-                  sprintf("%s_dashboard", id)
+                  sprintf("%s-add_to_grid", id)
                 ]]
               }
             })

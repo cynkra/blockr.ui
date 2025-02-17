@@ -94,35 +94,50 @@ $(function () {
     }
   });
 
-  // Node dropdown menu
+  // TBD How to prevent from unselecting node when clickin outside of it.
+
+  const captureMouseLocation = (id, event) => {
+    let location = { x: event.clientX, y: event.clientY };
+    Shiny.setInputValue(
+      id,
+      location,
+      { priority: 'event' }
+    );
+  }
+
+  Shiny.addCustomMessageHandler("capture-mouse-position", (m) => {
+    //document.addEventListener('click', (e) => {
+    //  captureMouseLocation(m, e)
+    //});
+    document.addEventListener('contextmenu', (e) => {
+      captureMouseLocation(m, e)
+    });
+  })
+
   Shiny.addCustomMessageHandler("show-node-menu", (m) => {
-
-    let widget = HTMLWidgets.find(`#${m.parent}`).network;
-    let coords = widget.canvasToDOM(m.coords);
-
-    let dropTag = `<div class="dropdown" id="${m.id}">
-      <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-        Dropdown trigger
-      </button>
-      <ul class="dropdown-menu px-4 py-3">
-        <div class="bslib-input-switch form-switch form-check">
-          <input 
-            id="${m.id}-add_to_grid"
-            class="form-check-input shinyjs-resettable shiny-bound-input"
-            type="checkbox"
-            role="switch"
-            data-shinyjs-resettable-id="${m.id}-add_to_grid"
-            data-shinyjs-resettable-type="Checkbox"
-            data-shinyjs-resettable-value="false">
-          <label class="form-check-label" for="${m.id}-add_to_grid">
-            <span>Use in dashboard?</span>
-          </label>
+    // Create element if needed
+    if ($(`#${m.id}`).length === 0) {
+      let shortId = m.id.split(m.ns)[1];
+      let dropTag = `<div class="card node-card" style="width: 18rem; position: absolute;" id="${m.id}">
+        <div class="card-header"><h5 class="card-title">Block ${shortId} options</h5></div>
+        <div class="card-body">
+          <div class="bslib-input-switch form-switch form-check">
+            <input 
+              id="${m.id}-add_to_grid"
+              class="form-check-input shinyjs-resettable"
+              type="checkbox"
+              role="switch">
+            <label class="form-check-label" for="${m.id}-add_to_grid">
+              <span>Use in dashboard?</span>
+            </label>
+          </div>
         </div>
-      </ul>
-    </div>`
-    $(`#${m.parent}`).append(dropTag);
-    $(`#${m.id}`).css({ 'top': coords.y, 'left': coords.x });
+      </div>`
+      $('body').append(dropTag);
+      Shiny.bindAll($(`#${m.id}`));
+    }
 
-    new bootstrap.Dropdown($(`#${m.id}`)[0]).show();
+    // Show dropdown
+    $(`#${m.id}`).show().css({ 'top': m.coords.y, 'left': m.coords.x });
   });
 });

@@ -6,7 +6,7 @@
 #' @param vals Local reactive values.
 #' @param rv Global reactive values.
 #' @keywords internal
-add_node <- function(new, vals, rv, ns) {
+add_node <- function(new, vals, rv) {
   stopifnot(
     is_block(new),
     is.data.frame(vals$nodes)
@@ -19,30 +19,7 @@ add_node <- function(new, vals, rv, ns) {
       "\n id:",
       block_uid(new)
     ),
-    title = as.character(
-      tagList(
-        bslib::input_switch(
-          ns(paste(block_uid(new), "dashboard", sep = "_")),
-          "Use in dashboard?"
-        ),
-        tags$script(
-          type = "text/javascript",
-          sprintf(
-            "let target = '#%s';
-            if (typeof boundSwitch === 'undefined') {
-              boundSwitch = [];
-            }
-            //if (boundSwitch[target] === undefined) {
-              Shiny.unbindAll($(target).parent());
-              Shiny.bindAll($(target).parent());
-              console.log($(target).data('shiny-input-binding'))
-              boundSwitch[target] = true;
-            ",
-            ns(paste(block_uid(new), "dashboard", sep = "_"))
-          )
-        )
-      )
-    ),
+    #title = block_uid(new),
     shape = "circle",
     color = "#D2E5FF",
     stack = NA,
@@ -394,7 +371,7 @@ create_node <- function(new, vals, rv, session) {
   ns <- session$ns
 
   # Update node vals for the network rendering
-  add_node(new, vals, rv, ns)
+  add_node(new, vals, rv)
   # Handle add_block_to where we also setup the connections
   if (rv$append_block) {
     create_edge(
@@ -510,8 +487,6 @@ default_network_interactions <- function(...) {
     list(
       hover = FALSE,
       multiselect = TRUE,
-      tooltipDelay = 0,
-      tooltipStay = 2000,
       # avoid to select edge when selecting node ...
       # since we have a select edge callback
       selectConnectedEdges = FALSE
@@ -594,26 +569,22 @@ default_network_events <- function(ns, ...) {
   default_network(
     visEvents,
     list(
+      # within the event 'this' refers to the network instance
       select = sprintf(
         "function(e) {
+          $('.node-card').hide();
           if (e.nodes.length > 1) {
             Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
           }
         }",
         ns("selected_nodes")
       ),
-      # So that all inputs added to the title are bound.
-      #showPopup = sprintf(
-      #  "function(e) {
-      #    let target = `#%s-${e}_dashboard`;
-      #    if (typeof boundSwitch === 'undefined') {
-      #      boundSwicth = [];
-      #    }
-      #    Shiny.unbindAll($(target));
-      #    Shiny.bindAll($(target).parent());
-      #  }",
-      #  ns(NULL)
-      #),
+      stabilized = sprintf(
+        "function(e) {
+          Shiny.setInputValue('%s', true, {priority: 'event'});
+        }",
+        ns("stabilized")
+      ),
       oncontext = sprintf(
         "function(e) {
           e.event.preventDefault(); // avoid showing web inspector ...
@@ -645,7 +616,7 @@ default_network_events <- function(ns, ...) {
       #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
       #;}",
       #  ns("hovered_node")
-      #),
+      #)#,
       #blurNode = sprintf(
       #  "function(e) {
       #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
