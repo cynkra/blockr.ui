@@ -57,19 +57,17 @@ main_ui <- function(id, board) {
             "Preview",
             icon = icon("eye"),
             class = "btn-sm"
+          ),
+          actionButton(
+            ns("mode"),
+            "Mode",
+            icon = icon("network-wired"),
+            class = "btn-sm"
           )
         ),
         ns = ns
       ),
-      shinyWidgets::switchInput(
-        ns("mode"),
-        onStatus = "default",
-        onLabel = icon("network-wired"),
-        offLabel = icon("table-columns"),
-        value = TRUE,
-        inline = TRUE,
-        size = "small"
-      )
+      div()
     ),
     layout_sidebar(
       border = FALSE,
@@ -131,14 +129,29 @@ main_server <- function(id, board) {
       exportTestValues(vals = vals)
 
       # App mode
-      observeEvent(input$mode, {
-        if (input$mode) vals$mode <- "network" else vals$mode <- "dashboard"
-      })
+      observeEvent(
+        input$mode,
+        {
+          if (input$mode %% 2 == 0) vals$mode <- "network" else
+            vals$mode <- "dashboard"
+          updateActionButton(
+            session,
+            "mode",
+            icon = if (vals$mode == "network") icon("network-wired") else
+              icon("table-columns")
+          )
+        },
+        ignoreNULL = FALSE
+      )
 
       # When restoring a snapshot we restore the old mode
       observeEvent(board_out$refreshed, {
-        val <- if (board_mode(board_out$board) == "dashboard") FALSE else TRUE
-        update_switch("mode", value = val)
+        updateActionButton(
+          session,
+          "mode",
+          icon = if (board_mode(board_out$board) != "dashboard")
+            icon("network-wired") else icon("table-columns")
+        )
       })
 
       # Toggle sidebars based on the mode and selected node

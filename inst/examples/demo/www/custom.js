@@ -119,6 +119,11 @@ $(function () {
     });
   })
 
+  // Hide node menu whenever we click outside
+  $('body').click(() => {
+    $('.node-card').hide();
+  })
+
   Shiny.addCustomMessageHandler("show-node-menu", (m) => {
     // Create element if needed
     if ($(`#${m.id}`).length === 0) {

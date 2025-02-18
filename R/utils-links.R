@@ -600,7 +600,6 @@ default_network_events <- function(ns, ...) {
       # within the event 'this' refers to the network instance
       select = sprintf(
         "function(e) {
-          $('.node-card').hide();
           if (e.nodes.length > 1) {
             Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
           }
