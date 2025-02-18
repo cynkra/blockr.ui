@@ -254,7 +254,7 @@ add_rm_link_server <- function(id, rv, ...) {
       # the card in the DOM)
       observeEvent(
         {
-          req(input$mouse_location)
+          req(input$mouse_location, nchar(input$node_right_clicked) > 0)
         },
         {
           session$sendCustomMessage(
