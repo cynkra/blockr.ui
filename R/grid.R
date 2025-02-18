@@ -78,22 +78,12 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
     # options updates the local in_grid reactive value to move
     # the blocks between the sidebar and the grid.
     observeEvent(req(length(board$blocks) > 0), {
-      lapply(names(board$blocks), \(id) {
-        if (is.null(obs[[id]])) {
-          obs[[id]] <- observeEvent(
-            in_grid()[[id]],
-            {
-              if (
-                is.null(vals$in_grid[[id]]) ||
-                  vals$in_grid[[id]] != in_grid()[[id]]
-              ) {
-                vals$in_grid[[id]] <- in_grid()[[id]]
-              }
-            },
-            ignoreInit = TRUE
-          )
-        }
-      })
+      register_links_grid_callbacks(
+        names(board$blocks),
+        in_grid,
+        obs,
+        vals
+      )
     })
 
     # When we change block, update the switch to the value it should

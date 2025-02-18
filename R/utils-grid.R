@@ -202,6 +202,13 @@ restore_grid <- function(board, blocks_ns, vals) {
   })
 }
 
+#' Update grid zoom on the client
+#'
+#' This allows to set different zoom level to handle more
+#' crowded dashboards.
+#'
+#' @param session Shiny session object
+#' @keywords internal
 handle_grid_zoom <- function(session) {
   session$sendCustomMessage(
     "update-grid-zoom",
@@ -210,4 +217,33 @@ handle_grid_zoom <- function(session) {
       zoom = session$input$grid_zoom
     )
   )
+}
+
+#' Register observer to receive callback from links module
+#'
+#' This allows to maintain the state of the sidebar in grid switch
+#' while the node switch is updated.
+#'
+#' @param ids Blocks ids.
+#' @param in_vals Incoming values containint grid information.
+#' @param obs Observers list.
+#' @param vals Local reactive values.
+#' @keywords internal
+register_links_grid_callbacks <- function(ids, in_vals, obs, vals) {
+  lapply(ids, \(id) {
+    if (is.null(obs[[id]])) {
+      obs[[id]] <- observeEvent(
+        in_vals()[[id]],
+        {
+          if (
+            is.null(vals$in_grid[[id]]) ||
+              vals$in_grid[[id]] != in_vals()[[id]]
+          ) {
+            vals$in_grid[[id]] <- in_vals()[[id]]
+          }
+        },
+        ignoreInit = TRUE
+      )
+    }
+  })
 }
