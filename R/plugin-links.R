@@ -28,6 +28,8 @@ add_rm_link_server <- function(id, rv, ...) {
         removed_edge = character()
       )
 
+      dot_args <- list(...)
+
       obs <- list()
 
       # Restore network from serialisation
@@ -259,6 +261,7 @@ add_rm_link_server <- function(id, rv, ...) {
             "show-node-menu",
             list(
               id = ns(input$node_right_clicked),
+              ns = ns(""),
               coords = input$mouse_location
             )
           )
@@ -269,18 +272,23 @@ add_rm_link_server <- function(id, rv, ...) {
       observeEvent(req(length(board_block_ids(rv$board)) > 0), {
         lapply(board_block_ids(rv$board), \(id) {
           if (is.null(obs[[id]])) {
-            obs[[id]] <- observeEvent(input[[sprintf("%s-add_to_grid", id)]], {
-              if (
-                vals$nodes[vals$nodes$id == id, "in_dashboard"] !=
-                  input[[
-                    sprintf("%s-add_to_grid", id)
-                  ]]
-              ) {
-                vals$nodes[vals$nodes$id == id, "in_dashboard"] <- input[[
+            obs[[id]] <- observeEvent(
+              input[[sprintf("%s-add_to_grid", id)]],
+              {
+                # Update the in_grid switch inputs to handle serialisation
+                # restoration
+                if (!is.null(rv$refreshed) && rv$refreshed == "grid") {
+                  update_switch(
+                    sprintf("%s-add_to_grid", id),
+                    value = dot_args$parent$in_grid[[id]]
+                  )
+                  rv$refreshed <- NULL
+                }
+                dot_args$parent$in_grid[[id]] <- input[[
                   sprintf("%s-add_to_grid", id)
                 ]]
               }
-            })
+            )
           }
         })
       })

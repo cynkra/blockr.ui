@@ -8,7 +8,7 @@
 #' @param blocks Board blocks.
 #' @param vals Local reactive values.
 #' @keywords internal
-maintain_blocks_grid_state <- function(blocks, vals) {
+init_blocks_grid_state <- function(blocks, vals) {
   # Add new block entries
   lapply(names(blocks), \(nme) {
     if (is.null(vals$in_grid[[nme]])) {
@@ -49,7 +49,7 @@ update_block_grid_state <- function(selected, value, vals) {
 #' @keywords internal
 update_block_grid_input <- function(selected, value, vals, session) {
   if (vals$in_grid[[selected]] == value) return(NULL)
-  freezeReactiveValue(session$input, "add_to_grid")
+  #freezeReactiveValue(session$input, "add_to_grid")
   update_switch(
     "add_to_grid",
     value = vals$in_grid[[selected]]
@@ -118,27 +118,33 @@ manage_board_grid <- function(mode, vals, blocks_ns, session) {
 
   in_grid_ids <- chr_ply(session$input$grid_layout$children, `[[`, "id")
 
-  to_add <- which(vals$in_grid == TRUE)
-  lapply(names(vals$in_grid)[to_add], \(nme) {
-    if (mode() == "dashboard") {
-      # Don't try to re-add the same element
-      if (!any(grepl(nme, in_grid_ids))) {
-        add_block_to_grid(nme, vals, blocks_ns, session)
-      }
-    } else {
-      # Remove only if this is needed
-      if (length(in_grid_ids)) {
-        remove_block_from_grid(nme, blocks_ns, session)
-      }
-    }
-  })
-
   # Cleanup grid in editor mode
   if (mode() == "network") {
     if (length(in_grid_ids)) {
+      lapply(names(which(vals$in_grid == TRUE)), \(id) {
+        remove_block_from_grid(id, blocks_ns, session)
+      })
       gs_proxy_remove_all(ns("grid"))
     }
+    return(NULL)
   }
+
+  lapply(names(vals$in_grid), \(nme) {
+    new_state <- vals$in_grid[[nme]]
+    current_state <- if (!length(in_grid_ids)) FALSE else
+      any(grepl(nme, in_grid_ids))
+    if (new_state != current_state) {
+      if (new_state) {
+        add_block_to_grid(nme, vals, blocks_ns, session)
+      } else {
+        remove_block_from_grid(nme, blocks_ns, session)
+        gs_proxy_remove_item(
+          ns("grid"),
+          id = grep(nme, in_grid_ids, value = TRUE)
+        )
+      }
+    }
+  })
 }
 
 #' Process grid layout

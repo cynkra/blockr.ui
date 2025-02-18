@@ -43,7 +43,7 @@ main_ui <- function(id, board) {
             "Grid options"
           )
         ),
-        my_grid[[2]]
+        my_grid[[1]]
       ),
       actions_ui(
         div(
@@ -82,7 +82,7 @@ main_ui <- function(id, board) {
         open = FALSE,
         padding = c("0px", "10px"),
         # GRID CONTENT
-        my_grid[[3]]
+        my_grid[[2]]
       ),
       layout_sidebar(
         border = FALSE,
@@ -94,7 +94,6 @@ main_ui <- function(id, board) {
           position = "right",
           padding = c("0px", "10px"),
           my_board_ui[[3]],
-          my_grid[[1]],
           my_board_ui[[1]]$children[[2]]$sidebar
         ),
         my_board_ui[[1]]$children[[3]],
@@ -119,10 +118,16 @@ main_server <- function(id, board) {
     function(input, output, session) {
       ns <- session$ns
 
-      vals <- reactiveValues(mode = NULL, preview = FALSE)
+      vals <- reactiveValues(
+        mode = NULL,
+        preview = FALSE,
+        grid = NULL,
+        grid_restored = NULL,
+        in_grid = list()
+      )
 
       # For shinytest2 (don't remove)
-      exportTestValues(vals = vals, grid = list())
+      exportTestValues(vals = vals)
 
       # App mode
       observeEvent(input$mode, {
@@ -174,11 +179,16 @@ main_server <- function(id, board) {
         "grid",
         board_out,
         reactive(vals$mode),
+        reactive(vals$in_grid),
         blocks_ns = "main-board"
       )
 
       observeEvent(grid_out$grid(), {
         vals$grid <- grid_out$grid()
+      })
+
+      observeEvent(grid_out$in_grid(), {
+        vals$in_grid <- grid_out$in_grid()
       })
 
       observeEvent(grid_out$grid_restored(), {

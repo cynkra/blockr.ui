@@ -25,8 +25,7 @@ add_node <- function(new, vals, rv) {
     stack = NA,
     icon.code = NA,
     x = NA,
-    y = NA,
-    in_dashboard = FALSE
+    y = NA
   )
 
   vals$nodes <- if (nrow(vals$nodes) == 0) {
