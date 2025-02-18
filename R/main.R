@@ -134,6 +134,10 @@ main_server <- function(id, board) {
         {
           if (input$mode %% 2 == 0) vals$mode <- "network" else
             vals$mode <- "dashboard"
+
+          if (vals$mode == "network" && input$preview %% 2 != 0) {
+            shinyjs::click("preview")
+          }
           updateActionButton(
             session,
             "mode",
