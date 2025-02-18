@@ -120,8 +120,10 @@ $(function () {
   })
 
   // Hide node menu whenever we click outside
-  $('body').click(() => {
-    $('.node-card').hide();
+  $('body').click((e) => {
+    if ($(e.target).closest('.node-card').length === 0) {
+      $('.node-card').hide();
+    }
   })
 
   Shiny.addCustomMessageHandler("show-node-menu", (m) => {
