@@ -48,8 +48,10 @@ add_rm_block_server <- function(id, rv, ...) {
       # choices. I think we can use the same scoutbar as for the classic
       # add block with all choices.
       observeEvent(input$append_block, {
-        rv$added_block <- NULL
         rv$append_block <- TRUE
+      })
+      observeEvent(req(rv$append_block), {
+        rv$added_block <- NULL
         update_scoutbar(
           session,
           "scoutbar",
@@ -61,18 +63,9 @@ add_rm_block_server <- function(id, rv, ...) {
       # in the links plugin
       observeEvent(input$scoutbar, {
         res$add <- as_blocks(create_block(input$scoutbar))
-        # TODO: maybe a better way to get the block uid ...
         rv$added_block <- res$add[[1]]
         attr(rv$added_block, "uid") <- names(res$add)
       })
-
-      observe(
-        updateSelectInput(
-          session,
-          inputId = "block_select",
-          choices = board_block_ids(rv$board)
-        )
-      )
 
       # Remove block and node:
       # - rv$removed_block is used to remove the node element.
@@ -83,6 +76,11 @@ add_rm_block_server <- function(id, rv, ...) {
           res$rm <- rv$removed_block <- rv$selected_block
         }
       )
+
+      # Remove block (triggered from the links module)
+      observeEvent(rv$removed_block, {
+        res$rm <- rv$removed_block
+      })
 
       # When a edge creation was cancelled
       observeEvent(rv$cancelled_edge, {

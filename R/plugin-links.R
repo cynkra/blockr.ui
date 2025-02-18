@@ -194,6 +194,7 @@ add_rm_link_server <- function(id, rv, ...) {
             e$message
           }
         )
+        rv$append_block <- FALSE
       })
 
       # Remove node + associated edges
@@ -267,7 +268,7 @@ add_rm_link_server <- function(id, rv, ...) {
 
       # Register add_to_grid observers
       observeEvent(req(length(board_block_ids(rv$board)) > 0), {
-        register_add_to_grid_obs(
+        register_node_menu_obs(
           board_block_ids(rv$board),
           dot_args$parent,
           rv,

@@ -49,7 +49,6 @@ update_block_grid_state <- function(selected, value, vals) {
 #' @keywords internal
 update_block_grid_input <- function(selected, value, vals, session) {
   if (vals$in_grid[[selected]] == value) return(NULL)
-  #freezeReactiveValue(session$input, "add_to_grid")
   update_switch(
     "add_to_grid",
     value = vals$in_grid[[selected]]

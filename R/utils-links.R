@@ -827,10 +827,11 @@ show_node_menu <- function(value, session) {
   )
 }
 
-#' Register observers related to the add to grid switches
+#' Register observers related to the node menu
 #'
 #' Observer to maintain the state between the 2 switches +
-#' an observer to handle serialisation/restoration.
+#' an observer to handle serialisation/restoration, to remove
+#' nodes and to append to a given node.
 #'
 #' @param block_ids Board block ids.
 #' @param parent Parent scope reactive values.
@@ -839,7 +840,7 @@ show_node_menu <- function(value, session) {
 #' @param session Shiny session object.
 #'
 #' @keywords internal
-register_add_to_grid_obs <- function(blocks_ids, parent, rv, obs, session) {
+register_node_menu_obs <- function(blocks_ids, parent, rv, obs, session) {
   input <- session$input
 
   lapply(blocks_ids, \(id) {
@@ -876,6 +877,26 @@ register_add_to_grid_obs <- function(blocks_ids, parent, rv, obs, session) {
             value = parent$in_grid[[id]]
           )
           rv$refreshed <- NULL
+        }
+      )
+
+      # Remove node and block
+      obs[[sprintf("%s-remove_block", id)]] <- observeEvent(
+        input[[sprintf("%s-remove_block", id)]],
+        {
+          # Avoid triggering too many times (wait until next flush cycle)
+          freezeReactiveValue(input, sprintf("%s-remove_block", id))
+          rv$removed_block <- id
+        }
+      )
+
+      # Append block
+      obs[[sprintf("%s-append_block", id)]] <- observeEvent(
+        input[[sprintf("%s-append_block", id)]],
+        {
+          # Avoid triggering too many times (wait until next flush cycle)
+          freezeReactiveValue(input, sprintf("%s-append_block", id))
+          if (!rv$append_block) rv$append_block <- TRUE
         }
       )
     }

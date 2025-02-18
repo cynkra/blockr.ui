@@ -90,7 +90,7 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
     # be from vals$in_grid[[selected()]]
     observeEvent(
       {
-        req(board$selected_block)
+        req(board$selected_block %in% names(board$blocks))
         c(board$selected_block, in_grid())
       },
       {
