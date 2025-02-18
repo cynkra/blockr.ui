@@ -6,10 +6,10 @@
 grid_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    #bslib::input_switch(
-    #  ns("add_to_grid"),
-    #  "Use in dashboard?"
-    #),
+    bslib::input_switch(
+      ns("add_to_grid"),
+      "Use in dashboard?"
+    ),
     numericInput(
       ns("grid_zoom"),
       "Grid zoom level",
@@ -64,15 +64,15 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
     # Initialise a mapping list containing all blocks
     # ids and whether they are in the grid. Must update
     # whenever a new block is created
-    #observeEvent(
-    #  {
-    #    req(length(board$blocks) > 0)
-    #    board$blocks
-    #  },
-    #  {
-    #    init_blocks_grid_state(board$blocks, vals)
-    #  }
-    #)
+    observeEvent(
+      {
+        req(length(board$blocks) > 0)
+        board$blocks
+      },
+      {
+        init_blocks_grid_state(board$blocks, vals)
+      }
+    )
 
     # Callback from links module: any change in the add to grid
     # options updates the local in_grid reactive value to move
@@ -98,29 +98,29 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
 
     # When we change block, update the switch to the value it should
     # be from vals$in_grid[[selected()]]
-    #observeEvent(
-    #  {
-    #    req(board$selected_block)
-    #    c(board$selected_block, in_grid())
-    #  },
-    #  {
-    #    update_block_grid_input(
-    #      board$selected_block,
-    #      input$add_to_grid,
-    #      vals,
-    #      session
-    #    )
-    #  }
-    #)
+    observeEvent(
+      {
+        req(board$selected_block)
+        c(board$selected_block, in_grid())
+      },
+      {
+        update_block_grid_input(
+          board$selected_block,
+          input$add_to_grid,
+          vals,
+          session
+        )
+      }
+    )
 
     # Toggle state for each selected block to update the state
-    #observeEvent(
-    #  input$add_to_grid,
-    #  {
-    #    update_block_grid_state(board$selected_block, input$add_to_grid, vals)
-    #  },
-    #  ignoreInit = TRUE
-    #)
+    observeEvent(
+      input$add_to_grid,
+      {
+        update_block_grid_state(board$selected_block, input$add_to_grid, vals)
+      },
+      ignoreInit = TRUE
+    )
 
     # Move items between properties tab and grid.
     # Since we can't rebuilt the UI of each block and preserve its state

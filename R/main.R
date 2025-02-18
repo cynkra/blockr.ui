@@ -43,7 +43,7 @@ main_ui <- function(id, board) {
             "Grid options"
           )
         ),
-        my_grid[[1]]
+        my_grid[[2]]
       ),
       actions_ui(
         div(
@@ -82,7 +82,7 @@ main_ui <- function(id, board) {
         open = FALSE,
         padding = c("0px", "10px"),
         # GRID CONTENT
-        my_grid[[2]]
+        my_grid[[3]]
       ),
       layout_sidebar(
         border = FALSE,
@@ -94,6 +94,7 @@ main_ui <- function(id, board) {
           position = "right",
           padding = c("0px", "10px"),
           my_board_ui[[3]],
+          my_grid[[1]],
           my_board_ui[[1]]$children[[2]]$sidebar
         ),
         my_board_ui[[1]]$children[[3]],

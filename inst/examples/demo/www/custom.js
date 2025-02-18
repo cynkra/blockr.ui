@@ -129,7 +129,7 @@ $(function () {
           <div class="bslib-input-switch form-switch form-check">
             <input 
               id="${m.id}-add_to_grid"
-              class="form-check-input shinyjs-resettable"
+              class="form-check-input"
               type="checkbox"
               role="switch">
             <label class="form-check-label" for="${m.id}-add_to_grid">
@@ -139,6 +139,12 @@ $(function () {
         </div>
       </div>`
       $('body').append(dropTag);
+
+      // Ensure we account for the switch grid state if it exists
+      // so that the 2 switches start in sync.
+      if (m.value) {
+        $(`#${m.id}-add_to_grid`).attr("checked", "")
+      }
       Shiny.bindAll($(`#${m.id}`));
     }
 

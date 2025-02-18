@@ -262,6 +262,8 @@ add_rm_link_server <- function(id, rv, ...) {
             list(
               id = ns(input$node_right_clicked),
               ns = ns(""),
+              value = dot_args$parent$in_grid[[input$node_right_clicked]] %OR%
+                FALSE,
               coords = input$mouse_location
             )
           )
@@ -271,22 +273,39 @@ add_rm_link_server <- function(id, rv, ...) {
       # Register add_to_grid observers
       observeEvent(req(length(board_block_ids(rv$board)) > 0), {
         lapply(board_block_ids(rv$board), \(id) {
-          if (is.null(obs[[id]])) {
-            obs[[id]] <- observeEvent(
+          if (is.null(obs[[sprintf("%s-add_to_grid", id)]])) {
+            # Send callback to grid module to maintain the grid switch state
+            obs[[sprintf("%s-add_to_grid", id)]] <- observeEvent(
               input[[sprintf("%s-add_to_grid", id)]],
               {
-                # Update the in_grid switch inputs to handle serialisation
-                # restoration
-                if (!is.null(rv$refreshed) && rv$refreshed == "grid") {
-                  update_switch(
-                    sprintf("%s-add_to_grid", id),
-                    value = dot_args$parent$in_grid[[id]]
-                  )
-                  rv$refreshed <- NULL
-                }
                 dot_args$parent$in_grid[[id]] <- input[[
                   sprintf("%s-add_to_grid", id)
                 ]]
+              }
+            )
+
+            # Receive callback from grid to maintain the block option
+            # card switch
+            obs[[sprintf("update-%s-add_to_grid", id)]] <- observeEvent(
+              dot_args$parent$in_grid[[id]],
+              {
+                update_switch(
+                  sprintf("%s-add_to_grid", id),
+                  value = dot_args$parent$in_grid[[id]]
+                )
+              }
+            )
+
+            # Update the in_grid switch inputs to handle serialisation
+            # restoration
+            obs[[sprintf("restore-%s-add_to_grid", id)]] <- observeEvent(
+              req(rv$refreshed == "grid"),
+              {
+                update_switch(
+                  sprintf("%s-add_to_grid", id),
+                  value = dot_args$parent$in_grid[[id]]
+                )
+                rv$refreshed <- NULL
               }
             )
           }
