@@ -124,7 +124,7 @@ $(function () {
     if ($(e.target).closest('.node-menu-card').length === 0) {
       $('.node-menu-card').hide();
     }
-  })
+  });
 
   Shiny.addCustomMessageHandler("show-node-menu", (m) => {
     // Create element if needed
@@ -142,14 +142,14 @@ $(function () {
             <label class="form-check-label" for="${m.id}-add_to_grid">
               <span>Use in dashboard?</span>
             </label>
-            <div class="d-flex justify-content-center align-items-center btn-group" role="group">
-              <button class="btn btn-default action-button btn-light" id="${m.id}-append_block" type="button">
-                <i class="fas fa-circle-plus" role="presentation" aria-label="circle-plus icon"></i>
-              </button>
-              <button class="btn btn-default action-button btn-danger" id="${m.id}-remove_block" type="button">
-                <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i>
-              </button>
-            </div>
+          </div>
+          <div class="btn-group btn-group-sm d-flex justify-content-center align-items-center" role="group">
+            <button class="btn action-button btn-light" id="${m.id}-append_block" type="button">
+              <i class="fas fa-circle-plus" role="presentation" aria-label="circle-plus icon"></i>
+            </button>
+            <button class="btn action-button btn-danger" id="${m.id}-remove_block" type="button">
+              <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i>
+            </button>
           </div>
         </div>
       </div>`
@@ -160,6 +160,11 @@ $(function () {
       if (m.value) {
         $(`#${m.id}-add_to_grid`).attr("checked", "")
       }
+
+      $(`#${m.id} .btn-group`).click(() => {
+        $('.node-menu-card').hide();
+      });
+
       Shiny.bindAll($(`#${m.id}`));
     }
 
