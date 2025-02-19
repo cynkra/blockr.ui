@@ -28,6 +28,10 @@ add_rm_link_server <- function(id, rv, ...) {
         removed_edge = character()
       )
 
+      dot_args <- list(...)
+
+      obs <- list()
+
       # Restore network from serialisation
       observeEvent(req(rv$refreshed == "board"), {
         restore_network(links(), vals, rv, session)
@@ -89,10 +93,17 @@ add_rm_link_server <- function(id, rv, ...) {
       )
 
       # Capture nodes position for serialization
-      observeEvent(req(nrow(vals$nodes) > 0), {
-        visNetworkProxy(ns("network")) |>
-          visGetPositions()
-      })
+      observeEvent(
+        {
+          req(nrow(vals$nodes) > 0)
+          input$stabilized
+        },
+        {
+          visNetworkProxy(ns("network")) |>
+            visGetPositions()
+        }
+      )
+
       observeEvent(input$network_positions, {
         lapply(names(input$network_positions), \(id) {
           vals$nodes[vals$nodes$id == id, "x"] <- input$network_positions[[
@@ -183,6 +194,7 @@ add_rm_link_server <- function(id, rv, ...) {
             e$message
           }
         )
+        rv$append_block <- FALSE
       })
 
       # Remove node + associated edges
@@ -225,6 +237,44 @@ add_rm_link_server <- function(id, rv, ...) {
           )
         )
         removeModal()
+      })
+
+      # Register event so that we know the mouse position oncontext
+      observeEvent(
+        req(input$network_initialized),
+        {
+          session$sendCustomMessage(
+            "capture-mouse-position",
+            ns("mouse_location")
+          )
+        },
+        once = TRUE
+      )
+
+      # Node right click (needs mouse location to correctly insert
+      # the card in the DOM)
+      observeEvent(
+        {
+          req(input$mouse_location, nchar(input$node_right_clicked) > 0)
+        },
+        {
+          show_node_menu(
+            dot_args$parent$in_grid[[input$node_right_clicked]] %OR%
+              FALSE,
+            session
+          )
+        }
+      )
+
+      # Register add_to_grid observers
+      observeEvent(req(length(board_block_ids(rv$board)) > 0), {
+        register_node_menu_obs(
+          board_block_ids(rv$board),
+          dot_args$parent,
+          rv,
+          obs,
+          session
+        )
       })
 
       res

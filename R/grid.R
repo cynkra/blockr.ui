@@ -31,10 +31,12 @@ grid_ui <- function(id) {
 #' @param board Board object. Contains info about blocks,
 #' selected block, refreshed status ...
 #' @param mode App mode.
+#' @param in_grid Callback received from  links plugin to
+#' tell which block should be in grid.
 #' @param blocks_ns In which namespace are the blocks
 #' @rdname dashboard
 #' @export
-grid_server <- function(id, board, mode, blocks_ns) {
+grid_server <- function(id, board, mode, in_grid, blocks_ns) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -43,6 +45,9 @@ grid_server <- function(id, board, mode, blocks_ns) {
       in_grid = list(),
       grid_restored = NULL
     )
+
+    # Store observers if needed
+    obs <- list()
 
     # Restore grid from serialisation only when network is restored
     observeEvent(
@@ -65,16 +70,28 @@ grid_server <- function(id, board, mode, blocks_ns) {
         board$blocks
       },
       {
-        maintain_blocks_grid_state(board$blocks, vals)
+        init_blocks_grid_state(board$blocks, vals)
       }
     )
+
+    # Callback from links module: any change in the add to grid
+    # options updates the local in_grid reactive value to move
+    # the blocks between the sidebar and the grid.
+    observeEvent(req(length(board$blocks) > 0), {
+      register_links_grid_callbacks(
+        names(board$blocks),
+        in_grid,
+        obs,
+        vals
+      )
+    })
 
     # When we change block, update the switch to the value it should
     # be from vals$in_grid[[selected()]]
     observeEvent(
       {
-        req(board$selected_block)
-        board$selected_block
+        req(board$selected_block %in% names(board$blocks))
+        c(board$selected_block, in_grid())
       },
       {
         update_block_grid_input(
@@ -102,11 +119,12 @@ grid_server <- function(id, board, mode, blocks_ns) {
     observeEvent(
       {
         mode()
-        req(length(vals$in_grid), sum(unlist(vals$in_grid)) > 0)
+        req(length(vals$in_grid))
       },
       {
         manage_board_grid(mode, vals, blocks_ns, session)
-      }
+      },
+      ignoreInit = TRUE
     )
 
     # Render grid of block outputs in dashboard mode.
@@ -125,9 +143,9 @@ grid_server <- function(id, board, mode, blocks_ns) {
         resize_handles = "all",
         float = TRUE, # allow to drop elements anywhere
         options = list(
-          acceptWidgets = TRUE,
+          acceptWidgets = TRUE #,
           # Avoids dead space and scrolling bars
-          sizeToContent = TRUE
+          #sizeToContent = TRUE
         )
       )
     })
@@ -158,6 +176,7 @@ grid_server <- function(id, board, mode, blocks_ns) {
     return(
       list(
         grid = reactive(vals$grid),
+        in_grid = reactive(vals$in_grid),
         grid_restored = reactive(vals$grid_restored)
       )
     )

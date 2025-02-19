@@ -57,19 +57,17 @@ main_ui <- function(id, board) {
             "Preview",
             icon = icon("eye"),
             class = "btn-sm"
+          ),
+          actionButton(
+            ns("mode"),
+            "Mode",
+            icon = icon("network-wired"),
+            class = "btn-sm"
           )
         ),
         ns = ns
       ),
-      shinyWidgets::switchInput(
-        ns("mode"),
-        onStatus = "default",
-        onLabel = icon("network-wired"),
-        offLabel = icon("table-columns"),
-        value = TRUE,
-        inline = TRUE,
-        size = "small"
-      )
+      div()
     ),
     layout_sidebar(
       border = FALSE,
@@ -119,20 +117,41 @@ main_server <- function(id, board) {
     function(input, output, session) {
       ns <- session$ns
 
-      vals <- reactiveValues(mode = NULL, preview = FALSE)
+      vals <- reactiveValues(
+        mode = "network",
+        preview = FALSE,
+        grid = NULL,
+        grid_restored = NULL,
+        in_grid = list()
+      )
 
       # For shinytest2 (don't remove)
-      exportTestValues(vals = vals, grid = list())
+      exportTestValues(vals = vals)
 
       # App mode
-      observeEvent(input$mode, {
-        if (input$mode) vals$mode <- "network" else vals$mode <- "dashboard"
-      })
+      observeEvent(
+        input$mode,
+        {
+          if (input$mode %% 2 == 0) vals$mode <- "network" else
+            vals$mode <- "dashboard"
+
+          if (vals$mode == "network" && input$preview %% 2 != 0) {
+            shinyjs::click("preview")
+          }
+          updateActionButton(
+            session,
+            "mode",
+            icon = if (vals$mode == "network") icon("network-wired") else
+              icon("table-columns")
+          )
+        }
+      )
 
       # When restoring a snapshot we restore the old mode
-      observeEvent(board_out$refreshed, {
-        val <- if (board_mode(board_out$board) == "dashboard") FALSE else TRUE
-        update_switch("mode", value = val)
+      observeEvent(req(board_out$refreshed == "network"), {
+        if (board_mode(board_out$board) == "dashboard") {
+          shinyjs::click("mode")
+        }
       })
 
       # Toggle sidebars based on the mode and selected node
@@ -174,11 +193,16 @@ main_server <- function(id, board) {
         "grid",
         board_out,
         reactive(vals$mode),
+        reactive(vals$in_grid),
         blocks_ns = "main-board"
       )
 
       observeEvent(grid_out$grid(), {
         vals$grid <- grid_out$grid()
+      })
+
+      observeEvent(grid_out$in_grid(), {
+        vals$in_grid <- grid_out$in_grid()
       })
 
       observeEvent(grid_out$grid_restored(), {

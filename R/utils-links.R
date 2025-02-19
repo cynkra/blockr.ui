@@ -19,7 +19,7 @@ add_node <- function(new, vals, rv) {
       "\n id:",
       block_uid(new)
     ),
-    title = block_uid(new),
+    #title = block_uid(new),
     shape = "circle",
     color = "#D2E5FF",
     stack = NA,
@@ -597,6 +597,7 @@ default_network_events <- function(ns, ...) {
   default_network(
     visEvents,
     list(
+      # within the event 'this' refers to the network instance
       select = sprintf(
         "function(e) {
           if (e.nodes.length > 1) {
@@ -604,6 +605,12 @@ default_network_events <- function(ns, ...) {
           }
         }",
         ns("selected_nodes")
+      ),
+      stabilized = sprintf(
+        "function(e) {
+          Shiny.setInputValue('%s', true, {priority: 'event'});
+        }",
+        ns("stabilized")
       ),
       oncontext = sprintf(
         "function(e) {
@@ -636,7 +643,7 @@ default_network_events <- function(ns, ...) {
       #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
       #;}",
       #  ns("hovered_node")
-      #),
+      #)#,
       #blurNode = sprintf(
       #  "function(e) {
       #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
@@ -794,4 +801,105 @@ restore_network <- function(links, vals, rv, session) {
   rv$refreshed <- "network"
 
   vals
+}
+
+#' Create and show node menu
+#'
+#' Node menu contains shortcut to some actions
+#' like adding a node to a grid...
+#'
+#' @param value Initial state of the grid switch. Depends
+#' on the value set in the grid parent module.
+#' @param session Shiny session object
+#'
+#' @keywords internal
+show_node_menu <- function(value, session) {
+  ns <- session$ns
+  input <- session$input
+  session$sendCustomMessage(
+    "show-node-menu",
+    list(
+      id = ns(input$node_right_clicked),
+      ns = ns(""),
+      value = value,
+      coords = input$mouse_location
+    )
+  )
+}
+
+#' Register observers related to the node menu
+#'
+#' Observer to maintain the state between the 2 switches +
+#' an observer to handle serialisation/restoration, to remove
+#' nodes and to append to a given node.
+#'
+#' @param block_ids Board block ids.
+#' @param parent Parent scope reactive values.
+#' @param rv Board reactive values.
+#' @param obs Observers list.
+#' @param session Shiny session object.
+#'
+#' @keywords internal
+register_node_menu_obs <- function(blocks_ids, parent, rv, obs, session) {
+  input <- session$input
+
+  lapply(blocks_ids, \(id) {
+    if (is.null(obs[[sprintf("%s-add_to_grid", id)]])) {
+      # Send callback to grid module to maintain the grid switch state
+      obs[[sprintf("%s-add_to_grid", id)]] <- observeEvent(
+        input[[sprintf("%s-add_to_grid", id)]],
+        {
+          parent$in_grid[[id]] <- input[[
+            sprintf("%s-add_to_grid", id)
+          ]]
+        }
+      )
+
+      # Receive callback from grid to maintain the block option
+      # card switch
+      obs[[sprintf("update-%s-add_to_grid", id)]] <- observeEvent(
+        parent$in_grid[[id]],
+        {
+          update_switch(
+            sprintf("%s-add_to_grid", id),
+            value = parent$in_grid[[id]]
+          )
+        }
+      )
+
+      # Update the in_grid switch inputs to handle serialisation
+      # restoration
+      obs[[sprintf("restore-%s-add_to_grid", id)]] <- observeEvent(
+        req(rv$refreshed == "grid"),
+        {
+          update_switch(
+            sprintf("%s-add_to_grid", id),
+            value = parent$in_grid[[id]]
+          )
+          rv$refreshed <- NULL
+        }
+      )
+
+      # Remove node and block
+      obs[[sprintf("%s-remove_block", id)]] <- observeEvent(
+        input[[sprintf("%s-remove_block", id)]],
+        {
+          # Avoid triggering too many times (wait until next flush cycle)
+          freezeReactiveValue(input, sprintf("%s-remove_block", id))
+          rv$removed_block <- id
+        }
+      )
+
+      # Append block
+      obs[[sprintf("%s-append_block", id)]] <- observeEvent(
+        input[[sprintf("%s-append_block", id)]],
+        {
+          # Avoid triggering too many times (wait until next flush cycle)
+          freezeReactiveValue(input, sprintf("%s-append_block", id))
+          if (is.null(rv$append_block) || !rv$append_block)
+            rv$append_block <- TRUE
+        }
+      )
+    }
+  })
 }
