@@ -896,7 +896,8 @@ register_node_menu_obs <- function(blocks_ids, parent, rv, obs, session) {
         {
           # Avoid triggering too many times (wait until next flush cycle)
           freezeReactiveValue(input, sprintf("%s-append_block", id))
-          if (!rv$append_block) rv$append_block <- TRUE
+          if (is.null(rv$append_block) || !rv$append_block)
+            rv$append_block <- TRUE
         }
       )
     }

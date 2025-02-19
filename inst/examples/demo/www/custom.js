@@ -121,8 +121,8 @@ $(function () {
 
   // Hide node menu whenever we click outside
   $('body').click((e) => {
-    if ($(e.target).closest('.node-card').length === 0) {
-      $('.node-card').hide();
+    if ($(e.target).closest('.node-menu-card').length === 0) {
+      $('.node-menu-card').hide();
     }
   })
 
@@ -130,7 +130,7 @@ $(function () {
     // Create element if needed
     if ($(`#${m.id}`).length === 0) {
       let shortId = m.id.split(m.ns)[1];
-      let dropTag = `<div class="card node-card" style="width: 18rem; position: absolute;" id="${m.id}">
+      let dropTag = `<div class="card node-menu-card" style="width: 18rem; position: absolute;" id="${m.id}">
         <div class="card-header"><h5 class="card-title">Block ${shortId} options</h5></div>
         <div class="card-body">
           <div class="bslib-input-switch form-switch form-check">
