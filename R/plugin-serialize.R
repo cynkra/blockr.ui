@@ -118,15 +118,14 @@ ser_deser_ui <- function(id, board) {
           NS(id, "undo"),
           label = "Undo",
           icon = icon("rotate-left"),
-          class = "btn-danger btn-sm"
+          class = "btn-danger"
         )
       ),
       shinyjs::disabled(
         actionButton(
           NS(id, "redo"),
           label = "Redo",
-          icon = icon("rotate-right"),
-          class = "btn-sm"
+          icon = icon("rotate-right")
         )
       )
     ),

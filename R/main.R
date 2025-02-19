@@ -47,7 +47,7 @@ main_ui <- function(id, board) {
       ),
       actions_ui(
         div(
-          class = "btn-group",
+          class = "btn-group btn-group-sm",
           role = "group",
           my_board_ui[[1]]$children[[2]]$toolbar, # new block
           my_board_ui[[1]]$children[[4]], # show code
@@ -55,14 +55,12 @@ main_ui <- function(id, board) {
           actionButton(
             ns("preview"),
             "Preview",
-            icon = icon("eye"),
-            class = "btn-sm"
+            icon = icon("eye")
           ),
           actionButton(
             ns("mode"),
             "Mode",
-            icon = icon("network-wired"),
-            class = "btn-sm"
+            icon = icon("network-wired")
           )
         ),
         ns = ns
