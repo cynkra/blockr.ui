@@ -118,7 +118,7 @@ main_server <- function(id, board) {
       ns <- session$ns
 
       vals <- reactiveValues(
-        mode = NULL,
+        mode = "network",
         preview = FALSE,
         grid = NULL,
         grid_restored = NULL,
@@ -144,18 +144,14 @@ main_server <- function(id, board) {
             icon = if (vals$mode == "network") icon("network-wired") else
               icon("table-columns")
           )
-        },
-        ignoreNULL = FALSE
+        }
       )
 
       # When restoring a snapshot we restore the old mode
-      observeEvent(board_out$refreshed, {
-        updateActionButton(
-          session,
-          "mode",
-          icon = if (board_mode(board_out$board) != "dashboard")
-            icon("network-wired") else icon("table-columns")
-        )
+      observeEvent(req(board_out$refreshed == "network"), {
+        if (board_mode(board_out$board) == "dashboard") {
+          shinyjs::click("mode")
+        }
       })
 
       # Toggle sidebars based on the mode and selected node
