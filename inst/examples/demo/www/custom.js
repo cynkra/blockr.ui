@@ -1,6 +1,6 @@
 $(function () {
 
-  function getWidget(id) {
+  const getWidget = (id) => {
     var htmlWidgetsObj = HTMLWidgets.find("#" + id);
     var widgetObj;
     if (typeof htmlWidgetsObj !== "undefined") {
