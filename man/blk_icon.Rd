@@ -6,6 +6,9 @@
 \usage{
 blk_icon(category)
 }
+\arguments{
+\item{category}{Block category. See \link{available_blocks}.}
+}
 \description{
 Blocks are categorized. This function
 returns the corresponding icon for each category.

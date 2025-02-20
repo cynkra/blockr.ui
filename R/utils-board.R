@@ -5,6 +5,8 @@
 #' It may be used in different places like in the nodes
 #' or in the contextual menu (scoutbar) ...
 #'
+#' @param category Block category. See \link{available_blocks}.
+#'
 #' @keywords internal
 blk_icon <- function(category) {
   switch(
