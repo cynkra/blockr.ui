@@ -372,7 +372,7 @@ create_node <- function(new, vals, rv, session) {
   # Update node vals for the network rendering
   add_node(new, vals, rv)
   # Handle add_block_to where we also setup the connections
-  if (rv$append_block) {
+  if (isTRUE(rv$append_block)) {
     create_edge(
       new = list(
         from = input$network_selected,
@@ -896,8 +896,7 @@ register_node_menu_obs <- function(blocks_ids, parent, rv, obs, session) {
         {
           # Avoid triggering too many times (wait until next flush cycle)
           freezeReactiveValue(input, sprintf("%s-append_block", id))
-          if (is.null(rv$append_block) || !rv$append_block)
-            rv$append_block <- TRUE
+          if (isFALSE(rv$append_block)) rv$append_block <- TRUE
         }
       )
     }
