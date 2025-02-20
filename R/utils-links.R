@@ -20,8 +20,9 @@ add_node <- function(new, vals, rv) {
       block_uid(new)
     ),
     #title = block_uid(new),
-    shape = "circle",
+    shape = "dot",
     color = "#D2E5FF",
+    borderWidth = 2,
     stack = NA,
     icon.code = NA,
     x = NA,

@@ -101,7 +101,8 @@ add_rm_block_ui <- function(id, board) {
       scoutbar(
         NS(id, "scoutbar"),
         placeholder = "Search for a block",
-        actions = blk_choices()
+        actions = blk_choices(),
+        showRecentSearch = TRUE
       ),
       actionButton(
         NS(id, "add_block"),

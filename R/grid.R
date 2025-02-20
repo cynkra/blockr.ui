@@ -21,6 +21,7 @@ grid_ui <- function(id) {
     div(
       id = ns("grid_zoom_target"),
       style = "zoom: 0.5;",
+      input_switch(ns("lock"), "Lock grid?", FALSE),
       gridstackOutput(ns("grid"))
     )
   )
@@ -172,6 +173,11 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
         vals$grid <- grid_content()
       }
     )
+
+    # Lock grid
+    observeEvent(input$lock, {
+      gridstackr::gs_proxy_enable_move(ns("grid"), !input$lock)
+    })
 
     return(
       list(

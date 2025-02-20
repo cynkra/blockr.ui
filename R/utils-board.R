@@ -1,3 +1,22 @@
+#' Create block icon
+#'
+#' Blocks are categorized. This function
+#' returns the corresponding icon for each category.
+#' It may be used in different places like in the nodes
+#' or in the contextual menu (scoutbar) ...
+#'
+#' @keywords internal
+blk_icon <- function(category) {
+  switch(
+    category,
+    "data" = "table",
+    "file" = "file-import",
+    "parse" = "cogs",
+    "plot" = "chart-line",
+    "transform" = "wand-magic-sparkles"
+  )
+}
+
 #' Create block choices for scoutbaR widget
 #'
 #' Utility to populate the scoutbar with block
@@ -19,7 +38,8 @@ blk_choices <- function() {
               scout_action(
                 id = attr(choice, "classes")[1],
                 label = attr(choice, "name"),
-                description = attr(choice, "description")
+                description = attr(choice, "description"),
+                icon = blk_icon(cat)
               )
             }
           })
