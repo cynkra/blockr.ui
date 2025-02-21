@@ -15,6 +15,7 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
       card(
         full_screen = TRUE,
         card_title(sprintf("Node %s properties", id)),
+        expr_ui(ns(id), x),
         block_ui(ns(id), x),
         card_footer(
           "Custom footer"
@@ -26,7 +27,7 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
   stopifnot(is.character(id) && length(id) == 1L)
 
   if (is.null(blocks)) {
-    blocks <- sort(x)
+    blocks <- board_blocks(x)
   } else if (is.character(blocks)) {
     blocks <- board_blocks(x)[blocks]
   }
