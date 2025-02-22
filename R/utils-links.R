@@ -23,8 +23,7 @@ add_node <- function(new, vals, rv) {
     shape = "dot",
     color = "#D2E5FF",
     borderWidth = 2,
-    stack = NA,
-    icon.code = NA,
+    group = NA,
     x = NA,
     y = NA
   )

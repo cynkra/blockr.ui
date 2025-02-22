@@ -174,8 +174,6 @@ add_rm_link_server <- function(id, rv, ...) {
         }
       )
 
-      # TODO: handle multi block action?
-
       # Add node to network rv$nodes so the graph is updated
       observeEvent(rv$added_block, {
         tryCatch(
@@ -275,6 +273,53 @@ add_rm_link_server <- function(id, rv, ...) {
           obs,
           session
         )
+      })
+
+      # Multi actions
+      # Stack creation from network
+      # control + select to multiselect nodes
+      observeEvent(input$selected_nodes, {
+        showModal(
+          modalDialog(
+            title = "Node multi action",
+            div(
+              class = "btn-group",
+              role = "group",
+              actionButton(
+                ns("new_stack"),
+                "New stack",
+                icon = icon("layer-group")
+              ),
+              actionButton(
+                ns("remove_blocks"),
+                "Remove selected",
+                icon = icon("trash")
+              )
+            )
+          )
+        )
+      })
+
+      # Order stack creation
+      observeEvent(input$new_stack, {
+        rv$new_stack <- input$selected_nodes
+        removeModal()
+      })
+
+      # Receive new stack to update nodes
+      observeEvent(req(length(board_stack_ids(rv$board)) > 0), {
+        stack_id <- tail(board_stack_ids(rv$board))
+        lapply(input$selected_nodes, \(id) {
+          vals$nodes[vals$nodes$id == id, "group"] <- stack_id
+        })
+        ## update groups vis proxy
+        #visNetworkProxy(ns("network")) |>
+        #  visUpdateNodes(vals$nodes) |>
+        #  visSetOptions(
+        #    options = list(
+        #      groups = list(groupname = stack_id, color = "red")
+        #    )
+        #  )
       })
 
       res

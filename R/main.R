@@ -16,6 +16,7 @@ main_ui <- function(id, board) {
       preserve_board = ser_deser_ui,
       manage_blocks = add_rm_block_ui,
       manage_links = add_rm_link_ui,
+      manage_stacks = add_rm_stack_ui,
       generate_code = gen_code_ui
     )
   )
@@ -51,6 +52,7 @@ main_ui <- function(id, board) {
           role = "group",
           my_board_ui[[1]]$children[[2]]$toolbar, # new block
           my_board_ui[[1]]$children[[4]], # show code
+          my_board_ui[[1]]$children[[5]],
           my_board_ui[[1]]$children[[1]]$buttons, # undo/redo
           actionButton(
             ns("preview"),
@@ -173,6 +175,7 @@ main_server <- function(id, board) {
           preserve_board = ser_deser_server,
           manage_blocks = add_rm_block_server,
           manage_links = add_rm_link_server,
+          manage_stacks = add_rm_stack_server,
           notify_user = block_notification_server,
           generate_code = gen_code_server
         ),
