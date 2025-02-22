@@ -4,9 +4,8 @@
 #'
 #' @param new New block to add.
 #' @param vals Local reactive values.
-#' @param rv Global reactive values.
 #' @keywords internal
-add_node <- function(new, vals, rv) {
+add_node <- function(new, vals) {
   stopifnot(
     is_block(new),
     is.data.frame(vals$nodes)
@@ -63,7 +62,7 @@ add_edge <- function(id = NULL, from, to, label, vals, create_link = TRUE) {
   ) {
     stop(
       "When create_link is TRUE, id must be NULL.
-      WHen create_link is FALSE, id can't be NULL."
+      When create_link is FALSE, id can't be NULL."
     )
   }
 
@@ -127,7 +126,7 @@ remove_node <- function(selected, vals, session) {
     stop(sprintf("Can't find node with id %s in the data", selected))
   }
 
-  visNetworkProxy(ns("network")) |>
+  visNetworkProxy(ns("network"), session = session) |>
     visRemoveNodes(selected)
 
   vals$nodes <- vals$nodes[-to_remove, ]
@@ -189,7 +188,7 @@ remove_edge <- function(selected, vals, session) {
   vals$removed_edge <- vals$edges[to_remove, "id"]
   vals$edges <- vals$edges[-to_remove, ]
 
-  visNetworkProxy(ns("network")) |>
+  visNetworkProxy(ns("network"), session = session) |>
     visRemoveEdges(vals$removed_edge)
 
   vals
@@ -371,7 +370,7 @@ create_node <- function(new, vals, rv, session) {
   ns <- session$ns
 
   # Update node vals for the network rendering
-  add_node(new, vals, rv)
+  add_node(new, vals)
   # Handle add_block_to where we also setup the connections
   if (isTRUE(rv$append_block)) {
     create_edge(
