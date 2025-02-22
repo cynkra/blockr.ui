@@ -6,7 +6,7 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of blockr.ui is to provide a user interface for
+The goal of blockr.ui is to provide an alternative user interface for
 `{blockr.core}`.
 
 ## Installation
@@ -26,7 +26,7 @@ To run the app:
 ``` r
 library(blockr.core)
 library(blockr.dplyr)
-# library(blockr.ai)
+library(blockr.ai)
 library(blockr.ui)
 library(bslib)
 library(shiny)
@@ -51,4 +51,22 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-![](./man/figures/blockr-ui-v2.gif) ![](./man/figures/blockr2.png)
+### Create a new block
+
+![](./man/figures/blockr-new.png)
+
+### Block properties
+
+![](./man/figures/blockr-properties.png)
+
+### Append block and invalid state
+
+![](./man/figures/blockr-invalid.png)
+
+### Join independant data
+
+![](./man/figures/blockr-join.png)
+
+### Rearrange output on a grid
+
+![](./man/figures/blockr-dashboard.png)
