@@ -19,7 +19,9 @@ ser_deser_server <- function(id, rv, ...) {
       vals <- reactiveValues(
         auto_snapshot = FALSE,
         current_backup = NULL,
-        backup_list = list.files(pattern = ".json$")
+        backup_list = list.files(
+          pattern = paste0("^", isolate(rv$board_id), ".*\\.json$")
+        )
       )
 
       # Manual state saving. Use this to share the
@@ -33,6 +35,7 @@ ser_deser_server <- function(id, rv, ...) {
       observeEvent(
         vals$backup_list,
         {
+          browser()
           if (length(vals$backup_list)) {
             lapply(vals$backup_list, file.remove)
           }
