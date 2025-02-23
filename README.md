@@ -4,6 +4,12 @@
 # blockr.ui
 
 <!-- badges: start -->
+
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![R-CMD-check](https://github.com/cynkra/blockr.ui/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/cynkra/blockr.ui/actions/workflows/R-CMD-check.yaml)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/blockr.ui)](https://CRAN.R-project.org/package=blockr.ui)
 <!-- badges: end -->
 
 The goal of blockr.ui is to provide an alternative user interface for
