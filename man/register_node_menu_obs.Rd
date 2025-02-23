@@ -7,6 +7,8 @@
 register_node_menu_obs(blocks_ids, parent, rv, obs, session)
 }
 \arguments{
+\item{blocks_ids}{Board block ids.}
+
 \item{parent}{Parent scope reactive values.}
 
 \item{rv}{Board reactive values.}
@@ -14,8 +16,6 @@ register_node_menu_obs(blocks_ids, parent, rv, obs, session)
 \item{obs}{Observers list.}
 
 \item{session}{Shiny session object.}
-
-\item{block_ids}{Board block ids.}
 }
 \description{
 Observer to maintain the state between the 2 switches +

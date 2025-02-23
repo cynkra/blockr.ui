@@ -833,7 +833,7 @@ show_node_menu <- function(value, session) {
 #' an observer to handle serialisation/restoration, to remove
 #' nodes and to append to a given node.
 #'
-#' @param block_ids Board block ids.
+#' @param blocks_ids Board block ids.
 #' @param parent Parent scope reactive values.
 #' @param rv Board reactive values.
 #' @param obs Observers list.
