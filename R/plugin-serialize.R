@@ -35,7 +35,6 @@ ser_deser_server <- function(id, rv, ...) {
       observeEvent(
         vals$backup_list,
         {
-          browser()
           if (length(vals$backup_list)) {
             lapply(vals$backup_list, file.remove)
           }
