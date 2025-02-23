@@ -11,3 +11,10 @@
 ^pkgdown$
 _\.new\.png$
 inst/examples/demo/\.posit
+^srcjs$
+^node_modules$
+^package\.json$
+^package-lock\.json$
+^styles$
+^esbuild\.dev\.js$
+^esbuild\.prod\.js$

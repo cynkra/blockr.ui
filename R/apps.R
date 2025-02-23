@@ -15,5 +15,5 @@ run_demo_app <- function() {
     main_server("main", app_board)
   }
 
-  shinyApp(use_blockr_ui_deps(ui), server)
+  shinyApp(add_blockr.ui_deps(ui), server)
 }

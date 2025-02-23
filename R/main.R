@@ -65,6 +65,7 @@ main_ui <- function(id, board) {
         ),
         ns = ns
       ),
+      # For spacing
       div()
     ),
     layout_sidebar(

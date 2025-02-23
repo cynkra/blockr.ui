@@ -55,3 +55,14 @@ run_demo_app()
 ### Rearrange output on a grid
 
 ![](./man/figures/blockr-dashboard.png)
+
+## Development
+
+JS code is managed by `esbuild`
+[`{charpente}`](https://github.com/RinteRface/charpente?tab=readme-ov-file#using-esbuild-and-mocha).
+To create a new JS file do and compile the entire project:
+
+``` r
+charpente::create_js("file-name")
+charpente::build_js()
+```
