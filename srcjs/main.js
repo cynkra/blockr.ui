@@ -13,5 +13,3 @@ $(function () {
   handleViewerMode();
   // TBD How to prevent from unselecting node when clickin outside of it.
 });
-import "../styles/main.scss";
-import "../styles/main.scss";
