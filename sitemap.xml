@@ -4,6 +4,7 @@
 <url><loc>/authors.html</loc></url>
 <url><loc>/index.html</loc></url>
 <url><loc>/news/index.html</loc></url>
+<url><loc>/reference/add_blockr.ui_deps.html</loc></url>
 <url><loc>/reference/add_edge.html</loc></url>
 <url><loc>/reference/add_node.html</loc></url>
 <url><loc>/reference/add_rm_block.html</loc></url>
@@ -51,6 +52,5 @@
 <url><loc>/reference/show_node_menu.html</loc></url>
 <url><loc>/reference/update_block_grid_input.html</loc></url>
 <url><loc>/reference/update_block_grid_state.html</loc></url>
-<url><loc>/reference/use_blockr_ui_deps.html</loc></url>
 </urlset>
 
