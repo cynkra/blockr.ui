@@ -125,7 +125,11 @@ main_server <- function(id, board) {
       )
 
       # For shinytest2 (don't remove)
-      exportTestValues(vals = vals)
+      exportTestValues(
+        mode = vals$mode,
+        preview = vals$preview,
+        in_grid = vals$in_grid
+      )
 
       # App mode
       observeEvent(
