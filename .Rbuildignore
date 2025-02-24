@@ -4,6 +4,8 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^README\.Rmd$
+^index\.Rmd$
+^index\.md$
 ^\.lintr$
 ^\.github$
 ^_pkgdown\.yml$
