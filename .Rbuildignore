@@ -4,7 +4,7 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^README\.Rmd$
-^index\.Rmd$
+^index\.qmd$
 ^index\.md$
 ^\.lintr$
 ^\.github$

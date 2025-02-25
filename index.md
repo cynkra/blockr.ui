@@ -1,8 +1,7 @@
-
-<!-- index.md is generated from index.Rmd. Please edit that file -->
-
 # blockr.ui
 
+
+<!-- index.md is generated from index.Rmd. Please edit that file -->
 <!-- badges: start -->
 
 [![Lifecycle:
@@ -39,7 +38,12 @@ library(blockr.ui)
 run_demo_app()
 ```
 
-<iframe src="https://shinylive.io/r/app/#code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAdzgCMAnRRASwgGdSoAbbgCgA6YOtyIEA1gwwBXFkNwACBnFRF2CgLwKhAC1KlU7RAHpjBAJ4RJUDAHMWpHdLoYWRYyLGSMtOlmNCAJQCEL5MrBxcvILCohJSACao3OYM8koqapraYHoGRqYWVgw29o7Oru6e8T70-kEh3CyMUAzmfNXeSSkMwRBNLW0dcd6yfQzSEAD6CXAwRFNoqHyBYAC+ALpAA" width="150%" height="900px"></iframe>
+> **Note**
+>
+> The demo below runs with shinylive. Not all feature may work as
+> expected due to compatibility issues with webR.
+
+<iframe class="border border-5 rounded shadow-lg" src="https://shinylive.io/r/app/#h=0&amp;code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAdzgCMAnRRASwgGdSoAbbgCgA6YOtyIEA1gwwBXFkNwACBnFRF2CgLwKhAC1KlU7RAHpjBAJ4RJUDAHMWpHdLoYWRYyLGSMtOlmNCAJQCEL5MrBxcvILCohJSACao3OYM8koqapraYHoGRqYWVgw29o7Oru6e8T70-kEh3CyMUAzmfNXeSSkMwRBNLW0dcd6yfQzSEAD6CXAwRFNoqHyBYAC+ALpAA" width="150%" height="900px"></iframe>
 
 ## Development
 

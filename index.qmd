@@ -1,5 +1,6 @@
 ---
-output: github_document
+title: "blockr.ui"
+format: md
 ---
 
 <!-- index.md is generated from index.Rmd. Please edit that file -->
@@ -14,15 +15,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-# blockr.ui
-
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 [![ci](https://github.com/cynkra/blockr.ui/actions/workflows/ci.yml/badge.svg)](https://github.com/cynkra/blockr.ui/actions/workflows/ci.yml)
 [![CRAN status](https://www.r-pkg.org/badges/version/blockr.ui)](https://CRAN.R-project.org/package=blockr.ui)
 <!-- badges: end -->
 
-The goal of blockr.ui is to provide an alternative user interface for `{blockr.core}`.
+The goal of blockr.ui is to provide an alternative user interface for [`{blockr.core}`](https://cynkra.github.io/blockr.core/).
 
 ## Installation
 
@@ -36,6 +35,7 @@ devtools::install_github("cynkra/blockr.ui")
 <p style="text-align: center;">
 ![](./man/figures/hex.png){width="50%"}
 </p>
+
 ## Example
 
 To run the demo app:
@@ -45,6 +45,10 @@ library(blockr.dplyr)
 library(blockr.ui)
 run_demo_app()
 ```
+
+::: {.callout-note}
+The demo below runs with shinylive. Not all feature may work as expected due to compatibility issues with webR.
+:::
 
 ```{r shinylive_url, echo = FALSE, results = 'asis'}
 # extract the code from knitr code chunks by ID
@@ -57,11 +61,12 @@ code <- paste0(
   collapse = "\n"
 )
 
-url <- roxy.shinylive::create_shinylive_url(code)
+url <- roxy.shinylive::create_shinylive_url(code, header = FALSE)
 ```
 
 ```{r shinylive_iframe, echo = FALSE, eval = TRUE}
 tags$iframe(
+  class = "border border-5 rounded shadow-lg",
   src = url,
   width = "150%",
   height = "900px"
