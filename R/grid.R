@@ -5,12 +5,12 @@
 #' @export
 grid_ui <- function(id) {
   ns <- NS(id)
-  tagList(
-    bslib::input_switch(
+  list(
+    add_to_grid = bslib::input_switch(
       ns("add_to_grid"),
       "Use in dashboard?"
     ),
-    numericInput(
+    options = numericInput(
       ns("grid_zoom"),
       "Grid zoom level",
       min = 0.5,
@@ -18,7 +18,7 @@ grid_ui <- function(id) {
       value = 0.5,
       step = 0.1,
     ),
-    div(
+    content = div(
       id = ns("grid_zoom_target"),
       style = "zoom: 0.5;",
       input_switch(ns("lock"), "Lock grid?", FALSE),

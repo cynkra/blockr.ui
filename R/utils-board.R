@@ -201,3 +201,51 @@ board_restore <- function(parent, rv) {
   )
   return(NULL)
 }
+
+#' Custom board UI
+#'
+#' @param id Namespace ID.
+#' @param x Board.
+#' @param plugins UI for board plugins.
+#' @param ... Generic consistency.
+#' @rdname board_ui
+#' @export
+board_ui.custom_board <- function(id, x, plugins = list(), ...) {
+  plugins <- as_plugins(plugins)
+
+  toolbar_plugins <- c(
+    "preserve_board",
+    "manage_blocks",
+    "manage_links",
+    "manage_stacks",
+    "generate_code"
+  )
+
+  toolbar_plugins <- plugins[intersect(toolbar_plugins, names(plugins))]
+  toolbar_ui <- setNames(
+    board_ui(id, toolbar_plugins, x),
+    names(toolbar_plugins)
+  )
+
+  if ("edit_block" %in% names(plugins)) {
+    block_plugin <- plugins[["edit_block"]]
+  } else {
+    block_plugin <- NULL
+  }
+
+  list(
+    toolbar_ui = toolbar_ui,
+    blocks_ui = div(
+      id = paste0(id, "_board"),
+      do.call(
+        div,
+        c(
+          id = paste0(id, "_blocks"),
+          block_ui(id, x, edit_ui = block_plugin)
+        )
+      )
+    ),
+    notifications = board_ui(id, plugins[["notify_user"]], x),
+    board_options_ui = board_ui(id, board_options(x))
+  )
+}
