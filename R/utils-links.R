@@ -18,10 +18,14 @@ add_node <- function(new, vals) {
       "\n id:",
       block_uid(new)
     ),
-    #title = block_uid(new),
+    title = NA,
     shape = "dot",
-    color = "#D2E5FF",
-    borderWidth = 2,
+    shapeProperties.borderDashes = NA,
+    color.background = "#dbebff",
+    color.border = "#dbebff",
+    color.highlight.background = "#dbebff",
+    color.highlight.border = "#dbebff",
+    borderWidth = 4,
     stack = NA,
     icon.code = NA,
     x = NA,
@@ -70,8 +74,11 @@ add_edge <- function(id = NULL, from, to, label, vals, create_link = TRUE) {
     from = from,
     to = to,
     label = label,
-    arrows = "to",
-    width = 4
+    arrows.to.enabled = TRUE,
+    arrows.to.type = "arrow",
+    width = 2,
+    color = "#9db5cc",
+    dashes = FALSE
   )
 
   if (!is.null(id)) {
@@ -436,10 +443,26 @@ register_node_validation <- function(vals, rv, session) {
 apply_validation <- function(message, id, vals, session) {
   ns <- session$ns
   # Restore blue color if valid
-  selected_color <- vals$nodes[vals$nodes$id == id, "color"]
+  selected_color <- vals$nodes[vals$nodes$id == id, "color.border"]
+  connected_edges <- vals$edges[vals$edges$to == id, ]
+
   if (is.null(message)) {
-    if (selected_color == "#D2E5FF") return(NULL)
-    vals$nodes[vals$nodes$id == id, "color"] <- "#D2E5FF"
+    if (selected_color == "#dbebff") return(NULL)
+    if (nrow(connected_edges) > 0) {
+      vals$edges[vals$edges$to == id, "color"] <- "#9db5cc"
+      vals$edges[vals$edges$to == id, "dashes"] <- FALSE
+      vals$edges[vals$edges$to == id, "arrows.to.type"] <- "arrow"
+
+      visNetworkProxy(ns("network")) |>
+        visUpdateEdges(vals$edges)
+    }
+    vals$nodes[vals$nodes$id == id, "color.border"] <- "#dbebff"
+    vals$nodes[vals$nodes$id == id, "color.highlight.border"] <- "#dbebff"
+    vals$nodes[vals$nodes$id == id, "shapeProperties.borderDashes"] <- FALSE
+    vals$nodes[
+      vals$nodes$id == id,
+      "title"
+    ] <- "State errors: 0 <br> Data errors: 0 <br> Eval errors: 0"
   }
 
   # Color invalid nodes in red
@@ -448,8 +471,37 @@ apply_validation <- function(message, id, vals, session) {
       length(message$data$error) ||
       length(message$eval$error)
   ) {
-    if (selected_color == "#ffd6d2") return(NULL)
-    vals$nodes[vals$nodes$id == id, "color"] <- "#ffd6d2"
+    if (selected_color == "#ff0018") return(NULL)
+    # Any linked edge would also get styled
+    if (nrow(connected_edges) > 0) {
+      vals$edges[vals$edges$to == id, "color"] <- "#ff0018"
+      vals$edges[vals$edges$to == id, "dashes"] <- TRUE
+      vals$edges[vals$edges$to == id, "arrows.to.type"] <- "image"
+      vals$edges[
+        vals$edges$to == id,
+        "arrows.to.src"
+      ] <- "www/images/cross-sign.svg"
+      vals$edges[
+        vals$edges$to == id,
+        "arrows.to.imageWidth"
+      ] <- 15
+      vals$edges[
+        vals$edges$to == id,
+        "arrows.to.imageHeight"
+      ] <- 15
+
+      visNetworkProxy(ns("network")) |>
+        visUpdateEdges(vals$edges)
+    }
+    vals$nodes[vals$nodes$id == id, "color.border"] <- "#ff0018"
+    vals$nodes[vals$nodes$id == id, "color.highlight.border"] <- "#ff0018"
+    vals$nodes[vals$nodes$id == id, "shapeProperties.borderDashes"] <- TRUE
+    vals$nodes[vals$nodes$id == id, "title"] <- sprintf(
+      "State errors: %s <br> Data errors: %s <br> Eval errors: %s",
+      if (length(message$state$error)) message$state$error else "0.",
+      if (length(message$data$error)) message$data$error else "0.",
+      if (length(message$eval$error)) message$eval$error else "0."
+    )
   }
 
   visNetworkProxy(ns("network")) |>
@@ -698,67 +750,7 @@ create_network_widget <- function(
   vis_network <- do.call(visPhysics, c(graph = quote(vis_network), physics))
   vis_network <- do.call(visEvents, c(graph = quote(vis_network), events))
 
-  vis_network |>
-    visEvents(
-      type = "once",
-      # Code to show connection points with edges
-      stabilized = sprintf(
-        "function() {
-          var network = this;
-          
-          network.on('afterDrawing', function(ctx) {
-            var edges = network.body.edges;
-            var nodes = network.body.nodes;
-            
-            Object.keys(edges).forEach(function(edgeId) {
-              var edge = edges[edgeId];
-              var fromNode = nodes[edge.fromId];
-              var toNode = nodes[edge.toId];
-              
-              // Calculate intersection points
-              if (fromNode && toNode) {
-                // Get positions
-                var fromX = fromNode.x;
-                var fromY = fromNode.y;
-                var toX = toNode.x;
-                var toY = toNode.y;
-                
-                // Calculate angles and distances
-                var angle = Math.atan2(toY - fromY, toX - fromX);
-                var reverseAngle = Math.atan2(fromY - toY, fromX - toX);
-                
-                // Get node radii (using shape.width since shape.radius might not be available)
-                var fromRadius = fromNode.shape.width / 2;
-                var toRadius = toNode.shape.width / 2;
-                
-                // Calculate intersection points
-                var fromIntersectX = fromX + (Math.cos(angle) * fromRadius);
-                var fromIntersectY = fromY + (Math.sin(angle) * fromRadius);
-                var toIntersectX = toX + (Math.cos(reverseAngle) * toRadius);
-                var toIntersectY = toY + (Math.sin(reverseAngle) * toRadius);
-                
-                // Draw connection points at intersection
-                ctx.beginPath();
-                ctx.arc(fromIntersectX, fromIntersectY, 4, 0, 2 * Math.PI);
-                ctx.fillStyle = '#2B7CE9';
-                ctx.fill();
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.arc(toIntersectX, toIntersectY, 4, 0, 2 * Math.PI);
-                ctx.fillStyle = '#2B7CE9';
-                ctx.fill();
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-              }
-            });
-          });
-        }"
-      )
-    )
+  vis_network
 }
 
 #' Restore network from saved snapshot

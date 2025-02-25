@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" baseProfile="full" width='68' height='68'>
+<defs> <radialGradient id='gradient'> <stop offset='0' stop-color='#faa'/> <stop offset='1' stop-color='#a00'/> </radialGradient> </defs>
+<polygon points='2,20 20,2 45,2 63,20 63,45 45,63 20,63 2,45' stroke='#000' stroke-width='3' transform='translate(2 2)' opacity='0.3'/>
+<polygon points='2,20 20,2 45,2 63,20 63,45 45,63 20,63 2,45' stroke='#700' fill='#f77' stroke-width='3'/>
+<polygon points='6,22 22,6 43,6 59,22 59,43 43,59 22,59 6,43' stroke='#700' stroke-width='1' fill='url(#gradient)'/>
+<path d='M 14,19 C 13,18 18,13 19,14 L 51,46 C 52,47 47,52 46,51 L14,19 z M 46,14 C 47,13 52,18 51,19 L 19,51 C 18,52 13,47 14,46 z' fill='white'/>
+</svg>
