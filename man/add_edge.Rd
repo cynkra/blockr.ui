@@ -16,7 +16,7 @@ add_edge(id = NULL, from, to, label, vals, create_link = TRUE)
 \item{label}{Edge label. This is useful to map the existing connected
 nodes to the input slots of the receiving node (for instance a join block).}
 
-\item{vals}{Reactive values, containing elements such as edges data.}
+\item{vals}{Global vals reactive values. Read-write access.}
 
 \item{create_link}{Create a link in the board?}
 }

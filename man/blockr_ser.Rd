@@ -5,7 +5,15 @@
 \alias{blockr_deser.custom_board}
 \title{Ser/deser board}
 \usage{
-\method{blockr_ser}{custom_board}(x, blocks = NULL, ...)
+\method{blockr_ser}{custom_board}(
+  x,
+  blocks = NULL,
+  network = NULL,
+  grid = NULL,
+  selected = NULL,
+  mode = NULL,
+  ...
+)
 
 \method{blockr_deser}{custom_board}(x, data, ...)
 }
@@ -13,6 +21,14 @@
 \item{x}{Board.}
 
 \item{blocks}{Board blocks.}
+
+\item{network}{visNetwork data.}
+
+\item{grid}{gridstack data.}
+
+\item{selected}{Selected node.}
+
+\item{mode}{App mode.}
 
 \item{...}{Generic consistency.}
 

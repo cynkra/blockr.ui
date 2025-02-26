@@ -2,18 +2,30 @@
 #'
 #' @param x Board.
 #' @param blocks Board blocks.
+#' @param network visNetwork data.
+#' @param grid gridstack data.
+#' @param selected Selected node.
+#' @param mode App mode.
 #' @param ... Generic consistency.
 #' @export
 #' @rdname blockr_ser
-blockr_ser.custom_board <- function(x, blocks = NULL, ...) {
+blockr_ser.custom_board <- function(
+  x,
+  blocks = NULL,
+  network = NULL,
+  grid = NULL,
+  selected = NULL,
+  mode = NULL,
+  ...
+) {
   list(
     object = class(x),
     blocks = blockr_ser(board_blocks(x), blocks),
     links = lapply(board_links(x), blockr_ser),
-    nodes = blockr_ser(board_nodes(x)),
-    selected_node = board_selected_node(x),
-    grid = blockr_ser(board_grid(x)),
-    mode = board_mode(x),
+    nodes = blockr_ser(network),
+    selected_node = selected,
+    grid = blockr_ser(grid),
+    mode = mode,
     version = as.character(utils::packageVersion(utils::packageName()))
   )
 }
@@ -51,26 +63,6 @@ blockr_deser.data.frame <- function(x, data, ...) {
   as.data.frame(data[["payload"]])
 }
 
-board_grid <- function(x) {
-  stopifnot(is_board(x))
-  x[["grid"]]
-}
-
-board_nodes <- function(x) {
-  stopifnot(is_board(x))
-  x[["nodes"]]
-}
-
-board_mode <- function(x) {
-  stopifnot(is_board(x))
-  x[["mode"]]
-}
-
-board_selected_node <- function(x) {
-  stopifnot(is_board(x))
-  x[["selected_node"]]
-}
-
 board_filename <- function(rv) {
   function() {
     paste0(
@@ -82,7 +74,7 @@ board_filename <- function(rv) {
   }
 }
 
-write_board_to_disk <- function(rv) {
+write_board_to_disk <- function(rv, parent) {
   function(con) {
     blocks <- lapply(
       lst_xtr(rv$blocks, "server", "state"),
@@ -91,7 +83,14 @@ write_board_to_disk <- function(rv) {
     )
 
     json <- jsonlite::prettify(
-      to_json(rv$board, blocks)
+      to_json(
+        rv$board,
+        blocks,
+        parent$nodes,
+        parent$grid,
+        parent$selected,
+        parent$mode
+      )
     )
 
     writeLines(json, con)
@@ -127,7 +126,7 @@ check_ser_deser_val <- function(val) {
   val
 }
 
-snapshot_board <- function(vals, rv) {
+snapshot_board <- function(vals, rv, parent) {
   # Prevents undo/redo from triggering new snapshot
   # after the previous or next state are restored.
   # The vals$auto_snapshot is release so that any other
@@ -138,7 +137,7 @@ snapshot_board <- function(vals, rv) {
   }
 
   file_name <- board_filename(rv)()
-  write_board_to_disk(rv)(file_name)
+  write_board_to_disk(rv, parent)(file_name)
   vals$backup_list <- list.files(pattern = ".json$")
   vals$current_backup <- length(vals$backup_list)
 }

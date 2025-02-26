@@ -29,22 +29,20 @@ grid_ui <- function(id) {
 
 #' Dashboard grid server
 #'
-#' @param board Board object. Contains info about blocks,
-#' selected block, refreshed status ...
-#' @param mode App mode.
-#' @param in_grid Callback received from  links plugin to
-#' tell which block should be in grid.
+#' @param parent Parent reactive values containing app mode
+#' or which block should be in grid.
+#' @param blocks Board blocks.
 #' @param blocks_ns In which namespace are the blocks
 #' @rdname dashboard
 #' @export
-grid_server <- function(id, board, mode, in_grid, blocks_ns) {
+grid_server <- function(id, parent, blocks, blocks_ns) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
+    # Local reactiveValues
     vals <- reactiveValues(
       grid = data.frame(),
-      in_grid = list(),
-      grid_restored = NULL
+      in_grid = list()
     )
 
     # Store observers if needed
@@ -53,12 +51,12 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
     # Restore grid from serialisation only when network is restored
     observeEvent(
       {
-        req(board$refreshed == "network")
+        req(parent$refreshed == "network")
       },
       {
-        vals$grid_restored <- NULL
-        restore_grid(board$board, blocks_ns, vals)
-        vals$grid_restored <- "grid"
+        parent$grid_restored <- NULL
+        restore_grid(blocks(), blocks_ns, vals)
+        parent$grid_restored <- "grid"
       }
     )
 
@@ -67,37 +65,27 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
     # whenever a new block is created
     observeEvent(
       {
-        req(length(board$blocks) > 0)
-        board$blocks
+        req(length(blocks()) > 0)
+        blocks()
       },
       {
-        init_blocks_grid_state(board$blocks, vals)
+        init_blocks_grid_state(blocks(), vals)
       }
     )
 
-    # Callback from links module: any change in the add to grid
+    # When we change block, update the switch to the value it should
+    # be from vals$in_grid[[selected()]]. Also, callback from links module: any change in the add to grid
     # options updates the local in_grid reactive value to move
     # the blocks between the sidebar and the grid.
-    observeEvent(req(length(board$blocks) > 0), {
-      register_links_grid_callbacks(
-        names(board$blocks),
-        in_grid,
-        obs,
-        vals
-      )
-    })
-
-    # When we change block, update the switch to the value it should
-    # be from vals$in_grid[[selected()]]
     observeEvent(
       {
-        req(board$selected_block %in% names(board$blocks))
-        c(board$selected_block, in_grid())
+        req(parent$selected_block %in% names(blocks()))
+        c(parent$selected_block, parent$in_grid)
       },
       {
         update_block_grid_input(
-          board$selected_block,
-          input$add_to_grid,
+          parent$selected_block,
+          parent$in_grid[[parent$selected_block]],
           vals,
           session
         )
@@ -108,7 +96,11 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
     observeEvent(
       input$add_to_grid,
       {
-        update_block_grid_state(board$selected_block, input$add_to_grid, vals)
+        update_block_grid_state(
+          parent$selected_block,
+          input$add_to_grid,
+          vals
+        )
       },
       ignoreInit = TRUE
     )
@@ -119,11 +111,11 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
     # duplication.
     observeEvent(
       {
-        mode()
+        parent$mode
         req(length(vals$in_grid))
       },
       {
-        manage_board_grid(mode, vals, blocks_ns, session)
+        manage_board_grid(parent$mode, vals, blocks_ns, session)
       },
       ignoreInit = TRUE
     )
@@ -159,7 +151,7 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
 
     # Format layout elements as dataframe for easier use
     grid_content <- reactive({
-      req(mode() == "dashboard")
+      req(parent$mode == "dashboard")
       process_grid_content(vals, input$grid_layout)
     })
 
@@ -179,12 +171,12 @@ grid_server <- function(id, board, mode, in_grid, blocks_ns) {
       gridstackr::gs_proxy_enable_move(ns("grid"), !input$lock)
     })
 
-    return(
-      list(
-        grid = reactive(vals$grid),
-        in_grid = reactive(vals$in_grid),
-        grid_restored = reactive(vals$grid_restored)
-      )
-    )
+    observeEvent(vals$in_grid, {
+      parent$in_grid <- vals$in_grid
+    })
+
+    observeEvent(vals$grid, {
+      parent$grid <- vals$grid
+    })
   })
 }

@@ -69,7 +69,8 @@ main_ui <- function(id, board) {
         ),
         ns = ns
       ),
-      my_board_ui$board_options_ui
+      div()
+      #my_board_ui$board_options_ui
     ),
     layout_sidebar(
       border = FALSE,
@@ -124,7 +125,17 @@ main_server <- function(id, board) {
         preview = FALSE,
         grid = NULL,
         grid_restored = NULL,
-        in_grid = list()
+        in_grid = list(),
+        refreshed = NULL,
+        nodes = data.frame(),
+        append_block = FALSE,
+        added_block = NULL,
+        removed_block = NULL,
+        selected_block = NULL,
+        edges = data.frame(),
+        cancelled_edge = NULL,
+        added_edge = NULL,
+        removed_edge = NULL
       )
 
       # For shinytest2 (don't remove)
@@ -154,19 +165,14 @@ main_server <- function(id, board) {
       )
 
       # When restoring a snapshot we restore the old mode
-      observeEvent(req(board_out$refreshed == "network"), {
-        if (board_mode(board_out$board) == "dashboard") {
+      observeEvent(req(vals$refreshed == "network"), {
+        if (vals$mode == "dashboard") {
           shinyjs::click("mode")
         }
       })
 
       # Toggle sidebars based on the mode and selected node
-      manage_sidebars(
-        vals,
-        reactive(board_out$selected_block),
-        reactive(board_out$removed_block),
-        session
-      )
+      manage_sidebars(vals, session)
 
       # Viewer mode: maximize dashboard view to save space
       observeEvent(input$preview, {
@@ -187,8 +193,9 @@ main_server <- function(id, board) {
           )
         ),
         callbacks = list(
+          # Only one block can be visible at a time in the sidebar,
+          # as only one block can be selected at a time in the network
           block_visibility = manage_block_visibility,
-          serialize_extra = capture_for_serialize,
           # Callback to signal other modules that the restore is done.
           # This allows to restore each part in the correct order.
           on_board_restore = board_restore
@@ -197,25 +204,12 @@ main_server <- function(id, board) {
       )
 
       # grid module
-      grid_out <- grid_server(
+      grid_server(
         "grid",
-        board_out,
-        reactive(vals$mode),
-        reactive(vals$in_grid),
+        vals,
+        reactive(board_out[[1]]$blocks),
         blocks_ns = "main-board"
       )
-
-      observeEvent(grid_out$grid(), {
-        vals$grid <- grid_out$grid()
-      })
-
-      observeEvent(grid_out$in_grid(), {
-        vals$in_grid <- grid_out$in_grid()
-      })
-
-      observeEvent(grid_out$grid_restored(), {
-        vals$grid_restored <- grid_out$grid_restored()
-      })
     }
   )
 }

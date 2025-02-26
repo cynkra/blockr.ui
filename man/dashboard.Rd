@@ -7,18 +7,15 @@
 \usage{
 grid_ui(id)
 
-grid_server(id, board, mode, in_grid, blocks_ns)
+grid_server(id, parent, blocks, blocks_ns)
 }
 \arguments{
 \item{id}{Module id.}
 
-\item{board}{Board object. Contains info about blocks,
-selected block, refreshed status ...}
+\item{parent}{Parent reactive values containing app mode
+or which block should be in grid.}
 
-\item{mode}{App mode.}
-
-\item{in_grid}{Callback received from  links plugin to
-tell which block should be in grid.}
+\item{blocks}{Board blocks.}
 
 \item{blocks_ns}{In which namespace are the blocks}
 }

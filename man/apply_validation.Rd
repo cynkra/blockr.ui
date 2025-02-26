@@ -11,7 +11,7 @@ apply_validation(message, id, vals, session)
 
 \item{id}{Node id.}
 
-\item{vals}{Local reactive values.}
+\item{vals}{Global reactive values. Read-write.}
 
 \item{session}{Shiny session object.}
 }

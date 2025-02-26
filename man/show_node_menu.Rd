@@ -8,7 +8,7 @@ show_node_menu(value, session)
 }
 \arguments{
 \item{value}{Initial state of the grid switch. Depends
-on the value set in the grid parent module.}
+on the value set in the grid vals module.}
 
 \item{session}{Shiny session object}
 }

@@ -11,7 +11,7 @@ create_node(new, vals, rv, session)
 
 \item{vals}{Local reactive values.}
 
-\item{rv}{Global parent reactive values.}
+\item{rv}{Global vals reactive values.}
 
 \item{session}{Shiny session object.}
 }

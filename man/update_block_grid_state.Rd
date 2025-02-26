@@ -7,7 +7,7 @@
 update_block_grid_state(selected, value, vals)
 }
 \arguments{
-\item{selected}{Selected block.}
+\item{selected}{Selected block id.}
 
 \item{value}{New value.}
 

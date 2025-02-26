@@ -24,11 +24,13 @@ ser_deser_server <- function(id, rv, ...) {
         )
       )
 
+      dot_args <- list(...)
+
       # Manual state saving. Use this to share the
       # app state with another group.
       output$serialize <- downloadHandler(
         board_filename(rv),
-        write_board_to_disk(rv)
+        write_board_to_disk(rv, dot_args$parent)
       )
 
       # Cleanup old files on start
@@ -50,7 +52,7 @@ ser_deser_server <- function(id, rv, ...) {
       snapshot_trigger <- reactive({
         list(
           board_links(rv$board),
-          board_grid(rv$board),
+          dot_args$parent$grid,
           get_blocks_state(rv) # Capture any block state change (input change, ...)
         )
       }) |>
@@ -62,7 +64,7 @@ ser_deser_server <- function(id, rv, ...) {
           snapshot_trigger()
         },
         {
-          snapshot_board(vals, rv)
+          snapshot_board(vals, rv, dot_args$parent)
         }
       )
 

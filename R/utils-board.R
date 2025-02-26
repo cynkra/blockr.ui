@@ -110,12 +110,10 @@ actions_ui <- function(..., ns) {
 #' Manage board sidebars
 #'
 #' @param rv Reactive values.
-#' @param selected Selected block.
-#' @param removed Any removed block.
 #' @param session Shiny session object.
 #' @keywords internal
 #' @rdname handlers-utils
-manage_sidebars <- function(rv, selected, removed, session) {
+manage_sidebars <- function(rv, session) {
   ns <- session$ns
 
   # Hide the sidebar toggles to avoid accidental clicks by users
@@ -125,11 +123,11 @@ manage_sidebars <- function(rv, selected, removed, session) {
   # Toggle sidebars based on the board mode.
   # Since we render the same UI either in the properties sidebar
   # or the dashboard sidebar, they can't be opened at the same time.
-  observeEvent(c(rv$mode, selected()), {
-    cond <- if (is.null(selected())) {
+  observeEvent(c(rv$mode, rv$selected_block), {
+    cond <- if (is.null(rv$selected_block)) {
       FALSE
     } else {
-      (rv$mode == "network" && nchar(selected()) > 0)
+      (rv$mode == "network" && nchar(rv$selected_block) > 0)
     }
 
     toggle_sidebar(
@@ -143,7 +141,7 @@ manage_sidebars <- function(rv, selected, removed, session) {
   })
 
   # Re-hide sidebar when block is removed
-  observeEvent(removed(), {
+  observeEvent(rv$removed_block, {
     bslib::toggle_sidebar("properties", open = FALSE)
   })
 }
@@ -152,16 +150,16 @@ manage_sidebars <- function(rv, selected, removed, session) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-manage_block_visibility <- function(parent, rv) {
+manage_block_visibility <- function(rv, update, parent, ...) {
   observeEvent(
     {
       req(parent$mode == "network")
-      rv$selected_block
+      req(parent$selected_block)
     },
     {
-      to_hide <- which(names(rv$blocks) != rv$selected_block)
+      to_hide <- which(names(rv$blocks) != parent$selected_block)
 
-      shinyjs::show(rv$selected_block)
+      shinyjs::show(parent$selected_block)
       if (length(to_hide)) {
         lapply(names(rv$blocks)[to_hide], \(el) {
           shinyjs::hide(el)
@@ -172,30 +170,12 @@ manage_block_visibility <- function(parent, rv) {
   return(NULL)
 }
 
-capture_for_serialize <- function(parent, rv) {
-  # For serialisation
-  observeEvent(parent$mode, {
-    rv$board[["mode"]] <- parent$mode
-  })
-  observeEvent(rv$selected_block, {
-    rv$board[["selected_node"]] <- rv$selected_block
-  })
-  observeEvent(parent$grid, {
-    rv$board[["grid"]] <- parent$grid
-  })
-
-  observeEvent(parent$grid_restored, {
-    rv$refreshed <- "grid"
-  })
-  return(NULL)
-}
-
-board_restore <- function(parent, rv) {
+board_restore <- function(rv, update, parent, ...) {
   board_refresh <- get("board_refresh", parent.frame(1))
   observeEvent(
     board_refresh(),
     {
-      rv$refreshed <- "board"
+      parent$refreshed <- "board"
     },
     ignoreInit = TRUE
   )

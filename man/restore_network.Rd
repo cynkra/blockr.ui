@@ -9,9 +9,9 @@ restore_network(links, vals, rv, session)
 \arguments{
 \item{links}{Board links.}
 
-\item{vals}{Local reactive values.}
+\item{vals}{Global vals reactive values. Read-write access.}
 
-\item{rv}{Global parent reactive values.}
+\item{rv}{Board reactive values. Read-only just for reading data.}
 
 \item{session}{Shiny session object}
 }
