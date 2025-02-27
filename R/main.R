@@ -209,6 +209,10 @@ main_server <- function(id, board) {
         reactive(board_out[[1]]$blocks),
         blocks_ns = "main-board"
       )
+
+      observeEvent(vals$refreshed == "grid", {
+        vals$refreshed <- NULL
+      })
     }
   )
 }

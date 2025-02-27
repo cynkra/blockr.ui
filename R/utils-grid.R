@@ -114,27 +114,40 @@ remove_block_from_grid <- function(id, blocks_ns, session) {
 manage_board_grid <- function(mode, vals, blocks_ns, session) {
   ns <- session$ns
 
-  in_grid_ids <- chr_ply(session$input$grid_layout$children, `[[`, "id")
+  current_grid_layout <- process_grid_content(vals, session$input$grid_layout)
+  in_grid_ids <- current_grid_layout$id
 
   # Cleanup grid in editor mode
   if (mode == "network") {
-    if (length(in_grid_ids)) {
-      lapply(names(which(vals$in_grid == TRUE)), \(id) {
-        remove_block_from_grid(id, blocks_ns, session)
-      })
-      gs_proxy_remove_all(ns("grid"))
-    }
+    lapply(names(which(vals$in_grid == TRUE)), \(id) {
+      remove_block_from_grid(id, blocks_ns, session)
+    })
+    gs_proxy_remove_all(ns("grid"))
     return(NULL)
   }
 
   lapply(names(vals$in_grid), \(nme) {
     new_state <- vals$in_grid[[nme]]
-    current_state <- if (!length(in_grid_ids)) FALSE else
-      any(grepl(nme, in_grid_ids))
-    if (new_state != current_state) {
+
+    # If there was no grid item and we the item added
+    # is marked, we can insert it
+    if (nrow(current_grid_layout) == 0) {
       if (new_state) {
         add_block_to_grid(nme, vals, blocks_ns, session)
-      } else {
+      }
+    } else {
+      # Update if any of the in_grid state or layout has changed
+      if (new_state) {
+        # Need to clean the existing element to re-add it at a different place
+        remove_block_from_grid(nme, blocks_ns, session)
+        gs_proxy_remove_item(
+          ns("grid"),
+          id = grep(nme, in_grid_ids, value = TRUE)
+        )
+        add_block_to_grid(nme, vals, blocks_ns, session)
+      }
+      if (!new_state) {
+        # Only remove
         remove_block_from_grid(nme, blocks_ns, session)
         gs_proxy_remove_item(
           ns("grid"),
@@ -173,23 +186,24 @@ process_grid_content <- function(vals, grid_layout) {
 #' @keywords internal
 restore_grid <- function(blocks, blocks_ns, vals, parent) {
   vals$in_grid <- NULL
-
-  grid <- parent$grid
+  vals$grid <- parent$grid
   ids <- names(blocks)
 
   # When the grid was empty, we still need to initialise the block state
   # and all values are false
-  if (!nrow(grid)) {
+  if (!nrow(vals$grid)) {
     lapply(ids, \(id) {
       vals$in_grid[[id]] <- FALSE
     })
     return(NULL)
   }
 
-  vals$grid <- grid
-
   # Otherwise we spread elements between the grid and the network
-  in_grid_ids <- chr_ply(strsplit(grid$id, paste0(blocks_ns, "-")), `[[`, 2)
+  in_grid_ids <- chr_ply(
+    strsplit(vals$grid$id, paste0(blocks_ns, "-")),
+    `[[`,
+    2
+  )
   not_in_grid <- which(!(ids %in% in_grid_ids))
 
   lapply(in_grid_ids, \(id) {

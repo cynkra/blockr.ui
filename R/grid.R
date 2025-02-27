@@ -80,7 +80,7 @@ grid_server <- function(id, parent, blocks, blocks_ns) {
     observeEvent(
       {
         req(length(blocks()) > 0, length(parent$in_grid) > 0)
-        req(parent$selected_block %in% names(blocks()))
+        req(parent$selected_block %in% names(parent$in_grid))
         c(parent$selected_block, parent$in_grid)
       },
       {
@@ -95,15 +95,14 @@ grid_server <- function(id, parent, blocks, blocks_ns) {
 
     # Toggle state for each selected block to update the state
     observeEvent(
-      input$add_to_grid,
+      req(input$add_to_grid > 0),
       {
         update_block_grid_state(
           parent$selected_block,
           input$add_to_grid,
           vals
         )
-      },
-      ignoreInit = TRUE
+      }
     )
 
     # Move items between properties tab and grid.
@@ -114,11 +113,11 @@ grid_server <- function(id, parent, blocks, blocks_ns) {
       {
         parent$mode
         req(length(vals$in_grid))
+        parent$refreshed == "grid"
       },
       {
         manage_board_grid(parent$mode, vals, blocks_ns, session)
-      },
-      ignoreInit = TRUE
+      }
     )
 
     # Render grid of block outputs in dashboard mode.
