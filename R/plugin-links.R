@@ -29,6 +29,20 @@ add_rm_link_server <- function(id, rv, update, ...) {
 
       links <- reactive(board_links(rv$board))
 
+      # Get nodes and coordinates
+      observeEvent(
+        {
+          if (is.null(dot_args$parent$refreshed)) {
+            dot_args$parent$nodes
+          } else {
+            req(dot_args$parent$refreshed == "network")
+          }
+        },
+        {
+          visNetworkProxy(ns("network")) |> visGetNodes()
+        }
+      )
+
       output$network <- renderVisNetwork({
         # Initialized as empty, we'll update with the proxy
         create_network_widget(ns = ns)
@@ -46,11 +60,6 @@ add_rm_link_server <- function(id, rv, update, ...) {
           sprintf("#nodeSelect%s", ns("network"))
         )
       })
-
-      # To capture what happens on the client (modify network data)
-      #observeEvent(input$network_graphChange, {
-      #  browser()
-      #})
 
       # Tweaks UI so that edge mode appears when it should.
       # Also workaround a bug that always activate editNode by default.

@@ -765,13 +765,18 @@ create_network_widget <- function(
 #' @keywords internal
 restore_network <- function(links, vals, session) {
   ns <- session$ns
-
   # Cleanup old setup
-  visNetworkProxy(ns("network")) |> visRemoveNodes(vals$nodes$id)
+  if (length(session$input$network_nodes)) {
+    visNetworkProxy(ns("network")) |>
+      visRemoveNodes(names(session$input$network_nodes))
+  }
   # Restore nodes
   visNetworkProxy(ns("network")) |>
-    visUpdateNodes(vals$nodes) |>
-    visSelectNodes(id = vals$selected_block)
+    visUpdateNodes(vals$nodes)
+
+  if (!is.null(vals$selected_block)) {
+    visNetworkProxy(ns("network")) |> visSelectNodes(id = vals$selected_block)
+  }
 
   # For each link re-creates the edges
   lapply(names(links), \(nme) {

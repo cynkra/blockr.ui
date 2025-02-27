@@ -54,9 +54,8 @@ grid_server <- function(id, parent, blocks, blocks_ns) {
         req(parent$refreshed == "network")
       },
       {
-        parent$grid_restored <- NULL
         restore_grid(blocks(), blocks_ns, vals, parent)
-        parent$grid_restored <- "grid"
+        parent$refreshed <- "grid"
       }
     )
 

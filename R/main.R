@@ -124,7 +124,6 @@ main_server <- function(id, board) {
         mode = "network",
         preview = FALSE,
         grid = NULL,
-        grid_restored = NULL,
         in_grid = list(),
         refreshed = NULL,
         nodes = data.frame(),
