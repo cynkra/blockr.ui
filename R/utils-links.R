@@ -770,12 +770,18 @@ restore_network <- function(links, vals, session) {
     visNetworkProxy(ns("network")) |>
       visRemoveNodes(names(session$input$network_nodes))
   }
+
+  if (nrow(vals$edges) > 0) {
+    vals$edges <- data.frame()
+  }
+
   # Restore nodes
   visNetworkProxy(ns("network")) |>
     visUpdateNodes(vals$nodes)
 
   if (!is.null(vals$selected_block)) {
-    visNetworkProxy(ns("network")) |> visSelectNodes(id = vals$selected_block)
+    visNetworkProxy(ns("network")) |>
+      visSelectNodes(id = vals$selected_block)
   }
 
   # For each link re-creates the edges
@@ -870,7 +876,6 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
             sprintf("%s-add_to_grid", id),
             value = vals$in_grid[[id]]
           )
-          vals$refreshed <- NULL
         }
       )
 

@@ -29,7 +29,8 @@ add_rm_link_server <- function(id, rv, update, ...) {
 
       links <- reactive(board_links(rv$board))
 
-      # Get nodes and coordinates
+      # Get nodes and coordinates: useful to cache the current
+      # nodes data so that we can restore snapshots correctly.
       observeEvent(
         {
           if (is.null(dot_args$parent$refreshed)) {

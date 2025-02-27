@@ -51,7 +51,7 @@ blockr_deser.custom_board <- function(x, data, ...) {
     # Other elements that are not part of the board
     # and need to be restored at the top level
     nodes = blockr_deser(data[["nodes"]]),
-    selected_block = data[["selected_node"]],
+    selected_block = data[["selected_block"]],
     grid = blockr_deser(data[["grid"]]),
     mode = data[["mode"]]
   )
