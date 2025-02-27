@@ -145,29 +145,19 @@ main_server <- function(id, board) {
       )
 
       # App mode
-      observeEvent(
-        input$mode,
-        {
-          if (input$mode %% 2 == 0) vals$mode <- "network" else
-            vals$mode <- "dashboard"
+      observeEvent(input$mode, {
+        if (input$mode %% 2 == 0) vals$mode <- "network" else
+          vals$mode <- "dashboard"
 
-          if (vals$mode == "network" && input$preview %% 2 != 0) {
-            shinyjs::click("preview")
-          }
-          updateActionButton(
-            session,
-            "mode",
-            icon = if (vals$mode == "network") icon("network-wired") else
-              icon("table-columns")
-          )
+        if (vals$mode == "network" && input$preview %% 2 != 0) {
+          shinyjs::click("preview")
         }
-      )
-
-      # When restoring a snapshot we restore the old mode
-      observeEvent(req(vals$refreshed == "network"), {
-        if (vals$mode == "dashboard") {
-          shinyjs::click("mode")
-        }
+        updateActionButton(
+          session,
+          "mode",
+          icon = if (vals$mode == "network") icon("network-wired") else
+            icon("table-columns")
+        )
       })
 
       # Toggle sidebars based on the mode and selected node
@@ -210,7 +200,10 @@ main_server <- function(id, board) {
         blocks_ns = "main-board"
       )
 
-      observeEvent(vals$refreshed == "grid", {
+      observeEvent(req(vals$refreshed == "grid"), {
+        if (vals$mode == "dashboard") {
+          shinyjs::click("mode")
+        }
         vals$refreshed <- NULL
       })
     }
