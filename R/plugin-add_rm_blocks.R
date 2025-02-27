@@ -75,9 +75,9 @@ add_rm_block_server <- function(id, rv, update, ...) {
       observeEvent(
         input$remove_block,
         {
-          dot_args$parent$removed_block <- rv$selected_block
+          dot_args$parent$removed_block <- dot_args$parent$selected_block
           update(
-            list(blocks = list(rm = rv$selected_block))
+            list(blocks = list(rm = dot_args$parent$selected_block))
           )
         }
       )
