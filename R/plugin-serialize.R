@@ -89,8 +89,10 @@ ser_deser_server <- function(id, rv, ...) {
         c(input$undo, input$redo),
         {
           vals$auto_snapshot <- TRUE
-          res(
-            from_json(vals$backup_list[[vals$current_backup]])
+          restore_board(
+            vals$backup_list[[vals$current_backup]],
+            res,
+            dot_args$parent
           )
         },
         ignoreInit = TRUE
@@ -98,9 +100,7 @@ ser_deser_server <- function(id, rv, ...) {
 
       # Restore workspace from json file
       observeEvent(input$restore, {
-        res(
-          from_json(input$restore$datapath)
-        )
+        restore_board(input$restore$datapath, res, dot_args$parent)
       })
 
       res

@@ -759,21 +759,19 @@ create_network_widget <- function(
 #'
 #' @param links Board links.
 #' @param vals Global vals reactive values. Read-write access.
-#' @param rv Board reactive values. Read-only just for reading data.
 #' @param session Shiny session object
 #'
 #' @return A reactiveValues object.
 #' @keywords internal
-restore_network <- function(links, vals, rv, session) {
+restore_network <- function(links, vals, session) {
   ns <- session$ns
 
   # Cleanup old setup
   visNetworkProxy(ns("network")) |> visRemoveNodes(vals$nodes$id)
   # Restore nodes
-  vals$nodes <- board_nodes(rv$board)
   visNetworkProxy(ns("network")) |>
     visUpdateNodes(vals$nodes) |>
-    visSelectNodes(id = board_selected_node(rv$board))
+    visSelectNodes(id = vals$selected_block)
 
   # For each link re-creates the edges
   lapply(names(links), \(nme) {

@@ -4,14 +4,12 @@
 \alias{restore_network}
 \title{Restore network from saved snapshot}
 \usage{
-restore_network(links, vals, rv, session)
+restore_network(links, vals, session)
 }
 \arguments{
 \item{links}{Board links.}
 
 \item{vals}{Global vals reactive values. Read-write access.}
-
-\item{rv}{Board reactive values. Read-only just for reading data.}
 
 \item{session}{Shiny session object}
 }

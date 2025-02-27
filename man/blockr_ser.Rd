@@ -3,6 +3,7 @@
 \name{blockr_ser.custom_board}
 \alias{blockr_ser.custom_board}
 \alias{blockr_deser.custom_board}
+\alias{blockr_deser.data.frame}
 \title{Ser/deser board}
 \usage{
 \method{blockr_ser}{custom_board}(
@@ -16,6 +17,8 @@
 )
 
 \method{blockr_deser}{custom_board}(x, data, ...)
+
+\method{blockr_deser}{data.frame}(x, data, ...)
 }
 \arguments{
 \item{x}{Board.}

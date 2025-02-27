@@ -24,7 +24,7 @@ add_rm_link_server <- function(id, rv, update, ...) {
 
       # Restore network from serialisation
       observeEvent(req(dot_args$parent$refreshed == "board"), {
-        restore_network(links(), dot_args$parent, rv, session)
+        restore_network(links(), dot_args$parent, session)
       })
 
       links <- reactive(board_links(rv$board))

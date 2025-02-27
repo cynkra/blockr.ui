@@ -55,7 +55,7 @@ grid_server <- function(id, parent, blocks, blocks_ns) {
       },
       {
         parent$grid_restored <- NULL
-        restore_grid(blocks(), blocks_ns, vals)
+        restore_grid(blocks(), blocks_ns, vals, parent)
         parent$grid_restored <- "grid"
       }
     )
@@ -74,11 +74,13 @@ grid_server <- function(id, parent, blocks, blocks_ns) {
     )
 
     # When we change block, update the switch to the value it should
-    # be from vals$in_grid[[selected()]]. Also, callback from links module: any change in the add to grid
+    # be from vals$in_grid[[selected()]]. Also, callback from
+    # links module: any change in the add to grid
     # options updates the local in_grid reactive value to move
     # the blocks between the sidebar and the grid.
     observeEvent(
       {
+        req(length(blocks()) > 0, length(parent$in_grid) > 0)
         req(parent$selected_block %in% names(blocks()))
         c(parent$selected_block, parent$in_grid)
       },

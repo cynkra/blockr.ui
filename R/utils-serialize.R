@@ -23,7 +23,7 @@ blockr_ser.custom_board <- function(
     blocks = blockr_ser(board_blocks(x), blocks),
     links = lapply(board_links(x), blockr_ser),
     nodes = blockr_ser(network),
-    selected_node = selected,
+    selected_block = selected,
     grid = blockr_ser(grid),
     mode = mode,
     version = as.character(utils::packageVersion(utils::packageName()))
@@ -42,17 +42,22 @@ blockr_ser.data.frame <- function(x, ...) {
 #' @param data Data to restore.
 #' @export
 blockr_deser.custom_board <- function(x, data, ...) {
-  new_board(
-    blockr_deser(data[["blocks"]]),
-    lapply(data[["links"]], blockr_deser),
+  list(
+    board = new_board(
+      blockr_deser(data[["blocks"]]),
+      lapply(data[["links"]], blockr_deser),
+      class = setdiff(class(x), "board")
+    ),
+    # Other elements that are not part of the board
+    # and need to be restored at the top level
     nodes = blockr_deser(data[["nodes"]]),
-    selected_node = data[["selected_node"]],
+    selected_block = data[["selected_node"]],
     grid = blockr_deser(data[["grid"]]),
-    mode = data[["mode"]],
-    class = setdiff(class(x), "board")
+    mode = data[["mode"]]
   )
 }
 
+#' @rdname blockr_ser
 #' @export
 blockr_deser.data.frame <- function(x, data, ...) {
   # null becomes NA ...
@@ -63,6 +68,10 @@ blockr_deser.data.frame <- function(x, data, ...) {
   as.data.frame(data[["payload"]])
 }
 
+#' Create board filename
+#'
+#' @param rv Internal reactiveValues for read-only usage.
+#' @keywords internal
 board_filename <- function(rv) {
   function() {
     paste0(
@@ -74,6 +83,11 @@ board_filename <- function(rv) {
   }
 }
 
+#' Save board to disk
+#'
+#' @param rv Internal reactiveValues for read-only usage.
+#' @param parent Parent reactiveValues to communicate to other modules.
+#' @keywords internal
 write_board_to_disk <- function(rv, parent) {
   function(con) {
     blocks <- lapply(
@@ -88,7 +102,7 @@ write_board_to_disk <- function(rv, parent) {
         blocks,
         parent$nodes,
         parent$grid,
-        parent$selected,
+        parent$selected_block,
         parent$mode
       )
     )
@@ -126,6 +140,14 @@ check_ser_deser_val <- function(val) {
   val
 }
 
+#' Capture board snapshot
+#'
+#' This is used to autosnapshot the board.
+#'
+#' @param vals Local reactiveValues.
+#' @param rv Internal reactiveValues for read-only usage.
+#' @param parent Parent reactiveValues to communicate to other modules.
+#' @keywords internal
 snapshot_board <- function(vals, rv, parent) {
   # Prevents undo/redo from triggering new snapshot
   # after the previous or next state are restored.
@@ -138,8 +160,27 @@ snapshot_board <- function(vals, rv, parent) {
 
   file_name <- board_filename(rv)()
   write_board_to_disk(rv, parent)(file_name)
-  vals$backup_list <- list.files(pattern = ".json$")
+  vals$backup_list <- list.files(
+    pattern = paste0("^", rv$board_id, ".*\\.json$")
+  )
   vals$current_backup <- length(vals$backup_list)
+}
+
+#' Restore board from snapshot
+#'
+#' @param path JSON snapshot path.
+#' @param res reactiveVal containing the module returned value.
+#' @param parent Parent reactiveValues to communicate to other modules.
+#' @keywords internal
+restore_board <- function(path, res, parent) {
+  tmp_res <- from_json(path)
+  res(tmp_res$board)
+  # Update parent node, grid, selected, mode
+  # that were stored in the JSON but not part of the board object.
+  parent$nodes <- tmp_res$nodes
+  parent$grid <- tmp_res$grid
+  parent$selected_block <- tmp_res$selected_block
+  parent$mode <- tmp_res$mode
 }
 
 toggle_undo_redo <- function(vals) {
@@ -166,6 +207,10 @@ toggle_undo_redo <- function(vals) {
   )
 }
 
+#' Get the state of a block
+#'
+#' @param rv Internal reactiveValues for read-only usage.
+#' @keywords internal
 get_blocks_state <- function(rv) {
   req(length(board_blocks(rv$board)) > 0)
   lapply(rv$blocks, \(blk) {
