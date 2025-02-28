@@ -12,22 +12,14 @@ test_that("Board works", {
   )
 
   inputs <- c(
-    "main-board-manage_blocks-add_block",
-    "main-board-manage_blocks-append_block",
-    "main-board-manage_blocks-remove_block",
     "main-board-manage_blocks-scoutbar-configuration",
     "main-board-manage_links-network_initialized",
-    "main-board-manage_links-network_selected",
-    "main-grid-add_to_grid",
-    "main-grid-lock",
-    "main-mode",
-    "main-properties",
-    "main-preview"
+    "main-board-lock",
+    "main-board-properties",
+    "main-board-dashboard"
   )
 
-  app$expect_values(
-    input = inputs
-  )
+  app$expect_values(input = inputs, export = TRUE)
 
   # Add block
   app$click("main-board-manage_blocks-add_block")
@@ -36,9 +28,9 @@ test_that("Board works", {
     selector = ".scout__bar-wrapper button[aria-label=\"dataset_block\"]"
   )
   app$wait_for_idle()
-  app$expect_values(input = inputs)
+  app$expect_values(input = inputs, export = TRUE)
   app$click("main-board-manage_blocks-remove_block")
   app$wait_for_idle()
-  app$expect_values(input = inputs)
+  app$expect_values(input = inputs, export = TRUE)
   app$stop()
 })

@@ -59,7 +59,7 @@ update_block_grid_input <- function(selected, value, vals, session) {
 #'
 #' @param id Block id
 #' @rdname board-grid
-add_block_to_grid <- function(id, vals, blocks_ns, session) {
+add_block_to_grid <- function(id, vals, session) {
   ns <- session$ns
   # Similar gs_proxy_add so that we can
   # move an element to the grid and call the JS method
@@ -69,7 +69,7 @@ add_block_to_grid <- function(id, vals, blocks_ns, session) {
 
   # Create default dims in case (new block)
   pars <- list(
-    id = sprintf("%s-%s", blocks_ns, id),
+    id = ns(id),
     w = 4,
     h = 4
   )
@@ -77,7 +77,7 @@ add_block_to_grid <- function(id, vals, blocks_ns, session) {
   # If node was in the grid ...
   if (nrow(vals$grid) && any(grepl(id, vals$grid$id))) {
     pars <- as.list(
-      vals$grid[vals$grid$id == sprintf("%s-%s", blocks_ns, id), ]
+      vals$grid[vals$grid$id == ns(id), ]
     )
   }
 
@@ -93,14 +93,14 @@ add_block_to_grid <- function(id, vals, blocks_ns, session) {
 #' Remove block from grid
 #'
 #' @rdname board-grid
-remove_block_from_grid <- function(id, blocks_ns, session) {
+remove_block_from_grid <- function(id, session) {
   ns <- session$ns
   # Move items back to properties panel
   session$sendCustomMessage(
     "move-widget-to-sidebar",
     list(
-      id = sprintf("#%s_blocks", blocks_ns),
-      block_id = sprintf("#%s-%s", blocks_ns, id)
+      id = sprintf("#%s_blocks", ns(NULL)),
+      block_id = sprintf("#%s", ns(id))
     )
   )
 }
@@ -108,10 +108,9 @@ remove_block_from_grid <- function(id, blocks_ns, session) {
 #' Manage board grid
 #' @param mode App mode.
 #' @param vals Local reactive values.
-#' @param blocks_ns Blocks namespace.
 #' @param session Shiny session object.
 #' @rdname board-grid
-manage_board_grid <- function(mode, vals, blocks_ns, session) {
+manage_board_grid <- function(mode, vals, session) {
   ns <- session$ns
 
   current_grid_layout <- process_grid_content(vals, session$input$grid_layout)
@@ -120,7 +119,9 @@ manage_board_grid <- function(mode, vals, blocks_ns, session) {
   # Cleanup grid in editor mode
   if (mode == "network") {
     lapply(names(which(vals$in_grid == TRUE)), \(id) {
-      remove_block_from_grid(id, blocks_ns, session)
+      if (nrow(current_grid_layout) > 0) {
+        remove_block_from_grid(id, session)
+      }
     })
     gs_proxy_remove_all(ns("grid"))
     return(NULL)
@@ -133,22 +134,22 @@ manage_board_grid <- function(mode, vals, blocks_ns, session) {
     # is marked, we can insert it
     if (nrow(current_grid_layout) == 0) {
       if (new_state) {
-        add_block_to_grid(nme, vals, blocks_ns, session)
+        add_block_to_grid(nme, vals, session)
       }
     } else {
       # Update if any of the in_grid state or layout has changed
       if (new_state) {
         # Need to clean the existing element to re-add it at a different place
-        remove_block_from_grid(nme, blocks_ns, session)
+        remove_block_from_grid(nme, session)
         gs_proxy_remove_item(
           ns("grid"),
           id = grep(nme, in_grid_ids, value = TRUE)
         )
-        add_block_to_grid(nme, vals, blocks_ns, session)
+        add_block_to_grid(nme, vals, session)
       }
       if (!new_state) {
         # Only remove
-        remove_block_from_grid(nme, blocks_ns, session)
+        remove_block_from_grid(nme, session)
         gs_proxy_remove_item(
           ns("grid"),
           id = grep(nme, in_grid_ids, value = TRUE)
@@ -179,12 +180,12 @@ process_grid_content <- function(vals, grid_layout) {
 #' Restore grid state from board state
 #'
 #' @param blocks Board block objects.
-#' @param blocks_ns Blocks namespace.
 #' @param vals Local reactive values.
 #' @param parent Parent reactive values.
+#' @param session Shiny session object.
 #' Contains blocks coordinates, dimensions, ...
 #' @keywords internal
-restore_grid <- function(blocks, blocks_ns, vals, parent) {
+restore_grid <- function(blocks, vals, parent, session) {
   vals$in_grid <- NULL
   vals$grid <- parent$grid
   ids <- names(blocks)
@@ -200,7 +201,7 @@ restore_grid <- function(blocks, blocks_ns, vals, parent) {
 
   # Otherwise we spread elements between the grid and the network
   in_grid_ids <- chr_ply(
-    strsplit(vals$grid$id, paste0(blocks_ns, "-")),
+    strsplit(vals$grid$id, session$ns("")),
     `[[`,
     2
   )

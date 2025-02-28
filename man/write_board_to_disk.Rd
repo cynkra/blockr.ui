@@ -4,12 +4,14 @@
 \alias{write_board_to_disk}
 \title{Save board to disk}
 \usage{
-write_board_to_disk(rv, parent)
+write_board_to_disk(rv, parent, session)
 }
 \arguments{
 \item{rv}{Internal reactiveValues for read-only usage.}
 
 \item{parent}{Parent reactiveValues to communicate to other modules.}
+
+\item{session}{Shiny session object.}
 }
 \description{
 Save board to disk

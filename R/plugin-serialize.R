@@ -30,7 +30,7 @@ ser_deser_server <- function(id, rv, ...) {
       # app state with another group.
       output$serialize <- downloadHandler(
         board_filename(rv),
-        write_board_to_disk(rv, dot_args$parent)
+        write_board_to_disk(rv, dot_args$parent, session)
       )
 
       # Cleanup old files on start
@@ -64,7 +64,7 @@ ser_deser_server <- function(id, rv, ...) {
           snapshot_trigger()
         },
         {
-          snapshot_board(vals, rv, dot_args$parent)
+          snapshot_board(vals, rv, dot_args$parent, session)
         }
       )
 

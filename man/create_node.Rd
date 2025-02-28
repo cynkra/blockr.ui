@@ -9,9 +9,9 @@ create_node(new, vals, rv, session)
 \arguments{
 \item{new}{New block to add.}
 
-\item{vals}{Local reactive values.}
+\item{vals}{Global reactive values. To communicate between modules.}
 
-\item{rv}{Global vals reactive values.}
+\item{rv}{Board reactive values. Read-only.}
 
 \item{session}{Shiny session object.}
 }

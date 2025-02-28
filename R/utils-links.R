@@ -3,7 +3,7 @@
 #' Update dataframe for visNetwork graph
 #'
 #' @param new New block to add.
-#' @param vals Local reactive values.
+#' @param vals Global reactive values. To communicate between modules
 #' @keywords internal
 add_node <- function(new, vals) {
   stopifnot(
@@ -136,6 +136,12 @@ remove_node <- function(selected, vals, session) {
   visNetworkProxy(ns("network"), session = session) |>
     visRemoveNodes(selected)
 
+  # Unselect all nodes
+  session$sendCustomMessage(
+    "reset-node-selection",
+    list(id = sprintf("#%s", ns("network")))
+  )
+
   vals$nodes <- vals$nodes[-to_remove, ]
   vals
 }
@@ -205,7 +211,7 @@ remove_edge <- function(selected, vals, session) {
 #'
 #' @param x block.
 #' @param target Connection target id.
-#' @param rv Reactive values.
+#' @param rv Board reactive values.
 #'
 list_empty_connections <- function(x, target, rv) {
   UseMethod("list_empty_connections", x)
@@ -225,7 +231,7 @@ list_empty_connections.block <- function(x, target, rv) {
 #'
 #' @param x block.
 #' @param target Connection target id.
-#' @param rv Reactive values.
+#' @param rv Board reactive values.
 #'
 #' @export
 check_connections <- function(x, target, rv) {
@@ -248,11 +254,21 @@ check_connections.rbind_block <- function(x, target, rv) {
   TRUE
 }
 
+#' @export
+check_connections.llm_plot_block <- function(x, target, rv) {
+  TRUE
+}
+
+#' @export
+check_connections.llm_transform_block <- function(x, target, rv) {
+  TRUE
+}
+
 #' Check whether the node can receive connection
 #'
 #' @param x Block object.
 #' @param target Connection target id.
-#' @param rv Reactive values
+#' @param rv Board reactive values
 #' @export
 can_connect <- function(x, target, rv) {
   UseMethod("can_connect")
@@ -295,7 +311,7 @@ validate_edge_creation <- function(target, rv) {
 #'
 #' @param x Block object.
 #' @param target Connection target id.
-#' @param rv Reactive values
+#' @param rv Board reactive values
 #' @export
 define_conlabel <- function(x, target, rv) {
   UseMethod("define_conlabel")
@@ -313,6 +329,12 @@ define_conlabel.rbind_block <- function(x, target, rv) {
   res <- if (!length(links)) 1 else length(links) + 1
   as.character(res)
 }
+
+#' @export
+define_conlabel.llm_plot_block <- define_conlabel.rbind_block
+
+#' @export
+define_conlabel.llm_transform_block <- define_conlabel.rbind_block
 
 #' Create an edge and add it to the network
 #'
@@ -368,8 +390,8 @@ create_edge <- function(new, vals, rv, session) {
 #' as many children nodes as required.
 #'
 #' @param new New block to add.
-#' @param vals Local reactive values.
-#' @param rv Global vals reactive values.
+#' @param vals Global reactive values. To communicate between modules.
+#' @param rv Board reactive values. Read-only.
 #' @param session Shiny session object.
 #' @export
 create_node <- function(new, vals, rv, session) {
@@ -405,7 +427,7 @@ create_node <- function(new, vals, rv, session) {
 #' by cleanup_node.
 #'
 #' @param vals Global reactive values. Read-write.
-#' @param rv Global reactive values. Read-only.
+#' @param rv Board reactive values. Read-only.
 #' @param session Shiny session object.
 #' @export
 register_node_validation <- function(vals, rv, session) {

@@ -6,6 +6,7 @@
 #' @param grid gridstack data.
 #' @param selected Selected node.
 #' @param mode App mode.
+#' @param options Board options.
 #' @param ... Generic consistency.
 #' @export
 #' @rdname blockr_ser
@@ -16,12 +17,15 @@ blockr_ser.custom_board <- function(
   grid = NULL,
   selected = NULL,
   mode = NULL,
+  options = NULL,
   ...
 ) {
   list(
     object = class(x),
     blocks = blockr_ser(board_blocks(x), blocks),
     links = lapply(board_links(x), blockr_ser),
+    stacks = lapply(board_stacks(x), blockr_ser),
+    options = blockr_ser(board_options(x), options),
     nodes = blockr_ser(network),
     selected_block = selected,
     grid = blockr_ser(grid),
@@ -44,8 +48,10 @@ blockr_ser.data.frame <- function(x, ...) {
 blockr_deser.custom_board <- function(x, data, ...) {
   list(
     board = new_board(
-      blockr_deser(data[["blocks"]]),
-      lapply(data[["links"]], blockr_deser),
+      blocks = blockr_deser(data[["blocks"]]),
+      links = lapply(data[["links"]], blockr_deser),
+      stacks = lapply(data[["stacks"]], blockr_deser),
+      options = blockr_deser(data[["options"]]),
       class = setdiff(class(x), "board")
     ),
     # Other elements that are not part of the board
@@ -87,13 +93,20 @@ board_filename <- function(rv) {
 #'
 #' @param rv Internal reactiveValues for read-only usage.
 #' @param parent Parent reactiveValues to communicate to other modules.
+#' @param session Shiny session object.
 #' @keywords internal
-write_board_to_disk <- function(rv, parent) {
+write_board_to_disk <- function(rv, parent, session) {
   function(con) {
     blocks <- lapply(
       lst_xtr(rv$blocks, "server", "state"),
       lapply,
       reval_if
+    )
+
+    opts <- lapply(
+      set_names(nm = list_board_options(rv$board)),
+      board_option_from_userdata,
+      session
     )
 
     json <- jsonlite::prettify(
@@ -103,12 +116,33 @@ write_board_to_disk <- function(rv, parent) {
         parent$nodes,
         parent$grid,
         parent$selected_block,
-        parent$mode
+        parent$mode,
+        opts
       )
     )
 
     writeLines(json, con)
   }
+}
+
+board_option_from_userdata <- function(name, session) {
+  rv <- get0(name, envir = session$userData, inherits = FALSE)
+
+  if (is.null(rv)) {
+    return(NULL)
+  }
+
+  res <- rv()
+
+  if (is.null(res)) {
+    return(NULL)
+  }
+
+  if (identical(name, "page_size")) {
+    res <- as.integer(res)
+  }
+
+  res
 }
 
 check_ser_deser_val <- function(val) {
@@ -147,8 +181,9 @@ check_ser_deser_val <- function(val) {
 #' @param vals Local reactiveValues.
 #' @param rv Internal reactiveValues for read-only usage.
 #' @param parent Parent reactiveValues to communicate to other modules.
+#' @param session Shiny session object.
 #' @keywords internal
-snapshot_board <- function(vals, rv, parent) {
+snapshot_board <- function(vals, rv, parent, session) {
   # Prevents undo/redo from triggering new snapshot
   # after the previous or next state are restored.
   # The vals$auto_snapshot is release so that any other
@@ -159,7 +194,7 @@ snapshot_board <- function(vals, rv, parent) {
   }
 
   file_name <- board_filename(rv)()
-  write_board_to_disk(rv, parent)(file_name)
+  write_board_to_disk(rv, parent, session)(file_name)
   vals$backup_list <- list.files(
     pattern = paste0("^", rv$board_id, ".*\\.json$")
   )

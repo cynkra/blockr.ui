@@ -7,17 +7,18 @@
 \usage{
 grid_ui(id)
 
-grid_server(id, parent, blocks, blocks_ns)
+grid_server(rv, update, parent, ...)
 }
 \arguments{
 \item{id}{Module id.}
 
-\item{parent}{Parent reactive values containing app mode
-or which block should be in grid.}
+\item{rv}{Board reactiveValues. Read-only.}
 
-\item{blocks}{Board blocks.}
+\item{update}{Update reactiveVal to signal change to the board.}
 
-\item{blocks_ns}{In which namespace are the blocks}
+\item{parent}{Parent global reactiveValues.}
+
+\item{...}{Extra parameters.}
 }
 \description{
 Dashboard grid UI

@@ -4,7 +4,7 @@
 \alias{snapshot_board}
 \title{Capture board snapshot}
 \usage{
-snapshot_board(vals, rv, parent)
+snapshot_board(vals, rv, parent, session)
 }
 \arguments{
 \item{vals}{Local reactiveValues.}
@@ -12,6 +12,8 @@ snapshot_board(vals, rv, parent)
 \item{rv}{Internal reactiveValues for read-only usage.}
 
 \item{parent}{Parent reactiveValues to communicate to other modules.}
+
+\item{session}{Shiny session object.}
 }
 \description{
 This is used to autosnapshot the board.

@@ -88,7 +88,7 @@ off_canvas <- function(
 dropdown_button <- function(..., icon) {
   tagList(
     tags$button(
-      class = "btn dropdown-toggle",
+      class = "btn",
       type = "button",
       `data-bs-toggle` = "dropdown",
       `aria-expanded` = "false",

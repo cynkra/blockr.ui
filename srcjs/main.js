@@ -11,5 +11,9 @@ $(function () {
   setupBlocksGrid();
   manageNodeMenu();
   handleViewerMode();
-  // TBD How to prevent from unselecting node when clickin outside of it.
+  // Unselect all nodes when removing a block.
+  Shiny.addCustomMessageHandler("reset-node-selection", (m) => {
+    let widget = HTMLWidgets.find(m.id).network;
+    widget.unselectAll();
+  })
 });

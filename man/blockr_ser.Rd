@@ -13,6 +13,7 @@
   grid = NULL,
   selected = NULL,
   mode = NULL,
+  options = NULL,
   ...
 )
 
@@ -32,6 +33,8 @@
 \item{selected}{Selected node.}
 
 \item{mode}{App mode.}
+
+\item{options}{Board options.}
 
 \item{...}{Generic consistency.}
 

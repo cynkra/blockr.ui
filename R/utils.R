@@ -37,4 +37,9 @@ lst_xtr <- function(x, ...) {
   x
 }
 
+set_names <- function(object = nm, nm) {
+  names(object) <- nm
+  object
+}
+
 reval_if <- function(x) if (is.function(x)) x() else x

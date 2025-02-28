@@ -1,7 +1,7 @@
 #' Dashboard grid UI
 #'
 #' @param id Module id.
-#' @rdname dashboard
+#' @rdname grid
 #' @export
 grid_ui <- function(id) {
   ns <- NS(id)
@@ -29,154 +29,161 @@ grid_ui <- function(id) {
 
 #' Dashboard grid server
 #'
-#' @param parent Parent reactive values containing app mode
-#' or which block should be in grid.
-#' @param blocks Board blocks.
-#' @param blocks_ns In which namespace are the blocks
-#' @rdname dashboard
+#' @param rv Board reactiveValues. Read-only.
+#' @param update Update reactiveVal to signal change to the board.
+#' @param parent Parent global reactiveValues.
+#' @param ... Extra parameters.
+#' @rdname grid
 #' @export
-grid_server <- function(id, parent, blocks, blocks_ns) {
-  moduleServer(id, function(input, output, session) {
-    ns <- session$ns
+grid_server <- function(rv, update, parent, ...) {
+  session <- get("session", parent.frame(1))
+  input <- session$input
+  ns <- session$ns
+  output <- session$output
 
-    # Local reactiveValues
-    vals <- reactiveValues(
-      grid = data.frame(),
-      in_grid = list()
-    )
+  # Local reactiveValues
+  vals <- reactiveValues(
+    grid = data.frame(),
+    in_grid = list()
+  )
 
-    # Store observers if needed
-    obs <- list()
+  # Store observers if needed
+  obs <- list()
 
-    # Restore grid from serialisation only when network is restored
-    observeEvent(
-      {
-        req(parent$refreshed == "network")
-      },
-      {
-        restore_grid(blocks(), blocks_ns, vals, parent)
-        parent$refreshed <- "grid"
-      }
-    )
+  # Restore grid from serialisation only when network is restored
+  observeEvent(
+    {
+      req(parent$refreshed == "network")
+    },
+    {
+      restore_grid(rv$blocks, vals, parent, session)
+      parent$refreshed <- "grid"
+    }
+  )
 
-    # Initialise a mapping list containing all blocks
-    # ids and whether they are in the grid. Must update
-    # whenever a new block is created
-    observeEvent(
-      {
-        req(length(blocks()) > 0)
-        blocks()
-      },
-      {
-        init_blocks_grid_state(blocks(), vals)
-      }
-    )
+  # Initialise a mapping list containing all blocks
+  # ids and whether they are in the grid. Must update
+  # whenever a new block is created
+  observeEvent(
+    {
+      req(length(rv$blocks) > 0)
+      rv$blocks
+    },
+    {
+      init_blocks_grid_state(rv$blocks, vals)
+    }
+  )
 
-    # When we change block, update the switch to the value it should
-    # be from vals$in_grid[[selected()]]. Also, callback from
-    # links module: any change in the add to grid
-    # options updates the local in_grid reactive value to move
-    # the blocks between the sidebar and the grid.
-    observeEvent(
-      {
-        req(length(blocks()) > 0, length(parent$in_grid) > 0)
-        req(parent$selected_block %in% names(parent$in_grid))
-        c(parent$selected_block, parent$in_grid)
-      },
-      {
-        update_block_grid_input(
-          parent$selected_block,
-          parent$in_grid[[parent$selected_block]],
-          vals,
-          session
-        )
-      }
-    )
+  # Removed block must not be referenced in the grid
+  observeEvent(parent$removed_block, {
+    vals$in_grid[[parent$removed_block]] <- FALSE
+  })
 
-    # Toggle state for each selected block to update the state
-    observeEvent(
-      req(input$add_to_grid > 0),
-      {
-        update_block_grid_state(
-          parent$selected_block,
-          input$add_to_grid,
-          vals
-        )
-      }
-    )
-
-    # Move items between properties tab and grid.
-    # Since we can't rebuilt the UI of each block and preserve its state
-    # we have to move elements from one place to another. This also avoids ID
-    # duplication.
-    observeEvent(
-      {
-        parent$mode
-        req(length(vals$in_grid))
-        parent$refreshed == "grid"
-      },
-      {
-        manage_board_grid(parent$mode, vals, blocks_ns, session)
-      }
-    )
-
-    # Render grid of block outputs in dashboard mode.
-    # We rely on an rv cache to keep track of where a node was before switching from
-    # a mode to another. This cache is a list contains bucket and body dataframes with block
-    # id, (x, y) position and dimensions (h and w).
-    # NOTE: it seems that Shiny some inputs won't work in a gridstack like selectize.js elements
-
-    # The GridStack layout can be retrieved via the special shiny input ⁠input$<outputId>_layout⁠.
-    # This allows us to know which block is where and restore the correct layout via a proxy (see
-    # observer above).
-    output$grid <- renderGridstack({
-      gridstack(
-        margin = "10px",
-        #cellHeight = "200px",
-        resize_handles = "all",
-        float = TRUE, # allow to drop elements anywhere
-        options = list(
-          acceptWidgets = TRUE #,
-          # Avoids dead space and scrolling bars
-          #sizeToContent = TRUE
-        )
+  # When we change block, update the switch to the value it should
+  # be from vals$in_grid[[selected()]]. Also, callback from
+  # links module: any change in the add to grid
+  # options updates the local in_grid reactive value to move
+  # the blocks between the sidebar and the grid.
+  observeEvent(
+    {
+      req(length(rv$blocks) > 0, length(parent$in_grid) > 0)
+      req(parent$removed_block != parent$selected_block)
+      req(parent$selected_block %in% names(parent$in_grid))
+      c(parent$selected_block, parent$in_grid)
+    },
+    {
+      update_block_grid_input(
+        parent$selected_block,
+        parent$in_grid[[parent$selected_block]],
+        vals,
+        session
       )
-    })
-    outputOptions(output, "grid", suspendWhenHidden = FALSE)
+    }
+  )
 
-    # Handle zoom on grid element
-    observeEvent(input$grid_zoom, {
-      handle_grid_zoom(session)
-    })
+  # Toggle state for each selected block to update the state
+  observeEvent(
+    req(input$add_to_grid > 0),
+    {
+      update_block_grid_state(
+        parent$selected_block,
+        input$add_to_grid,
+        vals
+      )
+    }
+  )
 
-    # Format layout elements as dataframe for easier use
-    grid_content <- reactive({
-      req(parent$mode == "dashboard")
-      process_grid_content(vals, input$grid_layout)
-    })
+  # Move items between properties tab and grid.
+  # Since we can't rebuilt the UI of each block and preserve its state
+  # we have to move elements from one place to another. This also avoids ID
+  # duplication.
+  observeEvent(
+    {
+      parent$mode
+      req(length(vals$in_grid))
+      parent$refreshed == "grid"
+    },
+    {
+      manage_board_grid(parent$mode, vals, session)
+    }
+  )
 
-    # Update rv cache to real time change in the grid only
-    # in dashboard mode.
-    observeEvent(
-      {
-        grid_content()
-      },
-      {
-        vals$grid <- grid_content()
-      }
+  # Render grid of block outputs in dashboard mode.
+  # We rely on an rv cache to keep track of where a node was before switching from
+  # a mode to another. This cache is a list contains bucket and body dataframes with block
+  # id, (x, y) position and dimensions (h and w).
+  # NOTE: it seems that Shiny some inputs won't work in a gridstack like selectize.js elements
+
+  # The GridStack layout can be retrieved via the special shiny input ⁠input$<outputId>_layout⁠.
+  # This allows us to know which block is where and restore the correct layout via a proxy (see
+  # observer above).
+  output$grid <- renderGridstack({
+    gridstack(
+      margin = "10px",
+      #cellHeight = "200px",
+      resize_handles = "all",
+      float = TRUE, # allow to drop elements anywhere
+      options = list(
+        acceptWidgets = TRUE #,
+        # Avoids dead space and scrolling bars
+        #sizeToContent = TRUE
+      )
     )
+  })
+  outputOptions(output, "grid", suspendWhenHidden = FALSE)
 
-    # Lock grid
-    observeEvent(input$lock, {
-      gridstackr::gs_proxy_enable_move(ns("grid"), !input$lock)
-    })
+  # Handle zoom on grid element
+  observeEvent(input$grid_zoom, {
+    handle_grid_zoom(session)
+  })
 
-    observeEvent(vals$in_grid, {
-      parent$in_grid <- vals$in_grid
-    })
+  # Format layout elements as dataframe for easier use
+  grid_content <- reactive({
+    req(parent$mode == "dashboard")
+    process_grid_content(vals, input$grid_layout)
+  })
 
-    observeEvent(vals$grid, {
-      parent$grid <- vals$grid
-    })
+  # Update rv cache to real time change in the grid only
+  # in dashboard mode.
+  observeEvent(
+    {
+      grid_content()
+    },
+    {
+      vals$grid <- grid_content()
+    }
+  )
+
+  # Lock grid
+  observeEvent(input$lock, {
+    gridstackr::gs_proxy_enable_move(ns("grid"), !input$lock)
+  })
+
+  observeEvent(vals$in_grid, {
+    parent$in_grid <- vals$in_grid
+  })
+
+  observeEvent(vals$grid, {
+    parent$grid <- vals$grid
   })
 }

@@ -69,20 +69,15 @@ add_rm_block_server <- function(id, rv, update, ...) {
         attr(dot_args$parent$added_block, "uid") <- names(new_blk)
       })
 
-      # Remove block and node:
-      # - rv$removed_block is used to remove the node element.
-      # - res$rm is used to remove the block module.
+      # Remove block and node
       observeEvent(
         input$remove_block,
         {
           dot_args$parent$removed_block <- dot_args$parent$selected_block
-          update(
-            list(blocks = list(rm = dot_args$parent$selected_block))
-          )
         }
       )
 
-      # Remove block (triggered from the links module)
+      # Remove block (triggered from the links module or from this module)
       observeEvent(dot_args$parent$removed_block, {
         update(
           list(blocks = list(rm = dot_args$parent$removed_block))

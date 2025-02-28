@@ -9,7 +9,7 @@ register_node_validation(vals, rv, session)
 \arguments{
 \item{vals}{Global reactive values. Read-write.}
 
-\item{rv}{Global reactive values. Read-only.}
+\item{rv}{Board reactive values. Read-only.}
 
 \item{session}{Shiny session object.}
 }
