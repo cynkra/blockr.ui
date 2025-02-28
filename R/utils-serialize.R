@@ -78,6 +78,7 @@ blockr_deser.data.frame <- function(x, data, ...) {
 #'
 #' @param rv Internal reactiveValues for read-only usage.
 #' @keywords internal
+#' @rdname save-board
 board_filename <- function(rv) {
   function() {
     paste0(
@@ -95,6 +96,7 @@ board_filename <- function(rv) {
 #' @param parent Parent reactiveValues to communicate to other modules.
 #' @param session Shiny session object.
 #' @keywords internal
+#' @rdname save-board
 write_board_to_disk <- function(rv, parent, session) {
   function(con) {
     blocks <- lapply(
@@ -218,6 +220,12 @@ restore_board <- function(path, res, parent) {
   parent$mode <- tmp_res$mode
 }
 
+#' Toggle undo/redo
+#'
+#' Toggle state of undo/redo buttons.
+#'
+#' @param vals Local module reactive Values.
+#' @keywords internal
 toggle_undo_redo <- function(vals) {
   undo_cond <- if (!length(vals$backup_list)) {
     FALSE
@@ -240,15 +248,4 @@ toggle_undo_redo <- function(vals) {
     "redo",
     cond = redo_cond
   )
-}
-
-#' Get the state of a block
-#'
-#' @param rv Internal reactiveValues for read-only usage.
-#' @keywords internal
-get_blocks_state <- function(rv) {
-  req(length(board_blocks(rv$board)) > 0)
-  lapply(rv$blocks, \(blk) {
-    blk$server$result()
-  })
 }

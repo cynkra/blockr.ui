@@ -25,3 +25,4 @@ involves some edge creation (connection). No validation is
 required in practice as a node can theoretically feed
 as many children nodes as required.
 }
+\keyword{internal}

@@ -35,9 +35,9 @@ main_server <- function(id, board) {
   moduleServer(
     id,
     function(input, output, session) {
-      ns <- session$ns
+      ns <- session$n
 
-      vals <- reactiveValues(
+      app_state <- reactiveValues(
         mode = "network",
         preview = FALSE,
         grid = NULL,
@@ -55,7 +55,7 @@ main_server <- function(id, board) {
       )
 
       # For shinytest2 (don't remove)
-      exportTestValues(vals = vals)
+      exportTestValues(res = process_app_state(app_state))
 
       # Board module
       board_server(
@@ -81,7 +81,7 @@ main_server <- function(id, board) {
           # This allows to restore each part in the correct order.
           on_board_restore = board_restore
         ),
-        parent = vals
+        parent = app_state
       )
     }
   )

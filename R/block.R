@@ -82,3 +82,15 @@ get_block_registry <- function(x) {
   stopifnot(is_block(x))
   available_blocks()[[strsplit(attr(x, "ctor"), "new_")[[1]][2]]]
 }
+
+#' Get the state of a block
+#'
+#' @param rv Board reactiveValues for read-only usage.
+#' @keywords internal
+get_blocks_state <- function(rv) {
+  stopifnot(is_board(rv$board))
+  req(length(board_blocks(rv$board)) > 0)
+  lapply(rv$blocks, \(blk) {
+    blk$server$result()
+  })
+}

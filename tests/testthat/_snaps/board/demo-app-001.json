@@ -324,10 +324,29 @@
     "main-board-properties": false
   },
   "export": {
-    "main-in_grid": [
+    "main-res": {
+      "mode": "network",
+      "preview": false,
+      "grid": {
 
-    ],
-    "main-mode": "network",
-    "main-preview": false
+      },
+      "in_grid": [
+
+      ],
+      "refreshed": null,
+      "nodes": {
+
+      },
+      "append_block": false,
+      "added_block": null,
+      "removed_block": null,
+      "selected_block": null,
+      "edges": {
+
+      },
+      "cancelled_edge": null,
+      "added_edge": null,
+      "removed_edge": null
+    }
   }
 }

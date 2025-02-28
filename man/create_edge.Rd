@@ -23,3 +23,4 @@ There is a validation layer prior to knowing whether
 we can add the edge. Then rv are updated and the graph
 proxy is also updated.
 }
+\keyword{internal}

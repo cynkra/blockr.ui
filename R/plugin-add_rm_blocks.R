@@ -31,7 +31,6 @@ add_rm_block_server <- function(id, rv, update, ...) {
       observeEvent(
         input$add_block,
         {
-          dot_args$parent$added_block <- NULL
           # Reset add_block_to
           dot_args$parent$append_block <- FALSE
           update_scoutbar(
@@ -89,6 +88,11 @@ add_rm_block_server <- function(id, rv, update, ...) {
         update(
           list(blocks = list(rm = dot_args$parent$cancelled_edge))
         )
+      })
+
+      # Reset added_block (no need to keep some old state)
+      observeEvent(update()$blocks$rm, {
+        dot_args$parent$added_block <- NULL
       })
 
       NULL

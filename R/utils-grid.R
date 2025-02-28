@@ -59,6 +59,7 @@ update_block_grid_input <- function(selected, value, vals, session) {
 #'
 #' @param id Block id
 #' @rdname board-grid
+#' @keywords internal
 add_block_to_grid <- function(id, vals, session) {
   ns <- session$ns
   # Similar gs_proxy_add so that we can
@@ -93,6 +94,7 @@ add_block_to_grid <- function(id, vals, session) {
 #' Remove block from grid
 #'
 #' @rdname board-grid
+#' @keywords internal
 remove_block_from_grid <- function(id, session) {
   ns <- session$ns
   # Move items back to properties panel
@@ -106,10 +108,12 @@ remove_block_from_grid <- function(id, session) {
 }
 
 #' Manage board grid
+#'
 #' @param mode App mode.
 #' @param vals Local reactive values.
 #' @param session Shiny session object.
 #' @rdname board-grid
+#' @keywords internal
 manage_board_grid <- function(mode, vals, session) {
   ns <- session$ns
 

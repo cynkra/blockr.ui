@@ -212,7 +212,7 @@ remove_edge <- function(selected, vals, session) {
 #' @param x block.
 #' @param target Connection target id.
 #' @param rv Board reactive values.
-#'
+#' @export
 list_empty_connections <- function(x, target, rv) {
   UseMethod("list_empty_connections", x)
 }
@@ -296,6 +296,11 @@ can_connect.block <- function(x, target, rv) {
   }
 }
 
+#' Validate edge creation for a block
+#'
+#' @param rv Board reactive values. Read-only.
+#' @param target Target block id
+#' @keywords internal
 validate_edge_creation <- function(target, rv) {
   check_cons <- can_connect(
     rv$blocks[[target]]$block,
@@ -349,7 +354,7 @@ define_conlabel.llm_transform_block <- define_conlabel.rbind_block
 #' @param vals Global reactive values. Read-write.
 #' @param rv Board reactive values. Read-only.
 #' @param session Shiny session object.
-#' @export
+#' @keywords internal
 create_edge <- function(new, vals, rv, session) {
   ns <- session$ns
   stopifnot(is.list(new))
@@ -393,7 +398,7 @@ create_edge <- function(new, vals, rv, session) {
 #' @param vals Global reactive values. To communicate between modules.
 #' @param rv Board reactive values. Read-only.
 #' @param session Shiny session object.
-#' @export
+#' @keywords internal
 create_node <- function(new, vals, rv, session) {
   input <- session$input
   ns <- session$ns
@@ -423,13 +428,13 @@ create_node <- function(new, vals, rv, session) {
 #'
 #' For each block we register an observer that
 #' captures only the messages related to this block validation
-#' status. The observer is destroyed when the node is cleaned
-#' by cleanup_node.
+#' status.
 #'
 #' @param vals Global reactive values. Read-write.
 #' @param rv Board reactive values. Read-only.
 #' @param session Shiny session object.
-#' @export
+#' @rdname node-validation
+#' @keywords internal
 register_node_validation <- function(vals, rv, session) {
   id <- block_uid(vals$added_block)
   # We don't need to store the observers
@@ -458,10 +463,8 @@ register_node_validation <- function(vals, rv, session) {
 #' based on the valid status.
 #'
 #' @param message Message.
-#' @param id Node id.
-#' @param vals Global reactive values. Read-write.
-#' @param session Shiny session object.
-#' @export
+#' @rdname node-validation
+#' @keywords internal
 apply_validation <- function(message, id, vals, session) {
   ns <- session$ns
   # Restore blue color if valid

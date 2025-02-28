@@ -28,3 +28,4 @@ Remove block from grid
 
 Manage board grid
 }
+\keyword{internal}
