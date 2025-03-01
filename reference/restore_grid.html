@@ -39,23 +39,27 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">restore_grid</span><span class="op">(</span><span class="va">board</span>, <span class="va">blocks_ns</span>, <span class="va">vals</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">restore_grid</span><span class="op">(</span><span class="va">blocks</span>, <span class="va">vals</span>, <span class="va">parent</span>, <span class="va">session</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
 
 
-<dl><dt id="arg-board">board<a class="anchor" aria-label="anchor" href="#arg-board"></a></dt>
-<dd><p>Board containing saved state.</p></dd>
-
-
-<dt id="arg-blocks-ns">blocks_ns<a class="anchor" aria-label="anchor" href="#arg-blocks-ns"></a></dt>
-<dd><p>Blocks namespace.</p></dd>
+<dl><dt id="arg-blocks">blocks<a class="anchor" aria-label="anchor" href="#arg-blocks"></a></dt>
+<dd><p>Board block objects.</p></dd>
 
 
 <dt id="arg-vals">vals<a class="anchor" aria-label="anchor" href="#arg-vals"></a></dt>
-<dd><p>Local reactive values.
+<dd><p>Local reactive values.</p></dd>
+
+
+<dt id="arg-parent">parent<a class="anchor" aria-label="anchor" href="#arg-parent"></a></dt>
+<dd><p>Parent reactive values.</p></dd>
+
+
+<dt id="arg-session">session<a class="anchor" aria-label="anchor" href="#arg-session"></a></dt>
+<dd><p>Shiny session object.
 Contains blocks coordinates, dimensions, ...</p></dd>
 
 </dl></div>

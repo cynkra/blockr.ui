@@ -45,7 +45,7 @@ nodes and to append to a given node.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">register_node_menu_obs</span><span class="op">(</span><span class="va">blocks_ids</span>, <span class="va">parent</span>, <span class="va">rv</span>, <span class="va">obs</span>, <span class="va">session</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">register_node_menu_obs</span><span class="op">(</span><span class="va">blocks_ids</span>, <span class="va">vals</span>, <span class="va">obs</span>, <span class="va">session</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -56,16 +56,12 @@ nodes and to append to a given node.</p>
 <dd><p>Board block ids.</p></dd>
 
 
-<dt id="arg-parent">parent<a class="anchor" aria-label="anchor" href="#arg-parent"></a></dt>
-<dd><p>Parent scope reactive values.</p></dd>
-
-
-<dt id="arg-rv">rv<a class="anchor" aria-label="anchor" href="#arg-rv"></a></dt>
-<dd><p>Board reactive values.</p></dd>
+<dt id="arg-vals">vals<a class="anchor" aria-label="anchor" href="#arg-vals"></a></dt>
+<dd><p>Global scope reactive values.</p></dd>
 
 
 <dt id="arg-obs">obs<a class="anchor" aria-label="anchor" href="#arg-obs"></a></dt>
-<dd><p>Observers list.</p></dd>
+<dd><p>Plugin observers list.</p></dd>
 
 
 <dt id="arg-session">session<a class="anchor" aria-label="anchor" href="#arg-session"></a></dt>

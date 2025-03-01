@@ -39,7 +39,7 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">add_rm_block_server</span><span class="op">(</span><span class="va">id</span>, <span class="va">rv</span>, <span class="va">...</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">add_rm_block_server</span><span class="op">(</span><span class="va">id</span>, <span class="va">rv</span>, <span class="va">update</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">add_rm_block_ui</span><span class="op">(</span><span class="va">id</span>, <span class="va">board</span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -53,11 +53,16 @@
 
 
 <dt id="arg-rv">rv<a class="anchor" aria-label="anchor" href="#arg-rv"></a></dt>
-<dd><p>Reactive values object.</p></dd>
+<dd><p>Reactive values object, containing board informations.</p></dd>
+
+
+<dt id="arg-update">update<a class="anchor" aria-label="anchor" href="#arg-update"></a></dt>
+<dd><p>Reactive value object to initiate board updates.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Extra arguments passed from parent scope</p></dd>
+<dd><p>Extra arguments passed from parent scope. Useful to communicate
+between plugins and surface information at the top level (for testing ...).</p></dd>
 
 
 <dt id="arg-board">board<a class="anchor" aria-label="anchor" href="#arg-board"></a></dt>
@@ -66,9 +71,7 @@
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A <code><a href="https://rdrr.io/pkg/shiny/man/reactiveValues.html" class="external-link">shiny::reactiveValues()</a></code> object with components <code>add</code> and <code>rm</code>,
-where <code>add</code> may be <code>NULL</code> or a <code>block</code> object and <code>rm</code> be <code>NULL</code> or a string
-(block ID).</p>
+    <p>NULL.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
