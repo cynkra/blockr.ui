@@ -1,131 +1,75 @@
 library(blockr.core)
 library(blockr.dplyr)
 
-testServer(
-  network_server,
-  {
-    # Init state
-    session$setInputs(add_block = 0)
-    expect_s3_class(rv$edges, "data.frame")
-    expect_s3_class(rv$nodes, "data.frame")
-    expect_true(nrow(rv$edges) == 0)
-    expect_true(nrow(rv$nodes) == 0)
-    expect_null(rv$new_block)
-    expect_length(rv$added_edge, 0)
-    expect_length(rv$removed_edge, 0)
-    output$network
+test_blk <- new_dataset_block()
+attr(test_blk, "uid") <- "test"
 
-    # Add data block
-    session$setInputs(add_block = 1)
-    session$setInputs(scoutbar = "dataset_block")
-    expect_s3_class(rv$new_block, c("dataset_block", "data_block", "block"))
-    expect_true(nrow(rv$nodes) == 1)
-
-    # Add new block again
-    session$setInputs(add_block = 2)
-    expect_null(rv$new_block)
-    session$setInputs(scoutbar = "select_block")
-    expect_s3_class(rv$new_block, c("select_block", "transform_block", "block"))
-    expect_true(nrow(rv$nodes) == 2)
-
-    # Remove last added block
-    session$setInputs(network_selected = tail(rv$nodes$id, n = 1), remove = 1)
-    expect_true(nrow(rv$nodes) == 1)
-
-    # TODO: test append block
-
-    # Inspect returned values
-    expect_equal(
-      names(session$returned),
-      c(
-        "edges",
-        "nodes",
-        "selected_node",
-        "added_node",
-        "removed_node",
-        "added_edge",
-        "removed_edge"
-      )
-    )
-    invisible(
-      lapply(names(session$returned), \(val) {
-        expect_true(is.reactive(session$returned[[val]]))
-      })
-    )
-
-    expect_equal(session$returned$added_node(), rv$new_block)
-    expect_equal(session$returned$removed_node(), input$network_selected)
-    expect_equal(session$returned$added_edge(), rv$added_edge)
-    expect_equal(session$returned$removed_edge(), rv$removed_edge)
-    expect_equal(session$returned$selected_node(), input$network_selected)
-  },
-  args = list(
-    vals = reactiveValues(
-      blocks = list(),
-      connections = list(),
-      obs = list(),
-      # Cache where nodes should be in the dashboard mode.
-      grid = data.frame(),
-      mode = "network"
-    )
-  )
-)
+test_session <- shiny::MockShinySession$new()
 
 test_that("Add nodes works", {
   rv <- list(nodes = data.frame())
   expect_error(add_node(list(), rv))
-
-  blk <- new_dataset_block()
-  expect_error((add_node(blk, list())))
-  rv <- add_node(blk, rv)
+  expect_error(add_node(test_blk, list()))
+  rv <- add_node(test_blk, rv)
 
   expect_s3_class(rv$nodes, "data.frame")
-  expect_identical(rv$nodes$id, block_uid(blk))
+  expect_identical(rv$nodes$id, block_uid(test_blk))
 })
 
 test_that("Remove block works", {
-  expect_error(remove_node("www", list()))
+  expect_error(remove_node("www", list(), test_session))
   rv <- list(nodes = data.frame())
-  rv <- add_node(new_dataset_block(), rv)
+  rv <- add_node(test_blk, rv)
   expect_error(
-    remove_node(character(), rv)
+    remove_node(character(), rv, test_session)
   )
-  rv <- add_node(new_dataset_block(), rv)
-  rv <- remove_node(rv$nodes[1, "id"], rv)
-  expect_true(nrow(rv$nodes) == 1)
-
-  rv <- add_node(new_dataset_block(), rv)
-  expect_error(remove_node("www", rv))
-  expect_error(remove_node(1, rv))
-})
-
-test_that("Network ui", {
-  expect_type(network_ui("plop"), "list")
-  expect_named(network_ui("plop"), c("action_bar", "sidebar", "canvas"))
+  expect_error(remove_node("www", rv, test_session))
+  rv <- remove_node(rv$nodes[1, "id"], rv, test_session)
+  expect_true(nrow(rv$nodes) == 0)
 })
 
 test_that("Add edge works", {
-  expect_error(add_edge("1", "2", "plop", list()))
-  expect_error(add_edge(1, "2", "plop", list(edges = data.frame())))
-  expect_error(add_edge("1", 2, "plop", list(edges = data.frame())))
+  expect_error(add_edge(from = "1", to = "2", label = "plop", vals = list()))
+  expect_error(add_edge(
+    from = 1,
+    to = "2",
+    label = "plop",
+    vals = list(edges = data.frame())
+  ))
+  expect_error(add_edge(
+    from = "1",
+    to = 2,
+    label = "plop",
+    vals = list(edges = data.frame())
+  ))
   rv <- list(edges = data.frame())
-  rv <- add_edge("1", "2", "plop", rv)
+  expect_error(add_edge(
+    from = "1",
+    to = "2",
+    label = "plop",
+    vals = rv,
+    create_link = FALSE
+  ))
+  rv <- add_edge(from = "1", to = "2", label = "plop", vals = rv)
   expect_type(rv, "list")
   expect_length(rv, 2)
   expect_s3_class(rv$edges, "data.frame")
   expect_identical(nrow(rv$edges), 1L)
-  expect_type(rv$added_edge, "character")
+  expect_s3_class(rv$added_edge, "links")
+  expect_identical(rv$edges$id, names(rv$added_edge))
 })
 
 test_that("Remove edge works", {
-  expect_error(remove_edge("1", list(edges = NULL)))
-  expect_error(remove_edge("1", list(edges = data.frame())))
+  expect_error(remove_edge("1", list(edges = NULL), test_session))
+  expect_error(remove_edge("1", list(edges = data.frame()), test_session))
 
   rv <- list(edges = data.frame())
-  rv <- add_edge("1", "2", "test", rv)
-  expect_error(remove_edge("", rv))
-  expect_error(remove_edge(2, rv))
-  rv <- remove_edge("1_2", rv)
+  rv <- add_edge(from = "1", to = "2", label = "test", vals = rv)
+  expect_error(remove_edge("", rv, test_session))
+  expect_error(remove_edge(2, rv, test_session))
+  expect_error(remove_edge("1_2", rv, test_session))
+  old_rv <- rv
+  rv <- remove_edge(rv$edges$id, rv, test_session)
   expect_true(nrow(rv$edges) == 0)
-  expect_identical(rv$removed_edge, "1_2")
+  expect_identical(rv$removed_edge, old_rv$edges$id)
 })

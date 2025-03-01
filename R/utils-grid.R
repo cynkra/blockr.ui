@@ -28,7 +28,7 @@ init_blocks_grid_state <- function(blocks, vals) {
 #' For a given selected block, toggle its grid presence
 #' based on the specified value.
 #'
-#' @param selected Selected block.
+#' @param selected Selected block id.
 #' @param value New value.
 #' @param vals Local reactive values.
 #' @keywords internal
@@ -42,16 +42,16 @@ update_block_grid_state <- function(selected, value, vals) {
 #' For a given selected block, update the switch input
 #' according to the block grid state (if values are different).
 #'
-#' @param selected Selected block.
+#' @param selected Selected block id.
 #' @param value New value.
 #' @param vals Local reactive values.
 #' @param session Shiny session object.
 #' @keywords internal
 update_block_grid_input <- function(selected, value, vals, session) {
-  if (vals$in_grid[[selected]] == value) return(NULL)
+  update_block_grid_state(selected, value, vals)
   update_switch(
     "add_to_grid",
-    value = vals$in_grid[[selected]]
+    value = value
   )
 }
 
@@ -59,7 +59,8 @@ update_block_grid_input <- function(selected, value, vals, session) {
 #'
 #' @param id Block id
 #' @rdname board-grid
-add_block_to_grid <- function(id, vals, blocks_ns, session) {
+#' @keywords internal
+add_block_to_grid <- function(id, vals, session) {
   ns <- session$ns
   # Similar gs_proxy_add so that we can
   # move an element to the grid and call the JS method
@@ -69,7 +70,7 @@ add_block_to_grid <- function(id, vals, blocks_ns, session) {
 
   # Create default dims in case (new block)
   pars <- list(
-    id = sprintf("%s-%s", blocks_ns, id),
+    id = ns(id),
     w = 4,
     h = 4
   )
@@ -77,7 +78,7 @@ add_block_to_grid <- function(id, vals, blocks_ns, session) {
   # If node was in the grid ...
   if (nrow(vals$grid) && any(grepl(id, vals$grid$id))) {
     pars <- as.list(
-      vals$grid[vals$grid$id == sprintf("%s-%s", blocks_ns, id), ]
+      vals$grid[vals$grid$id == ns(id), ]
     )
   }
 
@@ -93,14 +94,15 @@ add_block_to_grid <- function(id, vals, blocks_ns, session) {
 #' Remove block from grid
 #'
 #' @rdname board-grid
-remove_block_from_grid <- function(id, blocks_ns, session) {
+#' @keywords internal
+remove_block_from_grid <- function(id, session) {
   ns <- session$ns
   # Move items back to properties panel
   session$sendCustomMessage(
     "move-widget-to-sidebar",
     list(
-      id = sprintf("#%s_blocks", blocks_ns),
-      block_id = sprintf("#%s-%s", blocks_ns, id)
+      id = sprintf("#%s_blocks", ns(NULL)),
+      block_id = sprintf("#%s", ns(id))
     )
   )
 }
@@ -109,34 +111,49 @@ remove_block_from_grid <- function(id, blocks_ns, session) {
 #'
 #' @param mode App mode.
 #' @param vals Local reactive values.
-#' @param blocks_ns Blocks namespace.
 #' @param session Shiny session object.
 #' @rdname board-grid
-manage_board_grid <- function(mode, vals, blocks_ns, session) {
+#' @keywords internal
+manage_board_grid <- function(mode, vals, session) {
   ns <- session$ns
 
-  in_grid_ids <- chr_ply(session$input$grid_layout$children, `[[`, "id")
+  current_grid_layout <- process_grid_content(vals, session$input$grid_layout)
+  in_grid_ids <- current_grid_layout$id
 
   # Cleanup grid in editor mode
-  if (mode() == "network") {
-    if (length(in_grid_ids)) {
-      lapply(names(which(vals$in_grid == TRUE)), \(id) {
-        remove_block_from_grid(id, blocks_ns, session)
-      })
-      gs_proxy_remove_all(ns("grid"))
-    }
+  if (mode == "network") {
+    lapply(names(which(vals$in_grid == TRUE)), \(id) {
+      if (nrow(current_grid_layout) > 0) {
+        remove_block_from_grid(id, session)
+      }
+    })
+    gs_proxy_remove_all(ns("grid"))
     return(NULL)
   }
 
   lapply(names(vals$in_grid), \(nme) {
     new_state <- vals$in_grid[[nme]]
-    current_state <- if (!length(in_grid_ids)) FALSE else
-      any(grepl(nme, in_grid_ids))
-    if (new_state != current_state) {
+
+    # If there was no grid item and we the item added
+    # is marked, we can insert it
+    if (nrow(current_grid_layout) == 0) {
       if (new_state) {
-        add_block_to_grid(nme, vals, blocks_ns, session)
-      } else {
-        remove_block_from_grid(nme, blocks_ns, session)
+        add_block_to_grid(nme, vals, session)
+      }
+    } else {
+      # Update if any of the in_grid state or layout has changed
+      if (new_state) {
+        # Need to clean the existing element to re-add it at a different place
+        remove_block_from_grid(nme, session)
+        gs_proxy_remove_item(
+          ns("grid"),
+          id = grep(nme, in_grid_ids, value = TRUE)
+        )
+        add_block_to_grid(nme, vals, session)
+      }
+      if (!new_state) {
+        # Only remove
+        remove_block_from_grid(nme, session)
         gs_proxy_remove_item(
           ns("grid"),
           id = grep(nme, in_grid_ids, value = TRUE)
@@ -166,30 +183,32 @@ process_grid_content <- function(vals, grid_layout) {
 
 #' Restore grid state from board state
 #'
-#' @param board Board containing saved state.
-#' @param blocks_ns Blocks namespace.
+#' @param blocks Board block objects.
 #' @param vals Local reactive values.
+#' @param parent Parent reactive values.
+#' @param session Shiny session object.
 #' Contains blocks coordinates, dimensions, ...
 #' @keywords internal
-restore_grid <- function(board, blocks_ns, vals) {
+restore_grid <- function(blocks, vals, parent, session) {
   vals$in_grid <- NULL
-
-  grid <- board_grid(board)
-  ids <- board_block_ids(board)
+  vals$grid <- parent$grid
+  ids <- names(blocks)
 
   # When the grid was empty, we still need to initialise the block state
   # and all values are false
-  if (!nrow(grid)) {
+  if (!nrow(vals$grid)) {
     lapply(ids, \(id) {
       vals$in_grid[[id]] <- FALSE
     })
     return(NULL)
   }
 
-  vals$grid <- grid
-
   # Otherwise we spread elements between the grid and the network
-  in_grid_ids <- chr_ply(strsplit(grid$id, paste0(blocks_ns, "-")), `[[`, 2)
+  in_grid_ids <- chr_ply(
+    strsplit(vals$grid$id, session$ns("")),
+    `[[`,
+    2
+  )
   not_in_grid <- which(!(ids %in% in_grid_ids))
 
   lapply(in_grid_ids, \(id) {
@@ -216,33 +235,4 @@ handle_grid_zoom <- function(session) {
       zoom = session$input$grid_zoom
     )
   )
-}
-
-#' Register observer to receive callback from links module
-#'
-#' This allows to maintain the state of the sidebar in grid switch
-#' while the node switch is updated.
-#'
-#' @param ids Blocks ids.
-#' @param in_vals Incoming values containint grid information.
-#' @param obs Observers list.
-#' @param vals Local reactive values.
-#' @keywords internal
-register_links_grid_callbacks <- function(ids, in_vals, obs, vals) {
-  lapply(ids, \(id) {
-    if (is.null(obs[[id]])) {
-      obs[[id]] <- observeEvent(
-        in_vals()[[id]],
-        {
-          if (
-            is.null(vals$in_grid[[id]]) ||
-              vals$in_grid[[id]] != in_vals()[[id]]
-          ) {
-            vals$in_grid[[id]] <- in_vals()[[id]]
-          }
-        },
-        ignoreInit = TRUE
-      )
-    }
-  })
 }

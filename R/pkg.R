@@ -8,4 +8,5 @@
 #' @import bslib
 #' @import blockr.core
 #' @import gridstackr
+#' @importFrom stats setNames
 NULL

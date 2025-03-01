@@ -4,6 +4,8 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^README\.Rmd$
+^index\.qmd$
+^index\.md$
 ^\.lintr$
 ^\.github$
 ^_pkgdown\.yml$
@@ -11,3 +13,10 @@
 ^pkgdown$
 _\.new\.png$
 inst/examples/demo/\.posit
+^srcjs$
+^node_modules$
+^package\.json$
+^package-lock\.json$
+^styles$
+^esbuild\.dev\.js$
+^esbuild\.prod\.js$

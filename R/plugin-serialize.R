@@ -19,14 +19,18 @@ ser_deser_server <- function(id, rv, ...) {
       vals <- reactiveValues(
         auto_snapshot = FALSE,
         current_backup = NULL,
-        backup_list = list.files(pattern = ".json$")
+        backup_list = list.files(
+          pattern = paste0("^", isolate(rv$board_id), ".*\\.json$")
+        )
       )
+
+      dot_args <- list(...)
 
       # Manual state saving. Use this to share the
       # app state with another group.
       output$serialize <- downloadHandler(
         board_filename(rv),
-        write_board_to_disk(rv)
+        write_board_to_disk(rv, dot_args$parent, session)
       )
 
       # Cleanup old files on start
@@ -48,7 +52,7 @@ ser_deser_server <- function(id, rv, ...) {
       snapshot_trigger <- reactive({
         list(
           board_links(rv$board),
-          board_grid(rv$board),
+          dot_args$parent$grid,
           get_blocks_state(rv) # Capture any block state change (input change, ...)
         )
       }) |>
@@ -60,7 +64,7 @@ ser_deser_server <- function(id, rv, ...) {
           snapshot_trigger()
         },
         {
-          snapshot_board(vals, rv)
+          snapshot_board(vals, rv, dot_args$parent, session)
         }
       )
 
@@ -85,8 +89,10 @@ ser_deser_server <- function(id, rv, ...) {
         c(input$undo, input$redo),
         {
           vals$auto_snapshot <- TRUE
-          res(
-            from_json(vals$backup_list[[vals$current_backup]])
+          restore_board(
+            vals$backup_list[[vals$current_backup]],
+            res,
+            dot_args$parent
           )
         },
         ignoreInit = TRUE
@@ -94,9 +100,7 @@ ser_deser_server <- function(id, rv, ...) {
 
       # Restore workspace from json file
       observeEvent(input$restore, {
-        res(
-          from_json(input$restore$datapath)
-        )
+        restore_board(input$restore$datapath, res, dot_args$parent)
       })
 
       res

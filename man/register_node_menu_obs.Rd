@@ -4,18 +4,16 @@
 \alias{register_node_menu_obs}
 \title{Register observers related to the node menu}
 \usage{
-register_node_menu_obs(blocks_ids, parent, rv, obs, session)
+register_node_menu_obs(blocks_ids, vals, obs, session)
 }
 \arguments{
-\item{parent}{Parent scope reactive values.}
+\item{blocks_ids}{Board block ids.}
 
-\item{rv}{Board reactive values.}
+\item{vals}{Global scope reactive values.}
 
-\item{obs}{Observers list.}
+\item{obs}{Plugin observers list.}
 
 \item{session}{Shiny session object.}
-
-\item{block_ids}{Board block ids.}
 }
 \description{
 Observer to maintain the state between the 2 switches +

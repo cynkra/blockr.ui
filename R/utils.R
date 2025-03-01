@@ -37,4 +37,34 @@ lst_xtr <- function(x, ...) {
   x
 }
 
+set_names <- function(object = nm, nm) {
+  names(object) <- nm
+  object
+}
+
 reval_if <- function(x) if (is.function(x)) x() else x
+
+#' Useful for shinytest2
+#' Pre-process reactiveValues results
+#'
+#' @keywords internal
+process_app_state <- function(state) {
+  stopifnot(is.list(state))
+  stopifnot("nodes" %in% names(state))
+
+  setNames(
+    lapply(names(state), \(nme) {
+      if (nme == "nodes") {
+        # drop the x and y coords as this may not be reproducible
+        if (nrow(state[[nme]]) > 0) {
+          subset(state[[nme]], select = -c(x, y))
+        } else {
+          state[[nme]]
+        }
+      } else {
+        state[[nme]]
+      }
+    }),
+    names(state)
+  )
+}

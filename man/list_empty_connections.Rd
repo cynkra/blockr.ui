@@ -11,7 +11,7 @@ list_empty_connections(x, target, rv)
 
 \item{target}{Connection target id.}
 
-\item{rv}{Reactive values.}
+\item{rv}{Board reactive values.}
 }
 \description{
 List node connections

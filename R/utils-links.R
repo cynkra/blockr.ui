@@ -3,10 +3,9 @@
 #' Update dataframe for visNetwork graph
 #'
 #' @param new New block to add.
-#' @param vals Local reactive values.
-#' @param rv Global reactive values.
+#' @param vals Global reactive values. To communicate between modules
 #' @keywords internal
-add_node <- function(new, vals, rv) {
+add_node <- function(new, vals) {
   stopifnot(
     is_block(new),
     is.data.frame(vals$nodes)
@@ -19,11 +18,16 @@ add_node <- function(new, vals, rv) {
       "\n id:",
       block_uid(new)
     ),
-    #title = block_uid(new),
+    title = NA,
     shape = "dot",
-    color = "#D2E5FF",
-    borderWidth = 2,
+    shapeProperties.borderDashes = NA,
+    color.background = "#dbebff",
+    color.border = "#dbebff",
+    color.highlight.background = "#dbebff",
+    color.highlight.border = "#dbebff",
+    borderWidth = 4,
     group = NA,
+    icon.code = NA,
     x = NA,
     y = NA
   )
@@ -48,7 +52,7 @@ add_node <- function(new, vals, rv) {
 #' @param to Node it.
 #' @param label Edge label. This is useful to map the existing connected
 #' nodes to the input slots of the receiving node (for instance a join block).
-#' @param vals Reactive values, containing elements such as edges data.
+#' @param vals Global vals reactive values. Read-write access.
 #' @param create_link Create a link in the board?
 #' @keywords internal
 add_edge <- function(id = NULL, from, to, label, vals, create_link = TRUE) {
@@ -62,7 +66,7 @@ add_edge <- function(id = NULL, from, to, label, vals, create_link = TRUE) {
   ) {
     stop(
       "When create_link is TRUE, id must be NULL.
-      WHen create_link is FALSE, id can't be NULL."
+      When create_link is FALSE, id can't be NULL."
     )
   }
 
@@ -70,8 +74,11 @@ add_edge <- function(id = NULL, from, to, label, vals, create_link = TRUE) {
     from = from,
     to = to,
     label = label,
-    arrows = "to",
-    width = 4
+    arrows.to.enabled = TRUE,
+    arrows.to.type = "arrow",
+    width = 2,
+    color = "#9db5cc",
+    dashes = FALSE
   )
 
   if (!is.null(id)) {
@@ -126,8 +133,15 @@ remove_node <- function(selected, vals, session) {
     stop(sprintf("Can't find node with id %s in the data", selected))
   }
 
-  visNetworkProxy(ns("network")) |>
+  visNetworkProxy(ns("network"), session = session) |>
     visRemoveNodes(selected)
+
+  # Unselect all nodes
+  session$sendCustomMessage(
+    "reset-node-selection",
+    list(id = sprintf("#%s", ns("network")))
+  )
+  vals$selected_block <- NULL
 
   vals$nodes <- vals$nodes[-to_remove, ]
   vals
@@ -188,7 +202,7 @@ remove_edge <- function(selected, vals, session) {
   vals$removed_edge <- vals$edges[to_remove, "id"]
   vals$edges <- vals$edges[-to_remove, ]
 
-  visNetworkProxy(ns("network")) |>
+  visNetworkProxy(ns("network"), session = session) |>
     visRemoveEdges(vals$removed_edge)
 
   vals
@@ -198,8 +212,8 @@ remove_edge <- function(selected, vals, session) {
 #'
 #' @param x block.
 #' @param target Connection target id.
-#' @param rv Reactive values.
-#'
+#' @param rv Board reactive values.
+#' @export
 list_empty_connections <- function(x, target, rv) {
   UseMethod("list_empty_connections", x)
 }
@@ -218,7 +232,7 @@ list_empty_connections.block <- function(x, target, rv) {
 #'
 #' @param x block.
 #' @param target Connection target id.
-#' @param rv Reactive values.
+#' @param rv Board reactive values.
 #'
 #' @export
 check_connections <- function(x, target, rv) {
@@ -241,11 +255,21 @@ check_connections.rbind_block <- function(x, target, rv) {
   TRUE
 }
 
+#' @export
+check_connections.llm_plot_block <- function(x, target, rv) {
+  TRUE
+}
+
+#' @export
+check_connections.llm_transform_block <- function(x, target, rv) {
+  TRUE
+}
+
 #' Check whether the node can receive connection
 #'
 #' @param x Block object.
 #' @param target Connection target id.
-#' @param rv Reactive values
+#' @param rv Board reactive values
 #' @export
 can_connect <- function(x, target, rv) {
   UseMethod("can_connect")
@@ -273,6 +297,11 @@ can_connect.block <- function(x, target, rv) {
   }
 }
 
+#' Validate edge creation for a block
+#'
+#' @param rv Board reactive values. Read-only.
+#' @param target Target block id
+#' @keywords internal
 validate_edge_creation <- function(target, rv) {
   check_cons <- can_connect(
     rv$blocks[[target]]$block,
@@ -288,7 +317,7 @@ validate_edge_creation <- function(target, rv) {
 #'
 #' @param x Block object.
 #' @param target Connection target id.
-#' @param rv Reactive values
+#' @param rv Board reactive values
 #' @export
 define_conlabel <- function(x, target, rv) {
   UseMethod("define_conlabel")
@@ -307,6 +336,12 @@ define_conlabel.rbind_block <- function(x, target, rv) {
   as.character(res)
 }
 
+#' @export
+define_conlabel.llm_plot_block <- define_conlabel.rbind_block
+
+#' @export
+define_conlabel.llm_transform_block <- define_conlabel.rbind_block
+
 #' Create an edge and add it to the network
 #'
 #' This is different from \link{add_edge}, the later
@@ -317,18 +352,18 @@ define_conlabel.rbind_block <- function(x, target, rv) {
 #'
 #' @param new Edge data. A list like
 #' \code{list(from = "from_node_ID", to = "to_node_ID")}.
-#' @param vals Local reactive values.
-#' @param rv Parent reactive values.
+#' @param vals Global reactive values. Read-write.
+#' @param rv Board reactive values. Read-only.
 #' @param session Shiny session object.
-#' @export
+#' @keywords internal
 create_edge <- function(new, vals, rv, session) {
   ns <- session$ns
   stopifnot(is.list(new))
 
   if (!validate_edge_creation(new$to, rv)) {
-    if (rv$append_block) {
+    if (vals$append_block) {
       remove_node(new$to, vals, session)
-      rv$cancelled_edge <- new$to
+      vals$cancelled_edge <- new$to
     }
     stop()
   }
@@ -361,18 +396,18 @@ create_edge <- function(new, vals, rv, session) {
 #' as many children nodes as required.
 #'
 #' @param new New block to add.
-#' @param vals Local reactive values.
-#' @param rv Global parent reactive values.
+#' @param vals Global reactive values. To communicate between modules.
+#' @param rv Board reactive values. Read-only.
 #' @param session Shiny session object.
-#' @export
+#' @keywords internal
 create_node <- function(new, vals, rv, session) {
   input <- session$input
   ns <- session$ns
 
   # Update node vals for the network rendering
-  add_node(new, vals, rv)
+  add_node(new, vals)
   # Handle add_block_to where we also setup the connections
-  if (isTRUE(rv$append_block)) {
+  if (isTRUE(vals$append_block)) {
     create_edge(
       new = list(
         from = input$network_selected,
@@ -394,15 +429,15 @@ create_node <- function(new, vals, rv, session) {
 #'
 #' For each block we register an observer that
 #' captures only the messages related to this block validation
-#' status. The observer is destroyed when the node is cleaned
-#' by cleanup_node.
+#' status.
 #'
-#' @param vals Local reactive values.
-#' @param rv Global reactive values.
+#' @param vals Global reactive values. Read-write.
+#' @param rv Board reactive values. Read-only.
 #' @param session Shiny session object.
-#' @export
+#' @rdname node-validation
+#' @keywords internal
 register_node_validation <- function(vals, rv, session) {
-  id <- block_uid(rv$added_block)
+  id <- block_uid(vals$added_block)
   # We don't need to store the observers
   # as we need them again while restoring
   # a previous state where a removed block was
@@ -429,17 +464,31 @@ register_node_validation <- function(vals, rv, session) {
 #' based on the valid status.
 #'
 #' @param message Message.
-#' @param id Node id.
-#' @param vals Local reactive values.
-#' @param session Shiny session object.
-#' @export
+#' @rdname node-validation
+#' @keywords internal
 apply_validation <- function(message, id, vals, session) {
   ns <- session$ns
   # Restore blue color if valid
-  selected_color <- vals$nodes[vals$nodes$id == id, "color"]
+  selected_color <- vals$nodes[vals$nodes$id == id, "color.border"]
+  connected_edges <- vals$edges[vals$edges$to == id, ]
+
   if (is.null(message)) {
-    if (selected_color == "#D2E5FF") return(NULL)
-    vals$nodes[vals$nodes$id == id, "color"] <- "#D2E5FF"
+    if (selected_color == "#dbebff") return(NULL)
+    if (nrow(connected_edges) > 0) {
+      vals$edges[vals$edges$to == id, "color"] <- "#9db5cc"
+      vals$edges[vals$edges$to == id, "dashes"] <- FALSE
+      vals$edges[vals$edges$to == id, "arrows.to.type"] <- "arrow"
+
+      visNetworkProxy(ns("network")) |>
+        visUpdateEdges(vals$edges)
+    }
+    vals$nodes[vals$nodes$id == id, "color.border"] <- "#dbebff"
+    vals$nodes[vals$nodes$id == id, "color.highlight.border"] <- "#dbebff"
+    vals$nodes[vals$nodes$id == id, "shapeProperties.borderDashes"] <- FALSE
+    vals$nodes[
+      vals$nodes$id == id,
+      "title"
+    ] <- "State errors: 0 <br> Data errors: 0 <br> Eval errors: 0"
   }
 
   # Color invalid nodes in red
@@ -448,8 +497,37 @@ apply_validation <- function(message, id, vals, session) {
       length(message$data$error) ||
       length(message$eval$error)
   ) {
-    if (selected_color == "#ffd6d2") return(NULL)
-    vals$nodes[vals$nodes$id == id, "color"] <- "#ffd6d2"
+    if (selected_color == "#ff0018") return(NULL)
+    # Any linked edge would also get styled
+    if (nrow(connected_edges) > 0) {
+      vals$edges[vals$edges$to == id, "color"] <- "#ff0018"
+      vals$edges[vals$edges$to == id, "dashes"] <- TRUE
+      vals$edges[vals$edges$to == id, "arrows.to.type"] <- "image"
+      vals$edges[
+        vals$edges$to == id,
+        "arrows.to.src"
+      ] <- "www/images/cross-sign.svg"
+      vals$edges[
+        vals$edges$to == id,
+        "arrows.to.imageWidth"
+      ] <- 15
+      vals$edges[
+        vals$edges$to == id,
+        "arrows.to.imageHeight"
+      ] <- 15
+
+      visNetworkProxy(ns("network")) |>
+        visUpdateEdges(vals$edges)
+    }
+    vals$nodes[vals$nodes$id == id, "color.border"] <- "#ff0018"
+    vals$nodes[vals$nodes$id == id, "color.highlight.border"] <- "#ff0018"
+    vals$nodes[vals$nodes$id == id, "shapeProperties.borderDashes"] <- TRUE
+    vals$nodes[vals$nodes$id == id, "title"] <- sprintf(
+      "State errors: %s <br> Data errors: %s <br> Eval errors: %s",
+      if (length(message$state$error)) message$state$error else "0.",
+      if (length(message$data$error)) message$data$error else "0.",
+      if (length(message$eval$error)) message$eval$error else "0."
+    )
   }
 
   visNetworkProxy(ns("network")) |>
@@ -628,7 +706,7 @@ default_network_events <- function(ns, ...) {
       controlNodeDragEnd = sprintf(
         "function(e) {
           Shiny.setInputValue('%s', e.controlEdge, {priority: 'event'});
-          let target = $(`.${e.event.target.offsetParent.className}`)
+          let target = $(`.${e.event.target.offsetvals.className}`)
             .closest('.visNetwork')
             .attr('id');
           // Re-enable add edge mode
@@ -698,67 +776,7 @@ create_network_widget <- function(
   vis_network <- do.call(visPhysics, c(graph = quote(vis_network), physics))
   vis_network <- do.call(visEvents, c(graph = quote(vis_network), events))
 
-  vis_network |>
-    visEvents(
-      type = "once",
-      # Code to show connection points with edges
-      stabilized = sprintf(
-        "function() {
-          var network = this;
-          
-          network.on('afterDrawing', function(ctx) {
-            var edges = network.body.edges;
-            var nodes = network.body.nodes;
-            
-            Object.keys(edges).forEach(function(edgeId) {
-              var edge = edges[edgeId];
-              var fromNode = nodes[edge.fromId];
-              var toNode = nodes[edge.toId];
-              
-              // Calculate intersection points
-              if (fromNode && toNode) {
-                // Get positions
-                var fromX = fromNode.x;
-                var fromY = fromNode.y;
-                var toX = toNode.x;
-                var toY = toNode.y;
-                
-                // Calculate angles and distances
-                var angle = Math.atan2(toY - fromY, toX - fromX);
-                var reverseAngle = Math.atan2(fromY - toY, fromX - toX);
-                
-                // Get node radii (using shape.width since shape.radius might not be available)
-                var fromRadius = fromNode.shape.width / 2;
-                var toRadius = toNode.shape.width / 2;
-                
-                // Calculate intersection points
-                var fromIntersectX = fromX + (Math.cos(angle) * fromRadius);
-                var fromIntersectY = fromY + (Math.sin(angle) * fromRadius);
-                var toIntersectX = toX + (Math.cos(reverseAngle) * toRadius);
-                var toIntersectY = toY + (Math.sin(reverseAngle) * toRadius);
-                
-                // Draw connection points at intersection
-                ctx.beginPath();
-                ctx.arc(fromIntersectX, fromIntersectY, 4, 0, 2 * Math.PI);
-                ctx.fillStyle = '#2B7CE9';
-                ctx.fill();
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.arc(toIntersectX, toIntersectY, 4, 0, 2 * Math.PI);
-                ctx.fillStyle = '#2B7CE9';
-                ctx.fill();
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-              }
-            });
-          });
-        }"
-      )
-    )
+  vis_network
 }
 
 #' Restore network from saved snapshot
@@ -766,22 +784,31 @@ create_network_widget <- function(
 #' Network is updated via a proxy.
 #'
 #' @param links Board links.
-#' @param vals Local reactive values.
-#' @param rv Global parent reactive values.
+#' @param vals Global vals reactive values. Read-write access.
 #' @param session Shiny session object
 #'
 #' @return A reactiveValues object.
 #' @keywords internal
-restore_network <- function(links, vals, rv, session) {
+restore_network <- function(links, vals, session) {
   ns <- session$ns
-
   # Cleanup old setup
-  visNetworkProxy(ns("network")) |> visRemoveNodes(vals$nodes$id)
+  if (length(session$input$network_nodes)) {
+    visNetworkProxy(ns("network")) |>
+      visRemoveNodes(names(session$input$network_nodes))
+  }
+
+  if (nrow(vals$edges) > 0) {
+    vals$edges <- data.frame()
+  }
+
   # Restore nodes
-  vals$nodes <- board_nodes(rv$board)
   visNetworkProxy(ns("network")) |>
-    visUpdateNodes(vals$nodes) |>
-    visSelectNodes(id = board_selected_node(rv$board))
+    visUpdateNodes(vals$nodes)
+
+  if (!is.null(vals$selected_block)) {
+    visNetworkProxy(ns("network")) |>
+      visSelectNodes(id = vals$selected_block)
+  }
 
   # For each link re-creates the edges
   lapply(names(links), \(nme) {
@@ -798,7 +825,7 @@ restore_network <- function(links, vals, rv, session) {
   visNetworkProxy(ns("network")) |>
     visUpdateEdges(vals$edges)
 
-  rv$refreshed <- "network"
+  vals$refreshed <- "network"
 
   vals
 }
@@ -809,7 +836,7 @@ restore_network <- function(links, vals, rv, session) {
 #' like adding a node to a grid...
 #'
 #' @param value Initial state of the grid switch. Depends
-#' on the value set in the grid parent module.
+#' on the value set in the grid vals module.
 #' @param session Shiny session object
 #'
 #' @keywords internal
@@ -833,14 +860,13 @@ show_node_menu <- function(value, session) {
 #' an observer to handle serialisation/restoration, to remove
 #' nodes and to append to a given node.
 #'
-#' @param block_ids Board block ids.
-#' @param parent Parent scope reactive values.
-#' @param rv Board reactive values.
-#' @param obs Observers list.
+#' @param blocks_ids Board block ids.
+#' @param vals Global scope reactive values.
+#' @param obs Plugin observers list.
 #' @param session Shiny session object.
 #'
 #' @keywords internal
-register_node_menu_obs <- function(blocks_ids, parent, rv, obs, session) {
+register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
   input <- session$input
 
   lapply(blocks_ids, \(id) {
@@ -849,7 +875,7 @@ register_node_menu_obs <- function(blocks_ids, parent, rv, obs, session) {
       obs[[sprintf("%s-add_to_grid", id)]] <- observeEvent(
         input[[sprintf("%s-add_to_grid", id)]],
         {
-          parent$in_grid[[id]] <- input[[
+          vals$in_grid[[id]] <- input[[
             sprintf("%s-add_to_grid", id)
           ]]
         }
@@ -858,11 +884,11 @@ register_node_menu_obs <- function(blocks_ids, parent, rv, obs, session) {
       # Receive callback from grid to maintain the block option
       # card switch
       obs[[sprintf("update-%s-add_to_grid", id)]] <- observeEvent(
-        parent$in_grid[[id]],
+        vals$in_grid[[id]],
         {
           update_switch(
             sprintf("%s-add_to_grid", id),
-            value = parent$in_grid[[id]]
+            value = vals$in_grid[[id]]
           )
         }
       )
@@ -870,13 +896,12 @@ register_node_menu_obs <- function(blocks_ids, parent, rv, obs, session) {
       # Update the in_grid switch inputs to handle serialisation
       # restoration
       obs[[sprintf("restore-%s-add_to_grid", id)]] <- observeEvent(
-        req(rv$refreshed == "grid"),
+        req(vals$refreshed == "grid"),
         {
           update_switch(
             sprintf("%s-add_to_grid", id),
-            value = parent$in_grid[[id]]
+            value = vals$in_grid[[id]]
           )
-          rv$refreshed <- NULL
         }
       )
 
@@ -886,7 +911,7 @@ register_node_menu_obs <- function(blocks_ids, parent, rv, obs, session) {
         {
           # Avoid triggering too many times (wait until next flush cycle)
           freezeReactiveValue(input, sprintf("%s-remove_block", id))
-          rv$removed_block <- id
+          vals$removed_block <- id
         }
       )
 
@@ -896,7 +921,7 @@ register_node_menu_obs <- function(blocks_ids, parent, rv, obs, session) {
         {
           # Avoid triggering too many times (wait until next flush cycle)
           freezeReactiveValue(input, sprintf("%s-append_block", id))
-          if (isFALSE(rv$append_block)) rv$append_block <- TRUE
+          if (isFALSE(vals$append_block)) vals$append_block <- TRUE
         }
       )
     }

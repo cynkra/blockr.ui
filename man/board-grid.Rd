@@ -6,18 +6,16 @@
 \alias{manage_board_grid}
 \title{Add block to grid}
 \usage{
-add_block_to_grid(id, vals, blocks_ns, session)
+add_block_to_grid(id, vals, session)
 
-remove_block_from_grid(id, blocks_ns, session)
+remove_block_from_grid(id, session)
 
-manage_board_grid(mode, vals, blocks_ns, session)
+manage_board_grid(mode, vals, session)
 }
 \arguments{
 \item{id}{Block id}
 
 \item{vals}{Local reactive values.}
-
-\item{blocks_ns}{Blocks namespace.}
 
 \item{session}{Shiny session object.}
 
@@ -30,3 +28,4 @@ Remove block from grid
 
 Manage board grid
 }
+\keyword{internal}

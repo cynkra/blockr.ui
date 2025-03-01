@@ -3,16 +3,38 @@
 \name{blockr_ser.custom_board}
 \alias{blockr_ser.custom_board}
 \alias{blockr_deser.custom_board}
+\alias{blockr_deser.data.frame}
 \title{Ser/deser board}
 \usage{
-\method{blockr_ser}{custom_board}(x, blocks = NULL, ...)
+\method{blockr_ser}{custom_board}(
+  x,
+  blocks = NULL,
+  network = NULL,
+  grid = NULL,
+  selected = NULL,
+  mode = NULL,
+  options = NULL,
+  ...
+)
 
 \method{blockr_deser}{custom_board}(x, data, ...)
+
+\method{blockr_deser}{data.frame}(x, data, ...)
 }
 \arguments{
 \item{x}{Board.}
 
 \item{blocks}{Board blocks.}
+
+\item{network}{visNetwork data.}
+
+\item{grid}{gridstack data.}
+
+\item{selected}{Selected node.}
+
+\item{mode}{App mode.}
+
+\item{options}{Board options.}
 
 \item{...}{Generic consistency.}
 

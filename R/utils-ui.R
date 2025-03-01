@@ -85,10 +85,11 @@ off_canvas <- function(
 #' @param icon Icon.
 #'
 #' @return A HTML tag object representing the dropdown element.
+#' @export
 dropdown_button <- function(..., icon) {
   tagList(
     tags$button(
-      class = "btn dropdown-toggle",
+      class = "btn",
       type = "button",
       `data-bs-toggle` = "dropdown",
       `aria-expanded` = "false",

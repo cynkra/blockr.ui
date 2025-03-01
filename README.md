@@ -4,9 +4,15 @@
 # blockr.ui
 
 <!-- badges: start -->
+
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![ci](https://github.com/cynkra/blockr.ui/actions/workflows/ci.yml/badge.svg)](https://github.com/cynkra/blockr.ui/actions/workflows/ci.yml)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/blockr.ui)](https://CRAN.R-project.org/package=blockr.ui)
 <!-- badges: end -->
 
-The goal of blockr.ui is to provide a user interface for
+The goal of blockr.ui is to provide an alternative user interface for
 `{blockr.core}`.
 
 ## Installation
@@ -21,34 +27,42 @@ devtools::install_github("cynkra/blockr.ui")
 
 ## Example
 
-To run the app:
+To run the demo app:
 
 ``` r
-library(blockr.core)
 library(blockr.dplyr)
-# library(blockr.ai)
 library(blockr.ui)
-library(bslib)
-library(shiny)
 
-shiny::addResourcePath(
-  "assets",
-  system.file("examples/demo/www", package = "blockr.ui")
-)
-
-app_board <- new_board(class = "custom_board")
-
-ui <- page_fillable(
-  shinyjs::useShinyjs(),
-  tags$script(src = "assets/custom.js"),
-  main_ui("main", app_board)
-)
-
-server <- function(input, output, session) {
-  main_server("main", app_board)
-}
-
-shinyApp(ui, server)
+run_demo_app()
 ```
 
-![](./man/figures/blockr-ui-v2.gif) ![](./man/figures/blockr2.png)
+### Create a new block
+
+![](./man/figures/blockr-new.png)
+
+### Block properties
+
+![](./man/figures/blockr-properties.png)
+
+### Append block and invalid state
+
+![](./man/figures/blockr-invalid.png)
+
+### Join independant data
+
+![](./man/figures/blockr-join.png)
+
+### Rearrange output on a grid
+
+![](./man/figures/blockr-dashboard.png)
+
+## Development
+
+JS code is managed by `esbuild`
+[`{charpente}`](https://github.com/RinteRface/charpente?tab=readme-ov-file#using-esbuild-and-mocha).
+To create a new JS file do and compile the entire project:
+
+``` r
+charpente::create_js("file-name")
+charpente::build_js()
+```

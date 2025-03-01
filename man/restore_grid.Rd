@@ -4,14 +4,16 @@
 \alias{restore_grid}
 \title{Restore grid state from board state}
 \usage{
-restore_grid(board, blocks_ns, vals)
+restore_grid(blocks, vals, parent, session)
 }
 \arguments{
-\item{board}{Board containing saved state.}
+\item{blocks}{Board block objects.}
 
-\item{blocks_ns}{Blocks namespace.}
+\item{vals}{Local reactive values.}
 
-\item{vals}{Local reactive values.
+\item{parent}{Parent reactive values.}
+
+\item{session}{Shiny session object.
 Contains blocks coordinates, dimensions, ...}
 }
 \description{

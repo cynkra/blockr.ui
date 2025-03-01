@@ -3,24 +3,34 @@
 \name{manage_sidebars}
 \alias{manage_sidebars}
 \alias{manage_block_visibility}
+\alias{manage_app_mode}
+\alias{board_restore}
 \title{Manage board sidebars}
 \usage{
-manage_sidebars(rv, selected, removed, session)
+manage_sidebars(rv, update, parent, ...)
 
-manage_block_visibility(parent, rv)
+manage_block_visibility(rv, update, parent, ...)
+
+manage_app_mode(rv, update, parent, ...)
+
+board_restore(rv, update, parent, ...)
 }
 \arguments{
-\item{rv}{Reactive values.}
+\item{rv}{Board reactiveValues. Read-only.}
 
-\item{selected}{Selected block.}
+\item{update}{Update reactiveVal to signal change to the board.}
 
-\item{removed}{Any removed block.}
+\item{parent}{Parent global reactiveValues.}
 
-\item{session}{Shiny session object.}
+\item{...}{Extra elements.}
 }
 \description{
 Manage board sidebars
 
 Manage blocks visibility
+
+Manage app mode
+
+Board restoration callback
 }
 \keyword{internal}

@@ -4,14 +4,12 @@
 \alias{add_node}
 \title{Add a node}
 \usage{
-add_node(new, vals, rv)
+add_node(new, vals)
 }
 \arguments{
 \item{new}{New block to add.}
 
-\item{vals}{Local reactive values.}
-
-\item{rv}{Global reactive values.}
+\item{vals}{Global reactive values. To communicate between modules}
 }
 \description{
 Update dataframe for visNetwork graph
