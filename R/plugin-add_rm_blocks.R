@@ -3,21 +3,20 @@
 #' Customizable logic for adding/removing blocks to the board.
 #'
 #' @param id Namespace ID.
-#' @param rv Reactive values object.
-#' @param ... Extra arguments passed from parent scope
+#' @param rv Reactive values object, containing board informations.
+#' @param update Reactive value object to initiate board updates.
+#' @param ... Extra arguments passed from parent scope. Useful to communicate
+#' between plugins and surface information at the top level (for testing ...).
 #'
-#' @return A [shiny::reactiveValues()] object with components `add` and `rm`,
-#' where `add` may be `NULL` or a `block` object and `rm` be `NULL` or a string
-#' (block ID).
+#' @return NULL.
 #'
 #' @rdname add_rm_block
 #' @export
-add_rm_block_server <- function(id, rv, ...) {
+add_rm_block_server <- function(id, rv, update, ...) {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
-      res <- reactiveValues(add = NULL, rm = NULL)
       dot_args <- list(...)
 
       # Hide add block in preview mode
@@ -32,9 +31,8 @@ add_rm_block_server <- function(id, rv, ...) {
       observeEvent(
         input$add_block,
         {
-          rv$added_block <- NULL
           # Reset add_block_to
-          rv$append_block <- FALSE
+          dot_args$parent$append_block <- FALSE
           update_scoutbar(
             session,
             "scoutbar",
@@ -48,10 +46,10 @@ add_rm_block_server <- function(id, rv, ...) {
       # choices. I think we can use the same scoutbar as for the classic
       # add block with all choices.
       observeEvent(input$append_block, {
-        rv$append_block <- TRUE
+        dot_args$parent$append_block <- TRUE
       })
-      observeEvent(req(rv$append_block), {
-        rv$added_block <- NULL
+      observeEvent(req(dot_args$parent$append_block), {
+        dot_args$parent$added_block <- NULL
         update_scoutbar(
           session,
           "scoutbar",
@@ -62,32 +60,42 @@ add_rm_block_server <- function(id, rv, ...) {
       # Adding a block, we update the rv$added so the graph is updated
       # in the links plugin
       observeEvent(input$scoutbar, {
-        res$add <- as_blocks(create_block(input$scoutbar))
-        rv$added_block <- res$add[[1]]
-        attr(rv$added_block, "uid") <- names(res$add)
+        new_blk <- as_blocks(create_block(input$scoutbar))
+        update(
+          list(blocks = list(add = new_blk))
+        )
+        dot_args$parent$added_block <- new_blk[[1]]
+        attr(dot_args$parent$added_block, "uid") <- names(new_blk)
       })
 
-      # Remove block and node:
-      # - rv$removed_block is used to remove the node element.
-      # - res$rm is used to remove the block module.
+      # Remove block and node
       observeEvent(
         input$remove_block,
         {
-          res$rm <- rv$removed_block <- rv$selected_block
+          dot_args$parent$removed_block <- dot_args$parent$selected_block
         }
       )
 
-      # Remove block (triggered from the links module)
-      observeEvent(rv$removed_block, {
-        res$rm <- rv$removed_block
+      # Remove block (triggered from the links module or from this module)
+      observeEvent(dot_args$parent$removed_block, {
+        update(
+          list(blocks = list(rm = dot_args$parent$removed_block))
+        )
       })
 
       # When a edge creation was cancelled
-      observeEvent(rv$cancelled_edge, {
-        res$rm <- rv$cancelled_edge
+      observeEvent(dot_args$parent$cancelled_edge, {
+        update(
+          list(blocks = list(rm = dot_args$parent$cancelled_edge))
+        )
       })
 
-      res
+      # Reset added_block (no need to keep some old state)
+      observeEvent(update()$blocks$rm, {
+        dot_args$parent$added_block <- NULL
+      })
+
+      NULL
     }
   )
 }

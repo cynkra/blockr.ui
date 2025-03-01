@@ -7,7 +7,7 @@
 update_block_grid_input(selected, value, vals, session)
 }
 \arguments{
-\item{selected}{Selected block.}
+\item{selected}{Selected block id.}
 
 \item{value}{New value.}
 

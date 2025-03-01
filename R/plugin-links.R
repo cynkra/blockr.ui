@@ -3,50 +3,46 @@
 #' Customizable logic for adding/removing links between blocks on the
 #' board.
 #'
-#' @param id Namespace ID
-#' @param rv Reactive values object
-#' @param ... Extra arguments passed from parent scope
+#' @param id Namespace ID.
+#' @param rv Reactive values object.
+#' @param update Reactive value object to initiate board updates.
+#' @param ... Extra arguments passed from parent scope.
 #'
-#' @return A reactive value that evaluates to `NULL` or a list with components
-#' `add` and `rm`, where `add` is either `NULL` or a `data.frame` with columns
-#' `id`, `from`, `to` and `input` and `rm` is either `NULL` or a character
-#' vector of link IDs.
+#' @return NULL.
 #'
 #' @rdname add_rm_link
 #' @export
-add_rm_link_server <- function(id, rv, ...) {
+add_rm_link_server <- function(id, rv, update, ...) {
   moduleServer(
     id,
     function(input, output, session) {
       ns <- session$ns
-
-      # Local reactive values
-      vals <- reactiveValues(
-        edges = data.frame(),
-        nodes = data.frame(),
-        added_edge = character(),
-        removed_edge = character()
-      )
 
       dot_args <- list(...)
 
       obs <- list()
 
       # Restore network from serialisation
-      observeEvent(req(rv$refreshed == "board"), {
-        restore_network(links(), vals, rv, session)
+      observeEvent(req(dot_args$parent$refreshed == "board"), {
+        restore_network(links(), dot_args$parent, session)
       })
-
-      # For serialisation
-      observeEvent(vals$nodes, {
-        rv$board[["nodes"]] <- vals$nodes
-      })
-
-      res <- reactiveVal(
-        list(add = links(), rm = character())
-      )
 
       links <- reactive(board_links(rv$board))
+
+      # Get nodes and coordinates: useful to cache the current
+      # nodes data so that we can restore snapshots correctly.
+      observeEvent(
+        {
+          if (is.null(dot_args$parent$refreshed)) {
+            dot_args$parent$nodes
+          } else {
+            req(dot_args$parent$refreshed == "network")
+          }
+        },
+        {
+          visNetworkProxy(ns("network")) |> visGetNodes()
+        }
+      )
 
       output$network <- renderVisNetwork({
         # Initialized as empty, we'll update with the proxy
@@ -65,11 +61,6 @@ add_rm_link_server <- function(id, rv, ...) {
           sprintf("#nodeSelect%s", ns("network"))
         )
       })
-
-      # To capture what happens on the client (modify network data)
-      #observeEvent(input$network_graphChange, {
-      #  browser()
-      #})
 
       # Tweaks UI so that edge mode appears when it should.
       # Also workaround a bug that always activate editNode by default.
@@ -95,7 +86,7 @@ add_rm_link_server <- function(id, rv, ...) {
       # Capture nodes position for serialization
       observeEvent(
         {
-          req(nrow(vals$nodes) > 0)
+          req(nrow(dot_args$parent$nodes) > 0)
           input$stabilized
         },
         {
@@ -106,10 +97,16 @@ add_rm_link_server <- function(id, rv, ...) {
 
       observeEvent(input$network_positions, {
         lapply(names(input$network_positions), \(id) {
-          vals$nodes[vals$nodes$id == id, "x"] <- input$network_positions[[
+          dot_args$parent$nodes[
+            dot_args$parent$nodes$id == id,
+            "x"
+          ] <- input$network_positions[[
             id
           ]]$x
-          vals$nodes[vals$nodes$id == id, "y"] <- input$network_positions[[
+          dot_args$parent$nodes[
+            dot_args$parent$nodes$id == id,
+            "y"
+          ] <- input$network_positions[[
             id
           ]]$y
         })
@@ -119,8 +116,8 @@ add_rm_link_server <- function(id, rv, ...) {
       # This needs input parameter from the parent module which contains
       # the list of block server functions.
       # For Nicolas: why does rv$msgs() triggers infinitely?
-      observeEvent(rv$added_block, {
-        register_node_validation(vals, rv, session)
+      observeEvent(dot_args$parent$added_block, {
+        register_node_validation(dot_args$parent, rv, session)
       })
 
       # Implement edge creation, we can drag from one node
@@ -151,19 +148,19 @@ add_rm_link_server <- function(id, rv, ...) {
           req(input$new_edge$from)
         },
         {
-          rv$append_block <- FALSE
+          dot_args$parent$append_block <- FALSE
           tryCatch(
             {
               create_edge(
                 new = list(from = input$new_edge$from, to = input$new_edge$to),
-                vals,
+                dot_args$parent,
                 rv,
                 session
               )
               # Send callback to create corresponding link
-              res(
+              update(
                 list(
-                  add = vals$added_edge
+                  links = list(add = dot_args$parent$added_edge)
                 )
               )
             },
@@ -177,15 +174,20 @@ add_rm_link_server <- function(id, rv, ...) {
       # TODO: handle multi block action?
 
       # Add node to network rv$nodes so the graph is updated
-      observeEvent(rv$added_block, {
+      observeEvent(dot_args$parent$added_block, {
         tryCatch(
           {
-            create_node(rv$added_block, vals, rv, session)
-            if (rv$append_block) {
+            create_node(
+              dot_args$parent$added_block,
+              dot_args$parent,
+              rv,
+              session
+            )
+            if (dot_args$parent$append_block) {
               # Send any created link back to the board
-              res(
+              update(
                 list(
-                  add = vals$added_edge
+                  links = list(add = dot_args$parent$added_edge)
                 )
               )
             }
@@ -194,13 +196,13 @@ add_rm_link_server <- function(id, rv, ...) {
             e$message
           }
         )
-        rv$append_block <- FALSE
+        dot_args$parent$append_block <- FALSE
       })
 
       # Remove node + associated edges
-      observeEvent(rv$removed_block, {
+      observeEvent(dot_args$parent$removed_block, {
         # Note: links are cleaned in the add_rm_blocks plugin
-        cleanup_node(input$network_selected, vals, session)
+        cleanup_node(input$network_selected, dot_args$parent, session)
       })
 
       # Communicate selected to upstream modules
@@ -211,9 +213,9 @@ add_rm_link_server <- function(id, rv, ...) {
         },
         {
           if (nchar(input$network_selected) == 0) {
-            rv$selected_block <- NULL
+            dot_args$parent$selected_block <- NULL
           } else {
-            rv$selected_block <- input$network_selected
+            dot_args$parent$selected_block <- input$network_selected
           }
         }
       )
@@ -229,11 +231,11 @@ add_rm_link_server <- function(id, rv, ...) {
       })
 
       observeEvent(input$remove_edge, {
-        remove_edge(input$selected_edge, vals, session)
+        remove_edge(input$selected_edge, dot_args$parent, session)
         # Update link callback
-        res(
+        update(
           list(
-            rm = input$selected_edge
+            links = list(rm = input$selected_edge)
           )
         )
         removeModal()
@@ -271,13 +273,12 @@ add_rm_link_server <- function(id, rv, ...) {
         register_node_menu_obs(
           board_block_ids(rv$board),
           dot_args$parent,
-          rv,
           obs,
           session
         )
       })
 
-      res
+      NULL
     }
   )
 }

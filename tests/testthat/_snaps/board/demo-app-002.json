@@ -1,8 +1,7 @@
 {
   "input": {
-    "main-board-manage_blocks-add_block": 1,
-    "main-board-manage_blocks-append_block": 0,
-    "main-board-manage_blocks-remove_block": 0,
+    "main-board-dashboard": false,
+    "main-board-lock": false,
     "main-board-manage_blocks-scoutbar-configuration": {
       "id": "main-board-manage_blocks-scoutbar",
       "theme": "light",
@@ -323,11 +322,90 @@
       "revealScoutbar": true
     },
     "main-board-manage_links-network_initialized": true,
-    "main-board-manage_links-network_selected": "bywdmhugjutgwsd",
-    "main-grid-add_to_grid": false,
-    "main-grid-lock": false,
-    "main-mode": 0,
-    "main-preview": 0,
-    "main-properties": true
+    "main-board-properties": true
+  },
+  "export": {
+    "main-res": {
+      "mode": "network",
+      "preview": false,
+      "grid": {
+
+      },
+      "in_grid": {
+        "bywdmhugjutgwsd": false
+      },
+      "refreshed": null,
+      "nodes": {
+        "id": [
+          "bywdmhugjutgwsd"
+        ],
+        "label": [
+          "dataset_block \n id: bywdmhugjutgwsd"
+        ],
+        "title": [
+          "State errors: 0 <br> Data errors: 0 <br> Eval errors: 0"
+        ],
+        "shape": [
+          "dot"
+        ],
+        "shapeProperties.borderDashes": [
+          false
+        ],
+        "color.background": [
+          "#dbebff"
+        ],
+        "color.border": [
+          "#dbebff"
+        ],
+        "color.highlight.background": [
+          "#dbebff"
+        ],
+        "color.highlight.border": [
+          "#dbebff"
+        ],
+        "borderWidth": [
+          4
+        ],
+        "stack": [
+          null
+        ],
+        "icon.code": [
+          null
+        ]
+      },
+      "append_block": false,
+      "added_block": {
+        "expr_server": [
+          "function (id) ",
+          "{",
+          "    moduleServer(id, function(input, output, session) {",
+          "        dat <- reactiveVal(dataset)",
+          "        observeEvent(input$dataset, dat(input$dataset))",
+          "        list(expr = reactive({",
+          "            eval(bquote(as.call(c(as.symbol(\"::\"), quote(.(pkg)), ",
+          "                quote(.(dat)))), list(pkg = as.name(package), ",
+          "                dat = as.name(dat()))))",
+          "        }), state = list(dataset = dat, package = package))",
+          "    })",
+          "}"
+        ],
+        "expr_ui": [
+          "function (id) ",
+          "{",
+          "    selectInput(inputId = NS(id, \"dataset\"), label = \"Dataset\", ",
+          "        choices = list_datasets(package), selected = dataset)",
+          "}"
+        ],
+        "dat_valid": null
+      },
+      "removed_block": null,
+      "selected_block": "bywdmhugjutgwsd",
+      "edges": {
+
+      },
+      "cancelled_edge": null,
+      "added_edge": null,
+      "removed_edge": null
+    }
   }
 }

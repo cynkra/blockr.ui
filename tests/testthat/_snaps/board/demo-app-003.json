@@ -1,8 +1,7 @@
 {
   "input": {
-    "main-board-manage_blocks-add_block": 1,
-    "main-board-manage_blocks-append_block": 0,
-    "main-board-manage_blocks-remove_block": 1,
+    "main-board-dashboard": false,
+    "main-board-lock": false,
     "main-board-manage_blocks-scoutbar-configuration": {
       "id": "main-board-manage_blocks-scoutbar",
       "theme": "light",
@@ -323,11 +322,73 @@
       "revealScoutbar": true
     },
     "main-board-manage_links-network_initialized": true,
-    "main-board-manage_links-network_selected": "bywdmhugjutgwsd",
-    "main-grid-add_to_grid": false,
-    "main-grid-lock": false,
-    "main-mode": 0,
-    "main-preview": 0,
-    "main-properties": false
+    "main-board-properties": false
+  },
+  "export": {
+    "main-res": {
+      "mode": "network",
+      "preview": false,
+      "grid": {
+
+      },
+      "in_grid": {
+        "bywdmhugjutgwsd": false
+      },
+      "refreshed": null,
+      "nodes": {
+        "id": [
+
+        ],
+        "label": [
+
+        ],
+        "title": [
+
+        ],
+        "shape": [
+
+        ],
+        "shapeProperties.borderDashes": [
+
+        ],
+        "color.background": [
+
+        ],
+        "color.border": [
+
+        ],
+        "color.highlight.background": [
+
+        ],
+        "color.highlight.border": [
+
+        ],
+        "borderWidth": [
+
+        ],
+        "stack": [
+
+        ],
+        "icon.code": [
+
+        ],
+        "x": [
+
+        ],
+        "y": [
+
+        ]
+      },
+      "append_block": false,
+      "added_block": null,
+      "removed_block": "bywdmhugjutgwsd",
+      "selected_block": null,
+      "edges": {
+
+      },
+      "cancelled_edge": null,
+      "added_edge": null,
+      "removed_edge": null
+    }
   }
 }

@@ -9,9 +9,9 @@ create_node(new, vals, rv, session)
 \arguments{
 \item{new}{New block to add.}
 
-\item{vals}{Local reactive values.}
+\item{vals}{Global reactive values. To communicate between modules.}
 
-\item{rv}{Global parent reactive values.}
+\item{rv}{Board reactive values. Read-only.}
 
 \item{session}{Shiny session object.}
 }
@@ -25,3 +25,4 @@ involves some edge creation (connection). No validation is
 required in practice as a node can theoretically feed
 as many children nodes as required.
 }
+\keyword{internal}

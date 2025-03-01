@@ -9,6 +9,7 @@
 #' @rdname custom-board
 block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
   block_card <- function(x, id, ns) {
+    blk_info <- get_block_registry(x)
     div(
       class = "m-2",
       id = ns(id),
@@ -18,7 +19,14 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
         expr_ui(ns(id), x),
         block_ui(ns(id), x),
         card_footer(
-          "Custom footer"
+          div(
+            class = "callout callout-info",
+            p(
+              icon("lightbulb"),
+              "How to use this block?",
+            ),
+            p(attr(blk_info, "description"), ".")
+          )
         )
       )
     )
@@ -64,4 +72,25 @@ remove_block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
       )
     }
   }
+}
+
+#' Get block info in registry
+#'
+#' @param x Block object
+#' @keywords internal
+get_block_registry <- function(x) {
+  stopifnot(is_block(x))
+  available_blocks()[[strsplit(attr(x, "ctor"), "new_")[[1]][2]]]
+}
+
+#' Get the state of a block
+#'
+#' @param rv Board reactiveValues for read-only usage.
+#' @keywords internal
+get_blocks_state <- function(rv) {
+  stopifnot(is_board(rv$board))
+  req(length(board_blocks(rv$board)) > 0)
+  lapply(rv$blocks, \(blk) {
+    blk$server$result()
+  })
 }

@@ -11,7 +11,7 @@ can_connect(x, target, rv)
 
 \item{target}{Connection target id.}
 
-\item{rv}{Reactive values}
+\item{rv}{Board reactive values}
 }
 \description{
 Check whether the node can receive connection

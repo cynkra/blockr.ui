@@ -10,9 +10,9 @@ create_edge(new, vals, rv, session)
 \item{new}{Edge data. A list like
 \code{list(from = "from_node_ID", to = "to_node_ID")}.}
 
-\item{vals}{Local reactive values.}
+\item{vals}{Global reactive values. Read-write.}
 
-\item{rv}{Parent reactive values.}
+\item{rv}{Board reactive values. Read-only.}
 
 \item{session}{Shiny session object.}
 }
@@ -23,3 +23,4 @@ There is a validation layer prior to knowing whether
 we can add the edge. Then rv are updated and the graph
 proxy is also updated.
 }
+\keyword{internal}

@@ -2,20 +2,29 @@
 % Please edit documentation in R/utils-links.R
 \name{register_node_validation}
 \alias{register_node_validation}
+\alias{apply_validation}
 \title{Register block validation observer}
 \usage{
 register_node_validation(vals, rv, session)
+
+apply_validation(message, id, vals, session)
 }
 \arguments{
-\item{vals}{Local reactive values.}
+\item{vals}{Global reactive values. Read-write.}
 
-\item{rv}{Global reactive values.}
+\item{rv}{Board reactive values. Read-only.}
 
 \item{session}{Shiny session object.}
+
+\item{message}{Message.}
 }
 \description{
 For each block we register an observer that
 captures only the messages related to this block validation
-status. The observer is destroyed when the node is cleaned
-by cleanup_node.
+status.
+
+Block validation is made by the backend
+this function only updates the node color
+based on the valid status.
 }
+\keyword{internal}

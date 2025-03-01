@@ -5,24 +5,23 @@
 \alias{add_rm_link_ui}
 \title{Add/remove block links module}
 \usage{
-add_rm_link_server(id, rv, ...)
+add_rm_link_server(id, rv, update, ...)
 
 add_rm_link_ui(id, board)
 }
 \arguments{
-\item{id}{Namespace ID}
+\item{id}{Namespace ID.}
 
-\item{rv}{Reactive values object}
+\item{rv}{Reactive values object.}
 
-\item{...}{Extra arguments passed from parent scope}
+\item{update}{Reactive value object to initiate board updates.}
+
+\item{...}{Extra arguments passed from parent scope.}
 
 \item{board}{The initial \code{board} object}
 }
 \value{
-A reactive value that evaluates to \code{NULL} or a list with components
-\code{add} and \code{rm}, where \code{add} is either \code{NULL} or a \code{data.frame} with columns
-\code{id}, \code{from}, \code{to} and \code{input} and \code{rm} is either \code{NULL} or a character
-vector of link IDs.
+NULL.
 }
 \description{
 Customizable logic for adding/removing links between blocks on the
