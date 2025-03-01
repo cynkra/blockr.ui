@@ -224,27 +224,26 @@ manage_sidebars <- function(rv, update, parent, ...) {
   # Toggle sidebars based on the board mode.
   # Since we render the same UI either in the properties sidebar
   # or the dashboard sidebar, they can't be opened at the same time.
-  observeEvent(c(parent$mode, parent$selected_block), {
-    cond <- if (is.null(parent$selected_block)) {
-      FALSE
-    } else {
-      (parent$mode == "network" && nchar(parent$selected_block) > 0)
-    }
+  observeEvent(
+    c(parent$mode, parent$selected_block),
+    {
+      cond <- if (is.null(parent$selected_block)) {
+        FALSE
+      } else {
+        (parent$mode == "network" && nchar(parent$selected_block) > 0)
+      }
 
-    toggle_sidebar(
-      id = "properties",
-      open = cond
-    )
-    toggle_sidebar(
-      id = "dashboard",
-      open = (parent$mode == "dashboard")
-    )
-  })
-
-  # Re-hide sidebar when block is removed
-  observeEvent(parent$removed_block, {
-    bslib::toggle_sidebar("properties", open = FALSE)
-  })
+      toggle_sidebar(
+        id = "properties",
+        open = cond
+      )
+      toggle_sidebar(
+        id = "dashboard",
+        open = (parent$mode == "dashboard")
+      )
+    },
+    ignoreInit = TRUE
+  )
 }
 
 #' Manage blocks visibility
@@ -310,6 +309,11 @@ manage_app_mode <- function(rv, update, parent, ...) {
 
   # Disable mode or preview when there is no block
   observeEvent(rv$blocks, {
+    # close sidebar if no remaining block (prevents from getting
+    # stuck in the dashboard.
+    if (parent$mode == "dashboard" && length(rv$blocks) == 0) {
+      shinyjs::click("mode")
+    }
     shinyjs::toggleState(
       "mode",
       condition = length(rv$blocks) > 0

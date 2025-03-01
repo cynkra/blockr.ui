@@ -87,7 +87,6 @@ grid_server <- function(rv, update, parent, ...) {
   observeEvent(
     {
       req(length(rv$blocks) > 0, length(parent$in_grid) > 0)
-      req(parent$removed_block != parent$selected_block)
       req(parent$selected_block %in% names(parent$in_grid))
       c(parent$selected_block, parent$in_grid)
     },

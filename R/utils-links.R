@@ -141,6 +141,7 @@ remove_node <- function(selected, vals, session) {
     "reset-node-selection",
     list(id = sprintf("#%s", ns("network")))
   )
+  vals$selected_block <- NULL
 
   vals$nodes <- vals$nodes[-to_remove, ]
   vals
