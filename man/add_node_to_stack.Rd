@@ -4,7 +4,7 @@
 \alias{add_node_to_stack}
 \title{Add node to a group}
 \usage{
-add_node_to_stack(id, stack_id, color, parent)
+add_node_to_stack(id, stack_id, color, parent, standalone = FALSE)
 }
 \arguments{
 \item{id}{Node id.}
@@ -14,6 +14,9 @@ add_node_to_stack(id, stack_id, color, parent)
 \item{color}{Stack color.}
 
 \item{parent}{Global reactive values to update data.}
+
+\item{standalone}{Whether this function is called directly or from
+\link{stack_nodes}.}
 }
 \description{
 Given a node, update its data to add it to a group (color, group, ...)

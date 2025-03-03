@@ -261,6 +261,11 @@ add_rm_link_server <- function(id, rv, update, ...) {
           show_node_menu(
             dot_args$parent$in_grid[[input$node_right_clicked]] %OR%
               FALSE,
+            board_stack_ids(rv$board),
+            !is.na(dot_args$parent$nodes[
+              dot_args$parent$nodes$id == input$node_right_clicked,
+              "group"
+            ]),
             session
           )
         }
@@ -279,25 +284,23 @@ add_rm_link_server <- function(id, rv, update, ...) {
       # Multi actions
       # Stack creation from network
       # control + select to multiselect nodes
-      observeEvent(input$selected_nodes, {
-        show_stack_actions(input$selected_nodes, dot_args$parent, session)
-      })
-
-      # Order stack creation to stack plugin
-      observeEvent(input$new_stack, {
-        dot_args$parent$new_stack <- input$selected_nodes
-        removeModal()
-      })
-
       # Receive new stack to update nodes
       vals <- reactiveValues(
         stacks = NULL,
         # 20 colors should be enough?
         colors = hcl.colors(20, palette = "spectral")
       )
+      observeEvent(input$selected_nodes, {
+        show_stack_actions(input$selected_nodes, dot_args$parent, session)
+      })
 
-      # TO DO: for some reasons, board_stack_ids(rv$board) triggers multiple times
-      # without showing any change. Check with Nicolas.
+      # Order stack creation to stack plugin
+      observeEvent(input$new_stack, {
+        trigger_create_stack(input$selected_nodes, dot_args$parent)
+        removeModal()
+      })
+
+      # Style nodes within a stack
       observeEvent(
         {
           req(
@@ -306,7 +309,23 @@ add_rm_link_server <- function(id, rv, update, ...) {
           )
         },
         {
-          create_stack(vals, rv, dot_args$parent, session)
+          stack_nodes(vals, rv, dot_args$parent, session)
+        }
+      )
+
+      # Order removal of stack
+      observeEvent(input$remove_stack, {
+        trigger_remove_stack(input$selected_nodes[1], parent)
+        removeModal()
+      })
+
+      # Reset node styling to factory
+      observeEvent(
+        {
+          dot_args$parent$removed_stack
+        },
+        {
+          unstack_nodes(vals, rv, dot_args$parent, session)
         }
       )
 

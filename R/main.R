@@ -53,7 +53,10 @@ main_server <- function(id, board) {
         cancelled_edge = NULL,
         added_edge = NULL,
         removed_edge = NULL,
-        new_stack = NULL
+        added_stack = NULL,
+        stack_added_block = NULL,
+        stack_removed_block = NULL,
+        removed_stack = NULL
       )
 
       # For shinytest2 (don't remove)

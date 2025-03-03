@@ -143,6 +143,9 @@ remove_node <- function(selected, vals, session) {
   )
   vals$selected_block <- NULL
 
+  # Cleanup any associated stack
+  # If this node was the last member of an existing stack
+
   vals$nodes <- vals$nodes[-to_remove, ]
   vals
 }
@@ -847,10 +850,12 @@ restore_network <- function(links, vals, session) {
 #'
 #' @param value Initial state of the grid switch. Depends
 #' on the value set in the grid vals module.
+#' @param stacks Stack ids.
+#' @param has_stack Whether the current block belongs to a stack.
 #' @param session Shiny session object
 #'
 #' @keywords internal
-show_node_menu <- function(value, session) {
+show_node_menu <- function(value, stacks, has_stack, session) {
   ns <- session$ns
   input <- session$input
   session$sendCustomMessage(
@@ -859,6 +864,8 @@ show_node_menu <- function(value, session) {
       id = ns(input$node_right_clicked),
       ns = ns(""),
       value = value,
+      stacks = as.list(stacks),
+      has_stack = has_stack,
       coords = input$mouse_location
     )
   )
@@ -934,6 +941,37 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
           if (isFALSE(vals$append_block)) vals$append_block <- TRUE
         }
       )
+
+      # Remove from stack
+      obs[[sprintf("%s-remove_from_stack", id)]] <- observeEvent(
+        input[[sprintf("%s-remove_from_stack", id)]],
+        {
+          # Avoid triggering too many times (wait until next flush cycle)
+          freezeReactiveValue(input, sprintf("%s-remove_from_stack", id))
+          remove_node_from_stack(id, vals, standalone = TRUE)
+        }
+      )
+
+      # Add to stack
+      obs[[sprintf("%s-add_to_stack", id)]] <- observeEvent(
+        input[[sprintf("%s-add_to_stack", id)]],
+        {
+          # Avoid triggering too many times (wait until next flush cycle)
+          freezeReactiveValue(input, sprintf("%s-add_to_stack", id))
+          # TBD: user should be able to choose any stack within a menu
+          add_node_to_stack(
+            id,
+            input[[sprintf("%s-add_to_stack_selected", id)]],
+            unique(vals$nodes[
+              vals$nodes$group ==
+                input[[sprintf("%s-add_to_stack_selected", id)]],
+              "color.background"
+            ]),
+            vals,
+            standalone = TRUE
+          )
+        }
+      )
     }
   })
 }
@@ -943,13 +981,15 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
 #' Given a set of selected nodes, add them to a unique group
 #' and apply unique color and labels.
 #'
+#' This function must be called after \link{trigger_create_stack}.
+#'
 #' @param vals Local scope (links module) reactive values.
 #' @param rv Board reactive values.
 #' @param parent Global scope (entire app) reactive values.
 #' @param session Shiny session object.
 #'
 #' @keywords internal
-create_stack <- function(vals, rv, parent, session) {
+stack_nodes <- function(vals, rv, parent, session) {
   ns <- session$ns
   input <- session$input
 
@@ -969,6 +1009,59 @@ create_stack <- function(vals, rv, parent, session) {
   vals$stacks <- c(vals$stacks, stack_id)
   # Remove color from choices so that stacks have unique colors.
   vals$colors <- vals$colors[-1]
+
+  # Unselect all nodes
+  session$sendCustomMessage(
+    "reset-node-selection",
+    list(id = sprintf("#%s", ns("network")))
+  )
+  parent$selected_block <- NULL
+
+  parent
+}
+
+#' Dynamically ungroup nodes
+#'
+#' Given a set of selected nodes,
+#' ungroup them by removing the associated stack.
+#'
+#' This function must be called after \link{trigger_remove_stack}.
+#'
+#' @param vals Local scope (links module) reactive values.
+#' @param rv Board reactive values.
+#' @param parent Global scope (entire app) reactive values.
+#' @param session Shiny session object.
+#'
+#' @keywords internal
+unstack_nodes <- function(vals, rv, parent, session) {
+  ns <- session$ns
+  input <- session$input
+
+  stack_id <- parent$removed_stack
+  nodes_to_reset <- parent$nodes[parent$nodes$group == stack_id, ]
+
+  for (row in seq_len(nrow(nodes_to_reset))) {
+    tmp <- nodes_to_reset[row, ]
+    remove_node_from_stack(tmp$id, parent)
+  }
+
+  # There is a conflict between group and visGetNodes():
+  # https://github.com/datastorm-open/visNetwork/issues/429
+  visNetworkProxy(ns("network")) |>
+    visUpdateNodes(parent$nodes)
+
+  vals$stacks[[stack_id]] <- NULL
+  # TBS reset colors
+  vals$colors <- ""
+
+  # Unselect all nodes
+  session$sendCustomMessage(
+    "reset-node-selection",
+    list(id = sprintf("#%s", ns("network")))
+  )
+  parent$selected_block <- NULL
+
+  parent
 }
 
 #' Add node to a group
@@ -979,9 +1072,12 @@ create_stack <- function(vals, rv, parent, session) {
 #' @param stack_id Stack id.
 #' @param color Stack color.
 #' @param parent Global reactive values to update data.
+#' @param standalone Whether this function is called directly or from
+#' \link{stack_nodes}.
 #'
 #' @keywords internal
-add_node_to_stack <- function(id, stack_id, color, parent) {
+add_node_to_stack <- function(id, stack_id, color, parent, standalone = FALSE) {
+  browser()
   parent$nodes[parent$nodes$id == id, "group"] <- stack_id
   parent$nodes[parent$nodes$id == id, "color.background"] <- color
   parent$nodes[parent$nodes$id == id, "color.border"] <- color
@@ -997,6 +1093,110 @@ add_node_to_stack <- function(id, stack_id, color, parent) {
     parent$nodes[parent$nodes$id == id, "label"],
     sprintf("\n Stack: %s", stack_id)
   )
+
+  if (standalone)
+    parent$stack_added_node <- list(
+      node_id = id,
+      stack_id = stack_id
+    )
+
+  parent
+}
+
+#' Remove node from group
+#'
+#' Given a node, update its data to remove it from a group (color, group, ...)
+#'
+#' @param id Node id.
+#' @param rv Board reactive values.
+#' @param update Reactive value to update the board from anywhere.
+#' Here we pass the new stacks object.
+#' @param parent Global reactive values to update data.
+#' @param standalone Whether this function is called directly or from
+#' \link{unstack_nodes}.
+#'
+#' @keywords internal
+remove_node_from_stack <- function(id, parent, standalone = FALSE) {
+  # Reset to factory
+  stack_id <- parent$nodes[parent$nodes$id == id, "group"]
+  if (is.na(stack_id)) {
+    showNotification(
+      sprintf("Error: block %s does not belong to any stack.", id),
+      type = "error"
+    )
+    return(NULL)
+  }
+
+  parent$nodes[parent$nodes$id == id, "group"] <- NA
+  # TBD: this is also used in the validation color
+  # Maybe we can create a helper for this ...
+  parent$nodes[parent$nodes$id == id, "color.border"] <- "#dbebff"
+  parent$nodes[parent$nodes$id == id, "color.background"] <- "#dbebff"
+  parent$nodes[parent$nodes$id == id, "color.highlight.border"] <- "#dbebff"
+  parent$nodes[parent$nodes$id == id, "color.highlight.background"] <- "#dbebff"
+
+  if (standalone) parent$stack_removed_node <- stack_id
+
+  parent
+}
+
+can_remove_stack <- function(selected, parent) {
+  stack_id <- parent$nodes[parent$nodes$id == selected, "group"]
+  if (is.na(stack_id)) FALSE else TRUE
+}
+
+can_create_stack <- function(selected, parent) {
+  has_stack <- parent$nodes[parent$nodes$id %in% selected, "group"]
+  if (any(!is.na(has_stack))) FALSE else TRUE
+}
+
+#' Signal for stack removal
+#'
+#' Given a selected node, find whether a stack can be removed.
+#' If successful, then the parent$removed_stack will be captured
+#' in the stacks plugin.
+#'
+#' @param selected Selected node id.
+#' @param parent Global reactive values to update data.
+#'
+#' @keywords internal
+trigger_remove_stack <- function(selected, parent) {
+  if (!can_remove_stack(selected, parent)) {
+    showNotification(
+      sprintf("Error: block %s does not belong to any stack.", selected),
+      type = "error"
+    )
+    return(NULL)
+  }
+  parent$removed_stack <- parent$nodes[
+    parent$nodes$id == selected,
+    "group"
+  ]
+  parent
+}
+
+#' Signal for stack creation
+#'
+#' Given a selected node, find whether a stack can be created.
+#' If succesful, the stack is created from the stacks plugin.
+#'
+#' @param selected Selected node id.
+#' @param parent Global reactive values to update data.
+#'
+#' @keywords internal
+trigger_create_stack <- function(selected, parent) {
+  if (!can_create_stack(selected, parent)) {
+    showNotification(
+      sprintf(
+        "Error: blocks %s are already bound to a stack.",
+        paste(selected, collapse = ", ")
+      ),
+      type = "error"
+    )
+    return(NULL)
+  }
+  parent$added_stack <- selected
+  parent
 }
 
 #' Show stack actions
@@ -1011,28 +1211,23 @@ add_node_to_stack <- function(id, stack_id, color, parent) {
 #' @keywords internal
 show_stack_actions <- function(selected, parent, session) {
   ns <- session$ns
-  has_stack <- parent$nodes[parent$nodes$id %in% selected, "group"]
-  if (any(!is.na(has_stack))) {
-    showNotification(
-      sprintf(
-        "Blocks %s are already bound to a stack.",
-        paste(selected, collapse = ", ")
-      ),
-      type = "error"
-    )
-    return(NULL)
-  }
 
   showModal(
     modalDialog(
       title = "Node multi action",
+      size = "s",
       div(
-        class = "btn-group",
+        class = "d-grid gap-2 mx-auto",
         role = "group",
         actionButton(
           ns("new_stack"),
           "New stack",
-          icon = icon("layer-group")
+          icon = icon("object-group")
+        ),
+        actionButton(
+          ns("remode_stack"),
+          "Remove stack",
+          icon = icon("object-ungroup")
         ),
         actionButton(
           ns("remove_blocks"),

@@ -4,11 +4,15 @@
 \alias{show_node_menu}
 \title{Create and show node menu}
 \usage{
-show_node_menu(value, session)
+show_node_menu(value, stacks, has_stack, session)
 }
 \arguments{
 \item{value}{Initial state of the grid switch. Depends
 on the value set in the grid vals module.}
+
+\item{stacks}{Stack ids.}
+
+\item{has_stack}{Whether the current block belongs to a stack.}
 
 \item{session}{Shiny session object}
 }
