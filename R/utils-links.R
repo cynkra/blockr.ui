@@ -878,12 +878,13 @@ show_node_menu <- function(value, stacks, has_stack, session) {
 #' nodes and to append to a given node.
 #'
 #' @param blocks_ids Board block ids.
-#' @param vals Global scope reactive values.
+#' @param vals Local scope reactive values.
+#' @param parent Global scope reactive values.
 #' @param obs Plugin observers list.
 #' @param session Shiny session object.
 #'
 #' @keywords internal
-register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
+register_node_menu_obs <- function(blocks_ids, vals, parent, obs, session) {
   input <- session$input
 
   lapply(blocks_ids, \(id) {
@@ -892,7 +893,7 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
       obs[[sprintf("%s-add_to_grid", id)]] <- observeEvent(
         input[[sprintf("%s-add_to_grid", id)]],
         {
-          vals$in_grid[[id]] <- input[[
+          parent$in_grid[[id]] <- input[[
             sprintf("%s-add_to_grid", id)
           ]]
         }
@@ -901,11 +902,11 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
       # Receive callback from grid to maintain the block option
       # card switch
       obs[[sprintf("update-%s-add_to_grid", id)]] <- observeEvent(
-        vals$in_grid[[id]],
+        parent$in_grid[[id]],
         {
           update_switch(
             sprintf("%s-add_to_grid", id),
-            value = vals$in_grid[[id]]
+            value = parent$in_grid[[id]]
           )
         }
       )
@@ -913,11 +914,11 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
       # Update the in_grid switch inputs to handle serialisation
       # restoration
       obs[[sprintf("restore-%s-add_to_grid", id)]] <- observeEvent(
-        req(vals$refreshed == "grid"),
+        req(parent$refreshed == "grid"),
         {
           update_switch(
             sprintf("%s-add_to_grid", id),
-            value = vals$in_grid[[id]]
+            value = parent$in_grid[[id]]
           )
         }
       )
@@ -928,7 +929,7 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
         {
           # Avoid triggering too many times (wait until next flush cycle)
           freezeReactiveValue(input, sprintf("%s-remove_block", id))
-          vals$removed_block <- id
+          parent$removed_block <- id
         }
       )
 
@@ -938,7 +939,7 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
         {
           # Avoid triggering too many times (wait until next flush cycle)
           freezeReactiveValue(input, sprintf("%s-append_block", id))
-          if (isFALSE(vals$append_block)) vals$append_block <- TRUE
+          if (isFALSE(parent$append_block)) parent$append_block <- TRUE
         }
       )
 
@@ -948,7 +949,7 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
         {
           # Avoid triggering too many times (wait until next flush cycle)
           freezeReactiveValue(input, sprintf("%s-remove_from_stack", id))
-          remove_node_from_stack(id, vals, standalone = TRUE)
+          remove_node_from_stack(id, parent, standalone = TRUE)
         }
       )
 
@@ -962,12 +963,10 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
           add_node_to_stack(
             id,
             input[[sprintf("%s-add_to_stack_selected", id)]],
-            unique(vals$nodes[
-              vals$nodes$group ==
-                input[[sprintf("%s-add_to_stack_selected", id)]],
-              "color.background"
-            ]),
-            vals,
+            attr(vals$stacks, "palette")[which(
+              vals$stacks == input[[sprintf("%s-add_to_stack_selected", id)]]
+            )],
+            parent,
             standalone = TRUE
           )
         }
@@ -995,20 +994,16 @@ stack_nodes <- function(vals, rv, parent, session) {
 
   stack_id <- tail(board_stack_ids(rv$board), n = 1)
 
-  stack_color <- vals$colors[1]
+  vals$stacks[[length(vals$stacks) + 1]] <- stack_id
+  stack_color <- attr(vals$stacks, "palette")[length(vals$stacks)]
   lapply(input$selected_nodes, \(id) {
-    # TO DO: check that nodes are not already in a stack
     add_node_to_stack(id, stack_id, stack_color, parent)
   })
 
   # There is a conflict between group and visGetNodes():
   # https://github.com/datastorm-open/visNetwork/issues/429
   visNetworkProxy(ns("network")) |>
-    visUpdateNodes(parent$nodes) #|>
-  #visGroups(groupname = stack_id, color = vals$colors[1])
-  vals$stacks <- c(vals$stacks, stack_id)
-  # Remove color from choices so that stacks have unique colors.
-  vals$colors <- vals$colors[-1]
+    visUpdateNodes(parent$nodes)
 
   # Unselect all nodes
   session$sendCustomMessage(
@@ -1051,8 +1046,6 @@ unstack_nodes <- function(vals, rv, parent, session) {
     visUpdateNodes(parent$nodes)
 
   vals$stacks[[stack_id]] <- NULL
-  # TBS reset colors
-  vals$colors <- ""
 
   # Unselect all nodes
   session$sendCustomMessage(
@@ -1077,7 +1070,6 @@ unstack_nodes <- function(vals, rv, parent, session) {
 #'
 #' @keywords internal
 add_node_to_stack <- function(id, stack_id, color, parent, standalone = FALSE) {
-  browser()
   parent$nodes[parent$nodes$id == id, "group"] <- stack_id
   parent$nodes[parent$nodes$id == id, "color.background"] <- color
   parent$nodes[parent$nodes$id == id, "color.border"] <- color
@@ -1134,6 +1126,11 @@ remove_node_from_stack <- function(id, parent, standalone = FALSE) {
   parent$nodes[parent$nodes$id == id, "color.background"] <- "#dbebff"
   parent$nodes[parent$nodes$id == id, "color.highlight.border"] <- "#dbebff"
   parent$nodes[parent$nodes$id == id, "color.highlight.background"] <- "#dbebff"
+  parent$nodes[parent$nodes$id == id, "label"] <- gsub(
+    "\n Stack.*",
+    "",
+    parent$nodes[parent$nodes$id == id, "label"]
+  )
 
   if (standalone) parent$stack_removed_node <- stack_id
 
@@ -1225,7 +1222,7 @@ show_stack_actions <- function(selected, parent, session) {
           icon = icon("object-group")
         ),
         actionButton(
-          ns("remode_stack"),
+          ns("remove_stack"),
           "Remove stack",
           icon = icon("object-ungroup")
         ),

@@ -275,6 +275,7 @@ add_rm_link_server <- function(id, rv, update, ...) {
       observeEvent(req(length(board_block_ids(rv$board)) > 0), {
         register_node_menu_obs(
           board_block_ids(rv$board),
+          vals,
           dot_args$parent,
           obs,
           session
@@ -286,9 +287,10 @@ add_rm_link_server <- function(id, rv, update, ...) {
       # control + select to multiselect nodes
       # Receive new stack to update nodes
       vals <- reactiveValues(
-        stacks = NULL,
-        # 20 colors should be enough?
-        colors = hcl.colors(20, palette = "spectral")
+        stacks = structure(
+          list(),
+          palette = hcl.colors(20, palette = "spectral")
+        )
       )
       observeEvent(input$selected_nodes, {
         show_stack_actions(input$selected_nodes, dot_args$parent, session)
@@ -315,7 +317,7 @@ add_rm_link_server <- function(id, rv, update, ...) {
 
       # Order removal of stack
       observeEvent(input$remove_stack, {
-        trigger_remove_stack(input$selected_nodes[1], parent)
+        trigger_remove_stack(input$selected_nodes[1], dot_args$parent)
         removeModal()
       })
 
