@@ -417,6 +417,16 @@ create_node <- function(new, vals, rv, session) {
       rv,
       session
     )
+
+    from_node <- vals$nodes[vals$nodes$id == input$network_selected, ]
+    if (!is.na(group)) {
+      add_node_to_stack(
+        block_uid(new),
+        from_node[["group"]],
+        from_node[["color"]],
+        vals
+      )
+    }
   }
 
   visNetworkProxy(ns("network")) |>
@@ -473,7 +483,7 @@ apply_validation <- function(message, id, vals, session) {
   connected_edges <- vals$edges[vals$edges$to == id, ]
 
   if (is.null(message)) {
-    if (selected_color == "#dbebff") return(NULL)
+    if (selected_color != "#ff0018") return(NULL)
     if (nrow(connected_edges) > 0) {
       vals$edges[vals$edges$to == id, "color"] <- "#9db5cc"
       vals$edges[vals$edges$to == id, "dashes"] <- FALSE
@@ -926,4 +936,111 @@ register_node_menu_obs <- function(blocks_ids, vals, obs, session) {
       )
     }
   })
+}
+
+#' Dynamically group nodes
+#'
+#' Given a set of selected nodes, add them to a unique group
+#' and apply unique color and labels.
+#'
+#' @param vals Local scope (links module) reactive values.
+#' @param rv Board reactive values.
+#' @param parent Global scope (entire app) reactive values.
+#' @param session Shiny session object.
+#'
+#' @keywords internal
+create_stack <- function(vals, rv, parent, session) {
+  ns <- session$ns
+  input <- session$input
+
+  stack_id <- tail(board_stack_ids(rv$board), n = 1)
+
+  stack_color <- vals$colors[1]
+  lapply(input$selected_nodes, \(id) {
+    # TO DO: check that nodes are not already in a stack
+    add_node_to_stack(id, stack_id, stack_color, parent)
+  })
+
+  # There is a conflict between group and visGetNodes():
+  # https://github.com/datastorm-open/visNetwork/issues/429
+  visNetworkProxy(ns("network")) |>
+    visUpdateNodes(parent$nodes) #|>
+  #visGroups(groupname = stack_id, color = vals$colors[1])
+  vals$stacks <- c(vals$stacks, stack_id)
+  # Remove color from choices so that stacks have unique colors.
+  vals$colors <- vals$colors[-1]
+}
+
+#' Add node to a group
+#'
+#' Given a node, update its data to add it to a group (color, group, ...)
+#'
+#' @param id Node id.
+#' @param stack_id Stack id.
+#' @param color Stack color.
+#' @param parent Global reactive values to update data.
+#'
+#' @keywords internal
+add_node_to_stack <- function(id, stack_id, color, parent) {
+  parent$nodes[parent$nodes$id == id, "group"] <- stack_id
+  parent$nodes[parent$nodes$id == id, "color.background"] <- color
+  parent$nodes[parent$nodes$id == id, "color.border"] <- color
+  parent$nodes[
+    parent$nodes$id == id,
+    "color.highlight.background"
+  ] <- color
+  parent$nodes[
+    parent$nodes$id == id,
+    "color.highlight.border"
+  ] <- color
+  parent$nodes[parent$nodes$id == id, "label"] <- paste(
+    parent$nodes[parent$nodes$id == id, "label"],
+    sprintf("\n Stack: %s", stack_id)
+  )
+}
+
+#' Show stack actions
+#'
+#' A modal window triggered when multiple nodes are selected, for instance.
+#' So far we support adding a stack and removing multiple blocks from a stack.
+#'
+#' @param selected Set of selected nodes.
+#' @param parent Global reactive values.
+#' @param session Shiny session object.
+#'
+#' @keywords internal
+show_stack_actions <- function(selected, parent, session) {
+  ns <- session$ns
+  has_stack <- parent$nodes[parent$nodes$id %in% selected, "group"]
+  if (any(!is.na(has_stack))) {
+    showNotification(
+      sprintf(
+        "Blocks %s are already bound to a stack.",
+        paste(selected, collapse = ", ")
+      ),
+      type = "error"
+    )
+    return(NULL)
+  }
+
+  if (any(selected))
+    showModal(
+      modalDialog(
+        title = "Node multi action",
+        div(
+          class = "btn-group",
+          role = "group",
+          actionButton(
+            ns("new_stack"),
+            "New stack",
+            icon = icon("layer-group")
+          ),
+          actionButton(
+            ns("remove_blocks"),
+            "Remove selected",
+            icon = icon("trash")
+          )
+        )
+      )
+    )
 }

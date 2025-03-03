@@ -3,9 +3,10 @@
 #' Customizable logic for adding/removing stacks grouping blocks together on
 #' the board.
 #'
-#' @param id Namespace ID
-#' @param rv Reactive values object
-#' @param ... Extra arguments passed from parent scope
+#' @param id Namespace ID.
+#' @param rv Reactive values object.
+#' @param update Reactive value object to initiate board updates.
+#' @param ... Extra arguments passed from parent scope.
 #'
 #' @return A reactive value that evaluates to `NULL` or a list with components
 #' `add` and `rm`, where `add` is either `NULL` or a `stacks` object and `rm`
@@ -13,30 +14,22 @@
 #'
 #' @rdname add_rm_stack
 #' @export
-add_rm_stack_server <- add_rm_stack_server <- function(id, rv, ...) {
+add_rm_stack_server <- add_rm_stack_server <- function(id, rv, update, ...) {
   moduleServer(
     id,
     function(input, output, session) {
-      res <- reactiveVal(
-        list(add = NULL, rm = NULL)
-      )
-
-      observeEvent(rv$new_stack, {
-        res(
+      dot_args <- list(...)
+      observeEvent(dot_args$parent$new_stack, {
+        update(
           list(
-            add = stacks(new_stack(blocks = rv$new_stack))
+            stacks = list(
+              add = stacks(new_stack(blocks = dot_args$parent$new_stack))
+            )
           )
         )
       })
 
-      res
-
-      #res(
-      #  list(
-      #    add = if (length(upd$add)) upd$add else stacks(),
-      #    rm = if (length(upd$rm)) upd$rm else character()
-      #  )
-      #)
+      NULL
     }
   )
 }

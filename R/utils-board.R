@@ -199,8 +199,7 @@ board_header <- function(id, board_ui, grid_ui) {
         icon = icon("network-wired")
       )
     ),
-    div()
-    #my_board_ui$board_options_ui
+    board_ui$board_options_ui
   )
 }
 

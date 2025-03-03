@@ -31,18 +31,18 @@ add_rm_link_server <- function(id, rv, update, ...) {
 
       # Get nodes and coordinates: useful to cache the current
       # nodes data so that we can restore snapshots correctly.
-      observeEvent(
-        {
-          if (is.null(dot_args$parent$refreshed)) {
-            dot_args$parent$nodes
-          } else {
-            req(dot_args$parent$refreshed == "network")
-          }
-        },
-        {
-          visNetworkProxy(ns("network")) |> visGetNodes()
-        }
-      )
+      #observeEvent(
+      #  {
+      #    if (is.null(dot_args$parent$refreshed)) {
+      #      dot_args$parent$nodes
+      #    } else {
+      #      req(dot_args$parent$refreshed == "network")
+      #    }
+      #  },
+      #  {
+      #    visNetworkProxy(ns("network")) |> visGetNodes()
+      #  }
+      #)
 
       output$network <- renderVisNetwork({
         # Initialized as empty, we'll update with the proxy
@@ -280,48 +280,35 @@ add_rm_link_server <- function(id, rv, update, ...) {
       # Stack creation from network
       # control + select to multiselect nodes
       observeEvent(input$selected_nodes, {
-        showModal(
-          modalDialog(
-            title = "Node multi action",
-            div(
-              class = "btn-group",
-              role = "group",
-              actionButton(
-                ns("new_stack"),
-                "New stack",
-                icon = icon("layer-group")
-              ),
-              actionButton(
-                ns("remove_blocks"),
-                "Remove selected",
-                icon = icon("trash")
-              )
-            )
-          )
-        )
+        show_stack_actions(input$selected_nodes, dot_args$parent, session)
       })
 
-      # Order stack creation
+      # Order stack creation to stack plugin
       observeEvent(input$new_stack, {
-        rv$new_stack <- input$selected_nodes
+        dot_args$parent$new_stack <- input$selected_nodes
         removeModal()
       })
 
       # Receive new stack to update nodes
-      observeEvent(req(length(board_stack_ids(rv$board)) > 0), {
-        stack_id <- tail(board_stack_ids(rv$board))
-        lapply(input$selected_nodes, \(id) {
-          vals$nodes[vals$nodes$id == id, "group"] <- stack_id
-        })
-        ## update groups vis proxy
-        #visNetworkProxy(ns("network")) |>
-        #  visUpdateNodes(vals$nodes) |>
-        #  visSetOptions(
-        #    options = list(
-        #      groups = list(groupname = stack_id, color = "red")
-        #    )
-        #  )
-      })
+      vals <- reactiveValues(
+        stacks = NULL,
+        # 20 colors should be enough?
+        colors = hcl.colors(20, palette = "spectral")
+      )
+
+      # TO DO: for some reasons, board_stack_ids(rv$board) triggers multiple times
+      # without showing any change. Check with Nicolas.
+      observeEvent(
+        {
+          req(
+            length(board_stacks(rv$board)) > 0,
+            !(tail(board_stack_ids(rv$board)) %in% vals$stacks)
+          )
+        },
+        {
+          create_stack(vals, rv, dot_args$parent, session)
+        }
+      )
 
       NULL
     }
