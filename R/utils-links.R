@@ -419,7 +419,7 @@ create_node <- function(new, vals, rv, session) {
     )
 
     from_node <- vals$nodes[vals$nodes$id == input$network_selected, ]
-    if (!is.na(group)) {
+    if (!is.na(from_node[["group"]])) {
       add_node_to_stack(
         block_uid(new),
         from_node[["group"]],
@@ -1023,24 +1023,23 @@ show_stack_actions <- function(selected, parent, session) {
     return(NULL)
   }
 
-  if (any(selected))
-    showModal(
-      modalDialog(
-        title = "Node multi action",
-        div(
-          class = "btn-group",
-          role = "group",
-          actionButton(
-            ns("new_stack"),
-            "New stack",
-            icon = icon("layer-group")
-          ),
-          actionButton(
-            ns("remove_blocks"),
-            "Remove selected",
-            icon = icon("trash")
-          )
+  showModal(
+    modalDialog(
+      title = "Node multi action",
+      div(
+        class = "btn-group",
+        role = "group",
+        actionButton(
+          ns("new_stack"),
+          "New stack",
+          icon = icon("layer-group")
+        ),
+        actionButton(
+          ns("remove_blocks"),
+          "Remove selected",
+          icon = icon("trash")
         )
       )
     )
+  )
 }
