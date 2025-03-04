@@ -1100,9 +1100,6 @@ add_node_to_stack <- function(id, stack_id, color, parent, standalone = FALSE) {
 #' Given a node, update its data to remove it from a group (color, group, ...)
 #'
 #' @param id Node id.
-#' @param rv Board reactive values.
-#' @param update Reactive value to update the board from anywhere.
-#' Here we pass the new stacks object.
 #' @param parent Global reactive values to update data.
 #' @param standalone Whether this function is called directly or from
 #' \link{unstack_nodes}.

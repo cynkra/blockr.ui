@@ -9,4 +9,6 @@
 #' @import blockr.core
 #' @import gridstackr
 #' @importFrom stats setNames
+#' @importFrom grDevices hcl.colors
+#' @importFrom utils tail
 NULL

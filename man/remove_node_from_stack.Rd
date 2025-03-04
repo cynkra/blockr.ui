@@ -13,11 +13,6 @@ remove_node_from_stack(id, parent, standalone = FALSE)
 
 \item{standalone}{Whether this function is called directly or from
 \link{unstack_nodes}.}
-
-\item{rv}{Board reactive values.}
-
-\item{update}{Reactive value to update the board from anywhere.
-Here we pass the new stacks object.}
 }
 \description{
 Given a node, update its data to remove it from a group (color, group, ...)
