@@ -722,7 +722,7 @@ default_network_events <- function(ns, ...) {
       controlNodeDragEnd = sprintf(
         "function(e) {
           Shiny.setInputValue('%s', e.controlEdge, {priority: 'event'});
-          let target = $(`.${e.event.target.offsetvals.className}`)
+          let target = $(`.${e.event.target.offsetParent.className}`)
             .closest('.visNetwork')
             .attr('id');
           // Re-enable add edge mode
