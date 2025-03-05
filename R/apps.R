@@ -4,13 +4,15 @@
 #'
 #' @export
 run_demo_app <- function() {
-  Sys.setenv("blockr.dark_mode" = FALSE)
   addResourcePath(
     "www/images",
     system.file("assets/images", package = utils::packageName())
   )
   # TBD customize blockr options
-  app_board <- new_board(class = "custom_board")
+  app_board <- new_board(
+    class = "custom_board",
+    options = new_board_options(dark_mode = "light")
+  )
 
   ui <- page_fillable(
     shinyjs::useShinyjs(),

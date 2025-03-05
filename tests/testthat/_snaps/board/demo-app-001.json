@@ -109,6 +109,32 @@
           "children": [
             {
               "children": {
+                "ariaLabel": "readcsv_block",
+                "label": "readcsv block",
+                "description": "Upload and read csv data",
+                "closeOnClick": true,
+                "icon": null
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
+                "ariaLabel": "readxpt_block",
+                "label": "readxpt block",
+                "description": "Upload and read xpt data",
+                "closeOnClick": true,
+                "icon": null
+              },
+              "class": "scout_action"
+            }
+          ],
+          "label": "parser",
+          "class": "scout_section"
+        },
+        {
+          "children": [
+            {
+              "children": {
                 "ariaLabel": "scatter_block",
                 "label": "scatter plot block",
                 "description": "Scatter plotting",
@@ -346,7 +372,11 @@
       },
       "cancelled_edge": null,
       "added_edge": null,
-      "removed_edge": null
+      "removed_edge": null,
+      "added_stack": null,
+      "stack_added_block": null,
+      "stack_removed_block": null,
+      "removed_stack": null
     }
   }
 }

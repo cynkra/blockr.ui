@@ -11,8 +11,8 @@ custom_board_plugins <- function(which = NULL) {
     manage_blocks(server = add_rm_block_server, ui = add_rm_block_ui),
     manage_links(server = add_rm_link_server, ui = add_rm_link_ui),
     manage_stacks(
-      server = blockr.core::add_rm_stack_server,
-      ui = blockr.core::add_rm_stack_ui
+      server = add_rm_stack_server,
+      ui = add_rm_stack_ui
     ),
     notify_user(server = blockr.core::block_notification_server),
     generate_code(server = blockr.core::gen_code_server, ui = gen_code_ui),

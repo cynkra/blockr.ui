@@ -31,18 +31,18 @@ add_rm_link_server <- function(id, rv, update, ...) {
 
       # Get nodes and coordinates: useful to cache the current
       # nodes data so that we can restore snapshots correctly.
-      observeEvent(
-        {
-          if (is.null(dot_args$parent$refreshed)) {
-            dot_args$parent$nodes
-          } else {
-            req(dot_args$parent$refreshed == "network")
-          }
-        },
-        {
-          visNetworkProxy(ns("network")) |> visGetNodes()
-        }
-      )
+      #observeEvent(
+      #  {
+      #    if (is.null(dot_args$parent$refreshed)) {
+      #      dot_args$parent$nodes
+      #    } else {
+      #      req(dot_args$parent$refreshed == "network")
+      #    }
+      #  },
+      #  {
+      #    visNetworkProxy(ns("network")) |> visGetNodes()
+      #  }
+      #)
 
       output$network <- renderVisNetwork({
         # Initialized as empty, we'll update with the proxy
@@ -171,8 +171,6 @@ add_rm_link_server <- function(id, rv, update, ...) {
         }
       )
 
-      # TODO: handle multi block action?
-
       # Add node to network rv$nodes so the graph is updated
       observeEvent(dot_args$parent$added_block, {
         tryCatch(
@@ -263,6 +261,11 @@ add_rm_link_server <- function(id, rv, update, ...) {
           show_node_menu(
             dot_args$parent$in_grid[[input$node_right_clicked]] %OR%
               FALSE,
+            board_stack_ids(rv$board),
+            !is.na(dot_args$parent$nodes[
+              dot_args$parent$nodes$id == input$node_right_clicked,
+              "group"
+            ]),
             session
           )
         }
@@ -272,11 +275,61 @@ add_rm_link_server <- function(id, rv, update, ...) {
       observeEvent(req(length(board_block_ids(rv$board)) > 0), {
         register_node_menu_obs(
           board_block_ids(rv$board),
+          vals,
           dot_args$parent,
           obs,
           session
         )
       })
+
+      # Multi actions
+      # Stack creation from network
+      # control + select to multiselect nodes
+      # Receive new stack to update nodes
+      vals <- reactiveValues(
+        stacks = structure(
+          list(),
+          palette = hcl.colors(20, palette = "spectral")
+        )
+      )
+      observeEvent(input$selected_nodes, {
+        show_stack_actions(input$selected_nodes, dot_args$parent, session)
+      })
+
+      # Order stack creation to stack plugin
+      observeEvent(input$new_stack, {
+        trigger_create_stack(input$selected_nodes, dot_args$parent)
+        removeModal()
+      })
+
+      # Style nodes within a stack
+      observeEvent(
+        {
+          req(
+            length(board_stacks(rv$board)) > 0,
+            !(tail(board_stack_ids(rv$board)) %in% vals$stacks)
+          )
+        },
+        {
+          stack_nodes(vals, rv, dot_args$parent, session)
+        }
+      )
+
+      # Order removal of stack
+      observeEvent(input$remove_stack, {
+        trigger_remove_stack(input$selected_nodes[1], dot_args$parent)
+        removeModal()
+      })
+
+      # Reset node styling to factory
+      observeEvent(
+        {
+          dot_args$parent$removed_stack
+        },
+        {
+          unstack_nodes(vals, rv, dot_args$parent, session)
+        }
+      )
 
       NULL
     }

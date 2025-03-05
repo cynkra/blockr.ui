@@ -15,7 +15,8 @@ blk_icon <- function(category) {
     "file" = "file-import",
     "parse" = "cogs",
     "plot" = "chart-line",
-    "transform" = "wand-magic-sparkles"
+    "transform" = "wand-magic-sparkles",
+    "table" = "table"
   )
 }
 
@@ -199,8 +200,7 @@ board_header <- function(id, board_ui, grid_ui) {
         icon = icon("network-wired")
       )
     ),
-    div()
-    #my_board_ui$board_options_ui
+    board_ui$board_options_ui
   )
 }
 

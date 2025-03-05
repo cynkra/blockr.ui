@@ -16,6 +16,7 @@ main_ui <- function(id, board) {
         "preserve_board",
         "manage_blocks",
         "manage_links",
+        "manage_stacks",
         "generate_code",
         "notify_user"
       )
@@ -51,7 +52,11 @@ main_server <- function(id, board) {
         edges = data.frame(),
         cancelled_edge = NULL,
         added_edge = NULL,
-        removed_edge = NULL
+        removed_edge = NULL,
+        added_stack = NULL,
+        stack_added_block = NULL,
+        stack_removed_block = NULL,
+        removed_stack = NULL
       )
 
       # For shinytest2 (don't remove)
@@ -66,6 +71,7 @@ main_server <- function(id, board) {
             "preserve_board",
             "manage_blocks",
             "manage_links",
+            "manage_stacks",
             "generate_code",
             "notify_user"
           )

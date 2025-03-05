@@ -41,13 +41,31 @@ export const manageNodeMenu = () => {
                     <span>Use in dashboard?</span>
                   </label>
                 </div>
-                <div class="btn-group btn-group-sm d-flex justify-content-center align-items-center" role="group">
+                <div class="d-grid gap-2 mx-auto">
                   <button class="btn action-button btn-light" id="${m.id}-append_block" type="button">
                     <i class="fas fa-circle-plus" role="presentation" aria-label="circle-plus icon"></i>
+                    Append block
                   </button>
                   <button class="btn action-button btn-danger" id="${m.id}-remove_block" type="button">
                     <i class="fas fa-trash" role="presentation" aria-label="trash icon"></i>
+                    Remove block
                   </button>
+                  <button class="btn action-button btn-light" id="${m.id}-remove_from_stack" type="button">
+                    <i class="fas fa-object-ungroup" role="presentation" aria-label="object ungroup icon"></i>
+                    Remove from stack
+                  </button>
+                  <div class="row g-3">
+                    <div class="col-auto">
+                      <select class="form-select" id="${m.id}-add_to_stack_selected"></select>
+                    </div>
+                    <div class="col-auto">
+                      <button class="btn action-button btn-light" id="${m.id}-add_to_stack" type="button">
+                        <i class="fas fa-object-group" role="presentation" aria-label="object group icon"></i>
+                        Add to stack
+                      </button>
+                    </div>
+                  </div>
+                  
                 </div>
               </div>
             </div>`
@@ -64,6 +82,23 @@ export const manageNodeMenu = () => {
       });
 
       Shiny.bindAll($(`#${m.id}`));
+    }
+
+    // Toggle remove from stack button
+    $(`#${m.id}-remove_from_stack`).attr("disabled", !m.has_stack);
+    // Toggle add to stack button
+    $(`#${m.id}-add_to_stack`).attr("disabled", m.has_stack || m.stacks.length === 0);
+
+    // Populate select with choices
+    if (m.stacks.length > 0) {
+      select = document.getElementById(`${m.id}-add_to_stack_selected`);
+      $(`#${m.id}-add_to_stack_selected`).find("option").remove();
+      for (var i = 0; i < m.stacks.length; i++) {
+        var opt = document.createElement("option");
+        opt.value = m.stacks[i];
+        opt.innerHTML = m.stacks[i];
+        select.appendChild(opt);
+      }
     }
 
     // Show dropdown
