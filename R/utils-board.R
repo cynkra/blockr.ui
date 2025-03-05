@@ -15,7 +15,8 @@ blk_icon <- function(category) {
     "file" = "file-import",
     "parse" = "cogs",
     "plot" = "chart-line",
-    "transform" = "wand-magic-sparkles"
+    "transform" = "wand-magic-sparkles",
+    "table" = "table"
   )
 }
 
