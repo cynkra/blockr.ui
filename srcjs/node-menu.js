@@ -31,17 +31,17 @@ export const manageNodeMenu = () => {
       let dropTag = `<div class="card node-menu-card" style="width: 18rem; position: absolute;" id="${m.id}">
               <div class="card-header"><h5 class="card-title">Block ${shortId} options</h5></div>
               <div class="card-body">
-                <div class="bslib-input-switch form-switch form-check">
-                  <input 
-                    id="${m.id}-add_to_grid"
-                    class="form-check-input"
-                    type="checkbox"
-                    role="switch">
-                  <label class="form-check-label" for="${m.id}-add_to_grid">
-                    <span>Use in dashboard?</span>
-                  </label>
-                </div>
                 <div class="d-grid gap-2 mx-auto">
+                  <div class="bslib-input-switch form-switch form-check">
+                    <input 
+                      id="${m.id}-add_to_grid"
+                      class="form-check-input"
+                      type="checkbox"
+                      role="switch">
+                    <label class="form-check-label" for="${m.id}-add_to_grid">
+                      <span>Use in dashboard?</span>
+                    </label>
+                  </div>
                   <button class="btn action-button btn-light" id="${m.id}-append_block" type="button">
                     <i class="fas fa-circle-plus" role="presentation" aria-label="circle-plus icon"></i>
                     Append block

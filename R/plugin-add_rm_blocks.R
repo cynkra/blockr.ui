@@ -31,13 +31,22 @@ add_rm_block_server <- function(id, rv, update, ...) {
       observeEvent(
         input$add_block,
         {
-          # Reset add_block_to
-          dot_args$parent$append_block <- FALSE
           update_scoutbar(
             session,
             "scoutbar",
             revealScoutbar = TRUE
           )
+        }
+      )
+
+      # Reset dot_args$parent$append_block is user
+      # accidentally close the scoutbar without selecting
+      # a block, so that the scoutbar can open again on the
+      # next input$append_block or from the links plugin.
+      observeEvent(
+        input[["scoutbar-open"]],
+        {
+          if (!input[["scoutbar-open"]]) dot_args$parent$append_block <- FALSE
         }
       )
 
@@ -49,7 +58,6 @@ add_rm_block_server <- function(id, rv, update, ...) {
         dot_args$parent$append_block <- TRUE
       })
       observeEvent(req(dot_args$parent$append_block), {
-        dot_args$parent$added_block <- NULL
         update_scoutbar(
           session,
           "scoutbar",
