@@ -17,7 +17,23 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
       id = ns(id),
       card(
         full_screen = TRUE,
-        card_title(sprintf("Node %s properties", id)),
+        card_title(
+          icon(blk_icon(attr(blk_info, "category"))),
+          sprintf(
+            "Block: %s (id: %s)",
+            attr(blk_info, "name"),
+            gsub("block_", "", id)
+          )
+        ),
+        # subtitle
+        div(
+          class = "card-subtitle mb-2 text-body-secondary",
+          sprintf(
+            "Type: %s; Package: %s",
+            attr(blk_info, "category"),
+            attr(blk_info, "package")
+          )
+        ),
         expr_ui(ns(id), x),
         block_ui(ns(id), x),
         card_footer(
