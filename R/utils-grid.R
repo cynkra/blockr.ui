@@ -206,7 +206,7 @@ restore_grid <- function(blocks, vals, parent, session) {
 
   # Otherwise we spread elements between the grid and the network
   in_grid_ids <- chr_ply(
-    strsplit(vals$grid$id, session$ns("")),
+    strsplit(vals$grid$id, session$ns("block_")),
     `[[`,
     2
   )
