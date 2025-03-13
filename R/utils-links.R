@@ -447,13 +447,13 @@ create_node <- function(new, vals, rv, session) {
 #' captures only the messages related to this block validation
 #' status.
 #'
-#' @param vals Global reactive values. Read-write.
+#' @param id Block id for which to register the validation.
 #' @param rv Board reactive values. Read-only.
+#' @param vals Global reactive values. Read-write.
 #' @param session Shiny session object.
 #' @rdname node-validation
 #' @keywords internal
-register_node_validation <- function(vals, rv, session) {
-  id <- block_uid(vals$added_block)
+register_node_validation <- function(id, rv, vals, session) {
   # We don't need to store the observers
   # as we need them again while restoring
   # a previous state where a removed block was
@@ -799,13 +799,13 @@ create_network_widget <- function(
 #'
 #' Network is updated via a proxy.
 #'
-#' @param links Board links.
+#' @param rv Board internal reactive values. Read-only
 #' @param vals Global vals reactive values. Read-write access.
 #' @param session Shiny session object
 #'
 #' @return A reactiveValues object.
 #' @keywords internal
-restore_network <- function(links, vals, session) {
+restore_network <- function(rv, vals, session) {
   ns <- session$ns
   # Cleanup old setup
   if (length(session$input$network_nodes)) {
@@ -827,6 +827,7 @@ restore_network <- function(links, vals, session) {
   }
 
   # For each link re-creates the edges
+  links <- board_links(rv$board)
   lapply(names(links), \(nme) {
     link <- as.data.frame(links[[nme]])
     add_edge(
@@ -840,6 +841,15 @@ restore_network <- function(links, vals, session) {
   })
   visNetworkProxy(ns("network")) |>
     visUpdateEdges(vals$edges)
+
+  # Re apply node validation
+  lapply(
+    vals$nodes$id,
+    register_node_validation,
+    vals = vals,
+    rv = rv,
+    session = session
+  )
 
   vals$refreshed <- "network"
 

@@ -24,10 +24,8 @@ add_rm_link_server <- function(id, board, update, ...) {
 
       # Restore network from serialisation
       observeEvent(req(dot_args$parent$refreshed == "board"), {
-        restore_network(links(), dot_args$parent, session)
+        restore_network(board, dot_args$parent, session)
       })
-
-      links <- reactive(board_links(board$board))
 
       # Get nodes and coordinates: useful to cache the current
       # nodes data so that we can restore snapshots correctly.
@@ -117,7 +115,12 @@ add_rm_link_server <- function(id, board, update, ...) {
       # the list of block server functions.
       # For Nicolas: why does board$msgs() triggers infinitely?
       observeEvent(dot_args$parent$added_block, {
-        register_node_validation(dot_args$parent, board, session)
+        register_node_validation(
+          block_uid(dot_args$parent$added_block),
+          board,
+          dot_args$parent,
+          session
+        )
       })
 
       # Implement edge creation, we can drag from one node
