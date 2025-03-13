@@ -4,6 +4,7 @@
 #'
 #' @export
 run_demo_app <- function() {
+  Sys.setenv("blockr_dark_mode" = "light")
   addResourcePath(
     "www/images",
     system.file("assets/images", package = utils::packageName())

@@ -65,7 +65,7 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "blockr.core",
       "RemoteUsername": "cynkra",
-      "RemoteSha": "4ca757a18f40fa222f20debb0de98aa97a1341e8",
+      "RemoteSha": "ab336a903f458f3a74bdab8a5a397ddcb5ceaeef",
       "Requirements": [
         "DT",
         "bsicons",
@@ -78,7 +78,7 @@
         "utils",
         "vctrs"
       ],
-      "Hash": "4c8ce2caa97bec286a4b1cc7c2585469"
+      "Hash": "7ef4fb4c0fd6c80652cfb66c51f21f3c"
     },
     "blockr.dplyr": {
       "Package": "blockr.dplyr",
@@ -88,7 +88,7 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "blockr.dplyr",
       "RemoteUsername": "cynkra",
-      "RemoteSha": "7de416fddff8f37ce620398ec2889e8f5c9ab9b8",
+      "RemoteSha": "6e8c86f3232da8c64a999927c2c922f5caf3d282",
       "Requirements": [
         "blockr.core",
         "bslib",
@@ -100,7 +100,23 @@
         "shinyAce",
         "shinyjs"
       ],
-      "Hash": "4f94bb350f0aba76e0e37111e731c72f"
+      "Hash": "c5867202784e15f7811d4f8d2b00242c"
+    },
+    "blockr.sdtm": {
+      "Package": "blockr.sdtm",
+      "Version": "0.0.1",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "blockr.sdtm",
+      "RemoteUsername": "cynkra",
+      "RemoteSha": "7e1ffe10082438f08d47f1e019dab371e89180f1",
+      "Requirements": [
+        "blockr.core",
+        "pharmaversesdtm",
+        "shiny"
+      ],
+      "Hash": "d33bd87ad16fd87f711dc8702c569298"
     },
     "blockr.ui": {
       "Package": "blockr.ui",
@@ -110,7 +126,7 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "blockr.ui",
       "RemoteUsername": "cynkra",
-      "RemoteSha": "560b411c85cc184e7ba96d116954db29f165510e",
+      "RemoteSha": "28c7f959d7acf86be362c14d2efe8cc74ddfe873",
       "Requirements": [
         "blockr.core",
         "bslib",
@@ -123,7 +139,7 @@
         "shinyjs",
         "visNetwork"
       ],
-      "Hash": "f7e6fb9b7ee362d98302d0059938c8fd"
+      "Hash": "85a278b5fc5d6facc838eae6bc7db319"
     },
     "bsicons": {
       "Package": "bsicons",
@@ -325,20 +341,20 @@
     },
     "gridstackr": {
       "Package": "gridstackr",
-      "Version": "0.0.1",
+      "Version": "0.0.2",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "gridstackr",
       "RemoteUsername": "dreamRs",
-      "RemoteSha": "9752872aeb68d2d711b3dea73cd2064fe28af116",
+      "RemoteSha": "b6648003de086a1296784e9c5b49e8bb2abec28a",
       "Requirements": [
         "htmltools",
         "htmlwidgets",
         "rlang",
         "shiny"
       ],
-      "Hash": "80069b2bf4ad7d540c1ebcc35a36e9d7"
+      "Hash": "5887b60588ef442eef20ab5024d2fa02"
     },
     "highr": {
       "Package": "highr",
@@ -409,13 +425,13 @@
     },
     "jsonlite": {
       "Package": "jsonlite",
-      "Version": "1.9.0",
+      "Version": "1.9.1",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
         "methods"
       ],
-      "Hash": "a61860f091bd20d8dd6c3fd8ac7f6e90"
+      "Hash": "c72fbb0e7ee73ea7497ffeebe44f0d91"
     },
     "knitr": {
       "Package": "knitr",
@@ -497,6 +513,21 @@
         "tools"
       ],
       "Hash": "18e9c28c1d3ca1560ce30658b22ce104"
+    },
+    "pharmaversesdtm": {
+      "Package": "pharmaversesdtm",
+      "Version": "1.2.0",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "pharmaversesdtm",
+      "RemoteUsername": "pharmaverse",
+      "RemoteRef": "main",
+      "RemoteSha": "1573ffde26ab61aee5d0a81649444e9e6e0e627d",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "e271ba5de3acf856e811a1a31e1f198c"
     },
     "pillar": {
       "Package": "pillar",
@@ -620,19 +651,19 @@
     },
     "scoutbaR": {
       "Package": "scoutbaR",
-      "Version": "0.1.0",
+      "Version": "0.2.0",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "scoutbaR",
       "RemoteUsername": "cynkra",
-      "RemoteSha": "fa42ddd3dd9e4e5499862606d0d01a986dc2a667",
+      "RemoteSha": "f41b56729a37a7f32b803358838a3bc1907a7a29",
       "Requirements": [
         "htmltools",
         "reactR",
         "shiny"
       ],
-      "Hash": "11aefebbcb813a35dfd697c6be51dc01"
+      "Hash": "6f4b8188cc494532a4b11f6d7ef66221"
     },
     "shiny": {
       "Package": "shiny",
@@ -669,7 +700,7 @@
     },
     "shinyAce": {
       "Package": "shinyAce",
-      "Version": "0.4.3",
+      "Version": "0.4.4",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
@@ -679,7 +710,7 @@
         "tools",
         "utils"
       ],
-      "Hash": "85be5927b81f793a6137bae87d2a67ca"
+      "Hash": "59a83458750b23d58fe6565872fccb3d"
     },
     "shinyWidgets": {
       "Package": "shinyWidgets",
@@ -758,13 +789,13 @@
     },
     "tinytex": {
       "Package": "tinytex",
-      "Version": "0.55",
+      "Version": "0.56",
       "Source": "Repository",
       "Repository": "RSPM",
       "Requirements": [
         "xfun"
       ],
-      "Hash": "96cb024d1c628148e2056918fe5f1354"
+      "Hash": "68e6032b8c16f33fab8756e40a0dca1a"
     },
     "utf8": {
       "Package": "utf8",
