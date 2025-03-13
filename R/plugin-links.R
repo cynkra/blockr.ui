@@ -258,7 +258,11 @@ add_rm_link_server <- function(id, board, update, ...) {
       # the card in the DOM)
       observeEvent(
         {
-          req(input$mouse_location, nchar(input$node_right_clicked) > 0)
+          req(
+            input$mouse_location,
+            nchar(input$node_right_clicked) > 0,
+            length(input$node_right_clicked) == 1
+          )
         },
         {
           show_node_menu(
@@ -327,6 +331,7 @@ add_rm_link_server <- function(id, board, update, ...) {
       # Reset node styling to factory
       observeEvent(
         {
+          req(length(board_stacks(board$board)) > 0)
           dot_args$parent$removed_stack
         },
         {

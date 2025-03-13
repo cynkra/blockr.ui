@@ -4,7 +4,7 @@
 \alias{add_node_to_stack}
 \title{Add node to a group}
 \usage{
-add_node_to_stack(id, stack_id, color, parent, standalone = FALSE)
+add_node_to_stack(id, stack_id, color, parent, standalone = FALSE, session)
 }
 \arguments{
 \item{id}{Node id.}
@@ -17,6 +17,8 @@ add_node_to_stack(id, stack_id, color, parent, standalone = FALSE)
 
 \item{standalone}{Whether this function is called directly or from
 \link{stack_nodes}.}
+
+\item{session}{Shiny session object.}
 }
 \description{
 Given a node, update its data to add it to a group (color, group, ...)

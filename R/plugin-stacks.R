@@ -63,6 +63,7 @@ add_rm_stack_server <- function(id, board, update, ...) {
             )
           )
         )
+        dot_args$parent$stack_removed_node <- NULL
       })
 
       # Callback from links module
