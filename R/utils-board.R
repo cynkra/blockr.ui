@@ -213,7 +213,7 @@ board_header <- function(id, board_ui, grid_ui) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-manage_sidebars <- function(rv, update, parent, ...) {
+manage_sidebars <- function(board, update, parent, ...) {
   session <- get("session", parent.frame(1))
   ns <- session$ns
 
@@ -250,18 +250,18 @@ manage_sidebars <- function(rv, update, parent, ...) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-manage_block_visibility <- function(rv, update, parent, ...) {
+manage_block_visibility <- function(board, update, parent, ...) {
   observeEvent(
     {
       req(parent$mode == "network")
       req(parent$selected_block)
     },
     {
-      to_hide <- which(names(rv$blocks) != parent$selected_block)
+      to_hide <- which(names(board$blocks) != parent$selected_block)
 
       shinyjs::show(parent$selected_block)
       if (length(to_hide)) {
-        lapply(names(rv$blocks)[to_hide], \(el) {
+        lapply(names(board$blocks)[to_hide], \(el) {
           shinyjs::hide(el)
         })
       }
@@ -274,7 +274,7 @@ manage_block_visibility <- function(rv, update, parent, ...) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-manage_app_mode <- function(rv, update, parent, ...) {
+manage_app_mode <- function(board, update, parent, ...) {
   session <- get("session", parent.frame(1))
   input <- session$input
 
@@ -308,19 +308,19 @@ manage_app_mode <- function(rv, update, parent, ...) {
   })
 
   # Disable mode or preview when there is no block
-  observeEvent(rv$blocks, {
+  observeEvent(board$blocks, {
     # close sidebar if no remaining block (prevents from getting
     # stuck in the dashboard.
-    if (parent$mode == "dashboard" && length(rv$blocks) == 0) {
+    if (parent$mode == "dashboard" && length(board$blocks) == 0) {
       shinyjs::click("mode")
     }
     shinyjs::toggleState(
       "mode",
-      condition = length(rv$blocks) > 0
+      condition = length(board$blocks) > 0
     )
     shinyjs::toggleState(
       "preview",
-      condition = length(rv$blocks) > 0
+      condition = length(board$blocks) > 0
     )
   })
 }
@@ -347,7 +347,7 @@ toggle_preview <- function(vals, session) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-board_restore <- function(rv, update, parent, ...) {
+board_restore <- function(board, update, parent, ...) {
   board_refresh <- get("board_refresh", parent.frame(1))
   observeEvent(
     board_refresh(),

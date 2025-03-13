@@ -29,13 +29,13 @@ grid_ui <- function(id) {
 
 #' Dashboard grid server
 #'
-#' @param rv Board reactiveValues. Read-only.
+#' @param board Board reactiveValues. Read-only.
 #' @param update Update reactiveVal to signal change to the board.
 #' @param parent Parent global reactiveValues.
 #' @param ... Extra parameters.
 #' @rdname grid
 #' @export
-grid_server <- function(rv, update, parent, ...) {
+grid_server <- function(board, update, parent, ...) {
   session <- get("session", parent.frame(1))
   input <- session$input
   ns <- session$ns
@@ -56,7 +56,7 @@ grid_server <- function(rv, update, parent, ...) {
       req(parent$refreshed == "network")
     },
     {
-      restore_grid(rv$blocks, vals, parent, session)
+      restore_grid(board$blocks, vals, parent, session)
       parent$refreshed <- "grid"
     }
   )
@@ -66,11 +66,11 @@ grid_server <- function(rv, update, parent, ...) {
   # whenever a new block is created
   observeEvent(
     {
-      req(length(rv$blocks) > 0)
-      rv$blocks
+      req(length(board$blocks) > 0)
+      board$blocks
     },
     {
-      init_blocks_grid_state(rv$blocks, vals)
+      init_blocks_grid_state(board$blocks, vals)
     }
   )
 
@@ -86,7 +86,7 @@ grid_server <- function(rv, update, parent, ...) {
   # the blocks between the sidebar and the grid.
   observeEvent(
     {
-      req(length(rv$blocks) > 0, length(parent$in_grid) > 0)
+      req(length(board$blocks) > 0, length(parent$in_grid) > 0)
       req(parent$selected_block %in% names(parent$in_grid))
       c(parent$selected_block, parent$in_grid)
     },
