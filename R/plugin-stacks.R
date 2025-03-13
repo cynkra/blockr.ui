@@ -14,7 +14,7 @@
 #'
 #' @rdname add_rm_stack
 #' @export
-add_rm_stack_server <- add_rm_stack_server <- function(id, board, update, ...) {
+add_rm_stack_server <- function(id, board, update, ...) {
   moduleServer(
     id,
     function(input, output, session) {

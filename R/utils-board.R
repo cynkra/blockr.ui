@@ -259,10 +259,10 @@ manage_block_visibility <- function(board, update, parent, ...) {
     {
       to_hide <- which(names(board$blocks) != parent$selected_block)
 
-      shinyjs::show(parent$selected_block)
+      shinyjs::show(paste0("block_", parent$selected_block))
       if (length(to_hide)) {
         lapply(names(board$blocks)[to_hide], \(el) {
-          shinyjs::hide(el)
+          shinyjs::hide(paste0("block_", el))
         })
       }
     }

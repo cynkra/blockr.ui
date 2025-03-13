@@ -9,6 +9,8 @@
 #' @rdname custom-board
 block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
   block_card <- function(x, id, ns) {
+    id <- paste0("block_", id)
+
     blk_info <- get_block_registry(x)
     div(
       class = "m-2",
@@ -67,7 +69,7 @@ remove_block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
     stopifnot(is.character(blocks), all(blocks %in% board_block_ids(x)))
     for (block in blocks) {
       removeUI(
-        sprintf("#%s-%s", id, block),
+        sprintf("#%s-%s", id, paste0("block_", block)),
         immediate = TRUE
       )
     }
