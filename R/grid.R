@@ -101,16 +101,13 @@ grid_server <- function(board, update, parent, ...) {
   )
 
   # Toggle state for each selected block to update the state
-  observeEvent(
-    req(input$add_to_grid > 0),
-    {
-      update_block_grid_state(
-        parent$selected_block,
-        input$add_to_grid,
-        vals
-      )
-    }
-  )
+  observeEvent(input$add_to_grid, {
+    update_block_grid_state(
+      parent$selected_block,
+      input$add_to_grid,
+      vals
+    )
+  })
 
   # Move items between properties tab and grid.
   # Since we can't rebuilt the UI of each block and preserve its state

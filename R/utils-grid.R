@@ -33,8 +33,13 @@ init_blocks_grid_state <- function(blocks, vals) {
 #' @param vals Local reactive values.
 #' @keywords internal
 update_block_grid_state <- function(selected, value, vals) {
-  if (vals$in_grid[[selected]] == value) return(NULL)
-  vals$in_grid[[selected]] <- value
+  if (is.null(selected)) return(NULL)
+  if (!(selected %in% names(vals$in_grid))) {
+    vals$in_grid[[selected]] <- value
+  } else {
+    if (vals$in_grid[[selected]] == value) return(NULL)
+    vals$in_grid[[selected]] <- value
+  }
 }
 
 #' Update switch input
