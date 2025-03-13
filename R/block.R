@@ -17,12 +17,23 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
       id = ns(id),
       card(
         full_screen = TRUE,
-        card_title(
-          icon(blk_icon(attr(blk_info, "category"))),
-          sprintf(
-            "Block: %s (id: %s)",
-            attr(blk_info, "name"),
-            gsub("block_", "", id)
+        card_header(
+          class = "d-flex justify-content-between",
+          card_title(
+            icon(blk_icon(attr(blk_info, "category"))),
+            sprintf(
+              "Block: %s (id: %s)",
+              attr(blk_info, "name"),
+              gsub("block_", "", id)
+            )
+          ),
+          tooltip(
+            icon("info-circle"),
+            p(
+              icon("lightbulb"),
+              "How to use this block?",
+            ),
+            p(attr(blk_info, "description"), ".")
           )
         ),
         # subtitle
@@ -37,14 +48,7 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
         expr_ui(ns(id), x),
         block_ui(ns(id), x),
         card_footer(
-          div(
-            class = "callout callout-info",
-            p(
-              icon("lightbulb"),
-              "How to use this block?",
-            ),
-            p(attr(blk_info, "description"), ".")
-          )
+          "TBD"
         )
       )
     )
