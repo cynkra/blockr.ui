@@ -4,7 +4,7 @@
 \alias{remove_node_from_stack}
 \title{Remove node from group}
 \usage{
-remove_node_from_stack(id, parent, standalone = FALSE)
+remove_node_from_stack(id, parent, standalone = FALSE, session)
 }
 \arguments{
 \item{id}{Node id.}
@@ -13,6 +13,8 @@ remove_node_from_stack(id, parent, standalone = FALSE)
 
 \item{standalone}{Whether this function is called directly or from
 \link{unstack_nodes}.}
+
+\item{session}{Shiny session object.}
 }
 \description{
 Given a node, update its data to remove it from a group (color, group, ...)

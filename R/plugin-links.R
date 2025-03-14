@@ -4,7 +4,7 @@
 #' board.
 #'
 #' @param id Namespace ID.
-#' @param rv Reactive values object.
+#' @param board Reactive values object.
 #' @param update Reactive value object to initiate board updates.
 #' @param ... Extra arguments passed from parent scope.
 #'
@@ -12,7 +12,7 @@
 #'
 #' @rdname add_rm_link
 #' @export
-add_rm_link_server <- function(id, rv, update, ...) {
+add_rm_link_server <- function(id, board, update, ...) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -24,10 +24,8 @@ add_rm_link_server <- function(id, rv, update, ...) {
 
       # Restore network from serialisation
       observeEvent(req(dot_args$parent$refreshed == "board"), {
-        restore_network(links(), dot_args$parent, session)
+        restore_network(board, dot_args$parent, session)
       })
-
-      links <- reactive(board_links(rv$board))
 
       # Get nodes and coordinates: useful to cache the current
       # nodes data so that we can restore snapshots correctly.
@@ -68,7 +66,7 @@ add_rm_link_server <- function(id, rv, update, ...) {
         {
           req(input$network_initialized)
           list(
-            board_links(rv$board),
+            board_links(board$board),
             input$network_selected,
             input$network_graphChange
           )
@@ -77,7 +75,7 @@ add_rm_link_server <- function(id, rv, update, ...) {
           session$sendCustomMessage(
             "toggle-manipulation-ui",
             list(
-              value = length(rv$blocks) > 1
+              value = length(board$blocks) > 1
             )
           )
         }
@@ -115,9 +113,14 @@ add_rm_link_server <- function(id, rv, update, ...) {
       # Handle node update. Change of color due to block validity change ...
       # This needs input parameter from the parent module which contains
       # the list of block server functions.
-      # For Nicolas: why does rv$msgs() triggers infinitely?
+      # For Nicolas: why does board$msgs() triggers infinitely?
       observeEvent(dot_args$parent$added_block, {
-        register_node_validation(dot_args$parent, rv, session)
+        register_node_validation(
+          block_uid(dot_args$parent$added_block),
+          board,
+          dot_args$parent,
+          session
+        )
       })
 
       # Implement edge creation, we can drag from one node
@@ -154,7 +157,7 @@ add_rm_link_server <- function(id, rv, update, ...) {
               create_edge(
                 new = list(from = input$new_edge$from, to = input$new_edge$to),
                 dot_args$parent,
-                rv,
+                board,
                 session
               )
               # Send callback to create corresponding link
@@ -171,14 +174,14 @@ add_rm_link_server <- function(id, rv, update, ...) {
         }
       )
 
-      # Add node to network rv$nodes so the graph is updated
+      # Add node to network board$nodes so the graph is updated
       observeEvent(dot_args$parent$added_block, {
         tryCatch(
           {
             create_node(
               dot_args$parent$added_block,
               dot_args$parent,
-              rv,
+              board,
               session
             )
             if (dot_args$parent$append_block) {
@@ -197,10 +200,17 @@ add_rm_link_server <- function(id, rv, update, ...) {
         dot_args$parent$append_block <- FALSE
       })
 
-      # Remove node + associated edges
+      # Multi nodes removal
+      observeEvent(input$remove_blocks, {
+        dot_args$parent$removed_block <- input$selected_nodes
+      })
+
+      # Remove node + associated edges (we can remove multiple nodes at once)
       observeEvent(dot_args$parent$removed_block, {
         # Note: links are cleaned in the add_rm_blocks plugin
-        cleanup_node(input$network_selected, dot_args$parent, session)
+        lapply(dot_args$parent$removed_block, \(removed) {
+          cleanup_node(removed, dot_args$parent, session)
+        })
       })
 
       # Communicate selected to upstream modules
@@ -255,13 +265,17 @@ add_rm_link_server <- function(id, rv, update, ...) {
       # the card in the DOM)
       observeEvent(
         {
-          req(input$mouse_location, nchar(input$node_right_clicked) > 0)
+          req(
+            input$mouse_location,
+            nchar(input$node_right_clicked) > 0,
+            length(input$node_right_clicked) == 1
+          )
         },
         {
           show_node_menu(
             dot_args$parent$in_grid[[input$node_right_clicked]] %OR%
               FALSE,
-            board_stack_ids(rv$board),
+            board_stack_ids(board$board),
             !is.na(dot_args$parent$nodes[
               dot_args$parent$nodes$id == input$node_right_clicked,
               "group"
@@ -272,9 +286,9 @@ add_rm_link_server <- function(id, rv, update, ...) {
       )
 
       # Register add_to_grid observers
-      observeEvent(req(length(board_block_ids(rv$board)) > 0), {
+      observeEvent(req(length(board_block_ids(board$board)) > 0), {
         register_node_menu_obs(
-          board_block_ids(rv$board),
+          board_block_ids(board$board),
           vals,
           dot_args$parent,
           obs,
@@ -306,12 +320,12 @@ add_rm_link_server <- function(id, rv, update, ...) {
       observeEvent(
         {
           req(
-            length(board_stacks(rv$board)) > 0,
-            !(tail(board_stack_ids(rv$board)) %in% vals$stacks)
+            length(board_stacks(board$board)) > 0,
+            !(tail(board_stack_ids(board$board)) %in% vals$stacks)
           )
         },
         {
-          stack_nodes(vals, rv, dot_args$parent, session)
+          stack_nodes(vals, board, dot_args$parent, session)
         }
       )
 
@@ -324,10 +338,11 @@ add_rm_link_server <- function(id, rv, update, ...) {
       # Reset node styling to factory
       observeEvent(
         {
+          req(length(board_stacks(board$board)) > 0)
           dot_args$parent$removed_stack
         },
         {
-          unstack_nodes(vals, rv, dot_args$parent, session)
+          unstack_nodes(vals, board, dot_args$parent, session)
         }
       )
 

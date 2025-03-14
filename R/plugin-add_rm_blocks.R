@@ -3,7 +3,7 @@
 #' Customizable logic for adding/removing blocks to the board.
 #'
 #' @param id Namespace ID.
-#' @param rv Reactive values object, containing board informations.
+#' @param board Reactive values object, containing board informations.
 #' @param update Reactive value object to initiate board updates.
 #' @param ... Extra arguments passed from parent scope. Useful to communicate
 #' between plugins and surface information at the top level (for testing ...).
@@ -12,7 +12,7 @@
 #'
 #' @rdname add_rm_block
 #' @export
-add_rm_block_server <- function(id, rv, update, ...) {
+add_rm_block_server <- function(id, board, update, ...) {
   moduleServer(
     id,
     function(input, output, session) {

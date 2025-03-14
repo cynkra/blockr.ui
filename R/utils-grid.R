@@ -33,8 +33,13 @@ init_blocks_grid_state <- function(blocks, vals) {
 #' @param vals Local reactive values.
 #' @keywords internal
 update_block_grid_state <- function(selected, value, vals) {
-  if (vals$in_grid[[selected]] == value) return(NULL)
-  vals$in_grid[[selected]] <- value
+  if (is.null(selected)) return(NULL)
+  if (!(selected %in% names(vals$in_grid))) {
+    vals$in_grid[[selected]] <- value
+  } else {
+    if (vals$in_grid[[selected]] == value) return(NULL)
+    vals$in_grid[[selected]] <- value
+  }
 }
 
 #' Update switch input
@@ -124,7 +129,7 @@ manage_board_grid <- function(mode, vals, session) {
   if (mode == "network") {
     lapply(names(which(vals$in_grid == TRUE)), \(id) {
       if (nrow(current_grid_layout) > 0) {
-        remove_block_from_grid(id, session)
+        remove_block_from_grid(paste0("block_", id), session)
       }
     })
     gs_proxy_remove_all(ns("grid"))
@@ -133,6 +138,7 @@ manage_board_grid <- function(mode, vals, session) {
 
   lapply(names(vals$in_grid), \(nme) {
     new_state <- vals$in_grid[[nme]]
+    nme <- paste0("block_", nme)
 
     # If there was no grid item and we the item added
     # is marked, we can insert it
@@ -205,7 +211,7 @@ restore_grid <- function(blocks, vals, parent, session) {
 
   # Otherwise we spread elements between the grid and the network
   in_grid_ids <- chr_ply(
-    strsplit(vals$grid$id, session$ns("")),
+    strsplit(vals$grid$id, session$ns("block_")),
     `[[`,
     2
   )

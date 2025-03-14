@@ -4,7 +4,7 @@
 #' the board.
 #'
 #' @param id Namespace ID.
-#' @param rv Reactive values object.
+#' @param board Reactive values object.
 #' @param update Reactive value object to initiate board updates.
 #' @param ... Extra arguments passed from parent scope.
 #'
@@ -14,7 +14,7 @@
 #'
 #' @rdname add_rm_stack
 #' @export
-add_rm_stack_server <- add_rm_stack_server <- function(id, rv, update, ...) {
+add_rm_stack_server <- function(id, board, update, ...) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -45,7 +45,7 @@ add_rm_stack_server <- add_rm_stack_server <- function(id, rv, update, ...) {
       # Callback from links module
       observeEvent(dot_args$parent$stack_removed_node, {
         # Update stacks callback
-        tmp_stack <- board_stacks(rv$board)[[
+        tmp_stack <- board_stacks(board$board)[[
           dot_args$parent$stack_removed_node
         ]]
         ids <- dot_args$parent$nodes[
@@ -56,30 +56,29 @@ add_rm_stack_server <- add_rm_stack_server <- function(id, rv, update, ...) {
         update(
           list(
             stacks = list(
-              add = as_stacks(setNames(
+              mod = as_stacks(setNames(
                 list(tmp_stack),
                 dot_args$parent$stack_removed_node
-              )),
-              rm = dot_args$parent$stack_removed_node
+              ))
             )
           )
         )
+        dot_args$parent$stack_removed_node <- NULL
       })
 
       # Callback from links module
       observeEvent(dot_args$parent$stack_added_node, {
         stack_id <- dot_args$parent$stack_added_node$stack_id
         node_id <- dot_args$parent$stack_added_node$node_id
-        tmp_stack <- board_stacks(rv$board)[[stack_id]]
+        tmp_stack <- board_stacks(board$board)[[stack_id]]
         stack_blocks(tmp_stack) <- c(stack_blocks(tmp_stack), node_id)
         update(
           list(
             stacks = list(
-              add = as_stacks(setNames(
+              mod = as_stacks(setNames(
                 list(tmp_stack),
                 stack_id
-              )),
-              rm = stack_id
+              ))
             )
           )
         )

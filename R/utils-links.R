@@ -447,13 +447,13 @@ create_node <- function(new, vals, rv, session) {
 #' captures only the messages related to this block validation
 #' status.
 #'
-#' @param vals Global reactive values. Read-write.
+#' @param id Block id for which to register the validation.
 #' @param rv Board reactive values. Read-only.
+#' @param vals Global reactive values. Read-write.
 #' @param session Shiny session object.
 #' @rdname node-validation
 #' @keywords internal
-register_node_validation <- function(vals, rv, session) {
-  id <- block_uid(vals$added_block)
+register_node_validation <- function(id, rv, vals, session) {
   # We don't need to store the observers
   # as we need them again while restoring
   # a previous state where a removed block was
@@ -799,13 +799,13 @@ create_network_widget <- function(
 #'
 #' Network is updated via a proxy.
 #'
-#' @param links Board links.
+#' @param rv Board internal reactive values. Read-only
 #' @param vals Global vals reactive values. Read-write access.
 #' @param session Shiny session object
 #'
 #' @return A reactiveValues object.
 #' @keywords internal
-restore_network <- function(links, vals, session) {
+restore_network <- function(rv, vals, session) {
   ns <- session$ns
   # Cleanup old setup
   if (length(session$input$network_nodes)) {
@@ -827,6 +827,7 @@ restore_network <- function(links, vals, session) {
   }
 
   # For each link re-creates the edges
+  links <- board_links(rv$board)
   lapply(names(links), \(nme) {
     link <- as.data.frame(links[[nme]])
     add_edge(
@@ -840,6 +841,15 @@ restore_network <- function(links, vals, session) {
   })
   visNetworkProxy(ns("network")) |>
     visUpdateEdges(vals$edges)
+
+  # Re apply node validation
+  lapply(
+    vals$nodes$id,
+    register_node_validation,
+    vals = vals,
+    rv = rv,
+    session = session
+  )
 
   vals$refreshed <- "network"
 
@@ -952,7 +962,7 @@ register_node_menu_obs <- function(blocks_ids, vals, parent, obs, session) {
         {
           # Avoid triggering too many times (wait until next flush cycle)
           freezeReactiveValue(input, sprintf("%s-remove_from_stack", id))
-          remove_node_from_stack(id, parent, standalone = TRUE)
+          remove_node_from_stack(id, parent, standalone = TRUE, session)
         }
       )
 
@@ -970,7 +980,8 @@ register_node_menu_obs <- function(blocks_ids, vals, parent, obs, session) {
               vals$stacks == input[[sprintf("%s-add_to_stack_selected", id)]]
             )],
             parent,
-            standalone = TRUE
+            standalone = TRUE,
+            session
           )
         }
       )
@@ -1000,13 +1011,8 @@ stack_nodes <- function(vals, rv, parent, session) {
   vals$stacks[[length(vals$stacks) + 1]] <- stack_id
   stack_color <- attr(vals$stacks, "palette")[length(vals$stacks)]
   lapply(input$selected_nodes, \(id) {
-    add_node_to_stack(id, stack_id, stack_color, parent)
+    add_node_to_stack(id, stack_id, stack_color, parent, session = session)
   })
-
-  # There is a conflict between group and visGetNodes():
-  # https://github.com/datastorm-open/visNetwork/issues/429
-  visNetworkProxy(ns("network")) |>
-    visUpdateNodes(parent$nodes)
 
   # Unselect all nodes
   session$sendCustomMessage(
@@ -1040,13 +1046,8 @@ unstack_nodes <- function(vals, rv, parent, session) {
 
   for (row in seq_len(nrow(nodes_to_reset))) {
     tmp <- nodes_to_reset[row, ]
-    remove_node_from_stack(tmp$id, parent)
+    remove_node_from_stack(tmp$id, parent, session = session)
   }
-
-  # There is a conflict between group and visGetNodes():
-  # https://github.com/datastorm-open/visNetwork/issues/429
-  visNetworkProxy(ns("network")) |>
-    visUpdateNodes(parent$nodes)
 
   vals$stacks[[stack_id]] <- NULL
 
@@ -1070,9 +1071,17 @@ unstack_nodes <- function(vals, rv, parent, session) {
 #' @param parent Global reactive values to update data.
 #' @param standalone Whether this function is called directly or from
 #' \link{stack_nodes}.
+#' @param session Shiny session object.
 #'
 #' @keywords internal
-add_node_to_stack <- function(id, stack_id, color, parent, standalone = FALSE) {
+add_node_to_stack <- function(
+  id,
+  stack_id,
+  color,
+  parent,
+  standalone = FALSE,
+  session
+) {
   parent$nodes[parent$nodes$id == id, "group"] <- stack_id
   parent$nodes[parent$nodes$id == id, "color.background"] <- color
   parent$nodes[parent$nodes$id == id, "color.border"] <- color
@@ -1095,6 +1104,11 @@ add_node_to_stack <- function(id, stack_id, color, parent, standalone = FALSE) {
       stack_id = stack_id
     )
 
+  # There is a conflict between group and visGetNodes():
+  # https://github.com/datastorm-open/visNetwork/issues/429
+  visNetworkProxy(session$ns("network")) |>
+    visUpdateNodes(parent$nodes)
+
   parent
 }
 
@@ -1106,9 +1120,10 @@ add_node_to_stack <- function(id, stack_id, color, parent, standalone = FALSE) {
 #' @param parent Global reactive values to update data.
 #' @param standalone Whether this function is called directly or from
 #' \link{unstack_nodes}.
+#' @param session Shiny session object.
 #'
 #' @keywords internal
-remove_node_from_stack <- function(id, parent, standalone = FALSE) {
+remove_node_from_stack <- function(id, parent, standalone = FALSE, session) {
   # Reset to factory
   stack_id <- parent$nodes[parent$nodes$id == id, "group"]
   if (is.na(stack_id)) {
@@ -1133,6 +1148,11 @@ remove_node_from_stack <- function(id, parent, standalone = FALSE) {
   )
 
   if (standalone) parent$stack_removed_node <- stack_id
+
+  # There is a conflict between group and visGetNodes():
+  # https://github.com/datastorm-open/visNetwork/issues/429
+  visNetworkProxy(session$ns("network")) |>
+    visUpdateNodes(parent$nodes)
 
   parent
 }
