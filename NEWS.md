@@ -1,3 +1,7 @@
+# blockr.ui 0.5.0
+
+- New stack management system.
+
 # blockr.ui 0.3.0
 
 - Refactored with new `{blockr.core}` helpers.
