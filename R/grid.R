@@ -76,7 +76,9 @@ grid_server <- function(board, update, parent, ...) {
 
   # Removed block must not be referenced in the grid
   observeEvent(parent$removed_block, {
-    vals$in_grid[[parent$removed_block]] <- FALSE
+    lapply(parent$removed_block, \(removed) {
+      vals$in_grid[[removed]] <- FALSE
+    })
   })
 
   # When we change block, update the switch to the value it should

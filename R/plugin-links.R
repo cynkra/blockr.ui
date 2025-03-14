@@ -200,10 +200,17 @@ add_rm_link_server <- function(id, board, update, ...) {
         dot_args$parent$append_block <- FALSE
       })
 
-      # Remove node + associated edges
+      # Multi nodes removal
+      observeEvent(input$remove_blocks, {
+        dot_args$parent$removed_block <- input$selected_nodes
+      })
+
+      # Remove node + associated edges (we can remove multiple nodes at once)
       observeEvent(dot_args$parent$removed_block, {
         # Note: links are cleaned in the add_rm_blocks plugin
-        cleanup_node(input$network_selected, dot_args$parent, session)
+        lapply(dot_args$parent$removed_block, \(removed) {
+          cleanup_node(removed, dot_args$parent, session)
+        })
       })
 
       # Communicate selected to upstream modules

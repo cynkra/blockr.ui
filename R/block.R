@@ -86,7 +86,7 @@ remove_block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
       immediate = TRUE
     )
   } else {
-    stopifnot(is.character(blocks), all(blocks %in% board_block_ids(x)))
+    stopifnot(is.character(blocks))
     for (block in blocks) {
       removeUI(
         sprintf("#%s-%s", id, paste0("block_", block)),
