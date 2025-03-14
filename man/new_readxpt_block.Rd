@@ -4,7 +4,7 @@
 \alias{new_readxpt_block}
 \title{XPT data upload block constructor}
 \usage{
-new_readxpt_block(col_select = NULL, skip = 0, n_max = Inf)
+new_readxpt_block(col_select = NULL, skip = 0, n_max = Inf, ...)
 }
 \arguments{
 \item{...}{Forwarded to \code{\link[=new_block]{new_block()}}}
