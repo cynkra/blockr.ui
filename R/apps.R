@@ -2,8 +2,10 @@
 #'
 #' Run demo app
 #'
+#' @param ... Forwarded to [new_board()]
+#'
 #' @export
-run_demo_app <- function() {
+run_demo_app <- function(...) {
   Sys.setenv("blockr_dark_mode" = "light")
   addResourcePath(
     "www/images",
@@ -11,6 +13,7 @@ run_demo_app <- function() {
   )
   # TBD customize blockr options
   app_board <- new_board(
+    ...,
     class = "custom_board",
     options = new_board_options(dark_mode = "light")
   )

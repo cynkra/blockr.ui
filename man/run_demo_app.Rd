@@ -4,7 +4,10 @@
 \alias{run_demo_app}
 \title{Demo app}
 \usage{
-run_demo_app()
+run_demo_app(...)
+}
+\arguments{
+\item{...}{Forwarded to \code{\link[=new_board]{new_board()}}}
 }
 \description{
 Run demo app
