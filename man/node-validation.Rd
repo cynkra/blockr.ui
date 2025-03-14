@@ -5,14 +5,16 @@
 \alias{apply_validation}
 \title{Register block validation observer}
 \usage{
-register_node_validation(vals, rv, session)
+register_node_validation(id, rv, vals, session)
 
 apply_validation(message, id, vals, session)
 }
 \arguments{
-\item{vals}{Global reactive values. Read-write.}
+\item{id}{Block id for which to register the validation.}
 
 \item{rv}{Board reactive values. Read-only.}
+
+\item{vals}{Global reactive values. Read-write.}
 
 \item{session}{Shiny session object.}
 

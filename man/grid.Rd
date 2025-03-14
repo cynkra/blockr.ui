@@ -7,12 +7,12 @@
 \usage{
 grid_ui(id)
 
-grid_server(rv, update, parent, ...)
+grid_server(board, update, parent, ...)
 }
 \arguments{
 \item{id}{Module id.}
 
-\item{rv}{Board reactiveValues. Read-only.}
+\item{board}{Board reactiveValues. Read-only.}
 
 \item{update}{Update reactiveVal to signal change to the board.}
 

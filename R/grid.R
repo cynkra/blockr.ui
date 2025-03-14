@@ -29,13 +29,13 @@ grid_ui <- function(id) {
 
 #' Dashboard grid server
 #'
-#' @param rv Board reactiveValues. Read-only.
+#' @param board Board reactiveValues. Read-only.
 #' @param update Update reactiveVal to signal change to the board.
 #' @param parent Parent global reactiveValues.
 #' @param ... Extra parameters.
 #' @rdname grid
 #' @export
-grid_server <- function(rv, update, parent, ...) {
+grid_server <- function(board, update, parent, ...) {
   session <- get("session", parent.frame(1))
   input <- session$input
   ns <- session$ns
@@ -56,7 +56,7 @@ grid_server <- function(rv, update, parent, ...) {
       req(parent$refreshed == "network")
     },
     {
-      restore_grid(rv$blocks, vals, parent, session)
+      restore_grid(board$blocks, vals, parent, session)
       parent$refreshed <- "grid"
     }
   )
@@ -66,17 +66,19 @@ grid_server <- function(rv, update, parent, ...) {
   # whenever a new block is created
   observeEvent(
     {
-      req(length(rv$blocks) > 0)
-      rv$blocks
+      req(length(board$blocks) > 0)
+      board$blocks
     },
     {
-      init_blocks_grid_state(rv$blocks, vals)
+      init_blocks_grid_state(board$blocks, vals)
     }
   )
 
   # Removed block must not be referenced in the grid
   observeEvent(parent$removed_block, {
-    vals$in_grid[[parent$removed_block]] <- FALSE
+    lapply(parent$removed_block, \(removed) {
+      vals$in_grid[[removed]] <- FALSE
+    })
   })
 
   # When we change block, update the switch to the value it should
@@ -86,7 +88,7 @@ grid_server <- function(rv, update, parent, ...) {
   # the blocks between the sidebar and the grid.
   observeEvent(
     {
-      req(length(rv$blocks) > 0, length(parent$in_grid) > 0)
+      req(length(board$blocks) > 0, length(parent$in_grid) > 0)
       req(parent$selected_block %in% names(parent$in_grid))
       c(parent$selected_block, parent$in_grid)
     },
@@ -101,16 +103,13 @@ grid_server <- function(rv, update, parent, ...) {
   )
 
   # Toggle state for each selected block to update the state
-  observeEvent(
-    req(input$add_to_grid > 0),
-    {
-      update_block_grid_state(
-        parent$selected_block,
-        input$add_to_grid,
-        vals
-      )
-    }
-  )
+  observeEvent(input$add_to_grid, {
+    update_block_grid_state(
+      parent$selected_block,
+      input$add_to_grid,
+      vals
+    )
+  })
 
   # Move items between properties tab and grid.
   # Since we can't rebuilt the UI of each block and preserve its state

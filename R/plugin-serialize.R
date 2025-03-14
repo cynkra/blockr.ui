@@ -3,7 +3,7 @@
 #' Object (de)serialization in a board server context.
 #'
 #' @param id Namespace ID
-#' @param rv Reactive values object
+#' @param board Reactive values object
 #' @param ... Extra arguments passed from parent scope
 #'
 #' @return A [shiny::reactiveVal()] object that evaluates to `NULL` or a
@@ -11,7 +11,7 @@
 #'
 #' @rdname ser_deser
 #' @export
-ser_deser_server <- function(id, rv, ...) {
+ser_deser_server <- function(id, board, ...) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -20,7 +20,7 @@ ser_deser_server <- function(id, rv, ...) {
         auto_snapshot = FALSE,
         current_backup = NULL,
         backup_list = list.files(
-          pattern = paste0("^", isolate(rv$board_id), ".*\\.json$")
+          pattern = paste0("^", isolate(board$board_id), ".*\\.json$")
         )
       )
 
@@ -29,8 +29,8 @@ ser_deser_server <- function(id, rv, ...) {
       # Manual state saving. Use this to share the
       # app state with another group.
       output$serialize <- downloadHandler(
-        board_filename(rv),
-        write_board_to_disk(rv, dot_args$parent, session)
+        board_filename(board),
+        write_board_to_disk(board, dot_args$parent, session)
       )
 
       # Cleanup old files on start
@@ -51,9 +51,9 @@ ser_deser_server <- function(id, rv, ...) {
       # and have the correct node coordinates.
       snapshot_trigger <- reactive({
         list(
-          board_links(rv$board),
+          board_links(board$board),
           dot_args$parent$grid,
-          get_blocks_state(rv) # Capture any block state change (input change, ...)
+          get_blocks_state(board) # Capture any block state change (input change, ...)
         )
       }) |>
         debounce(2000)
@@ -64,7 +64,7 @@ ser_deser_server <- function(id, rv, ...) {
           snapshot_trigger()
         },
         {
-          snapshot_board(vals, rv, dot_args$parent, session)
+          snapshot_board(vals, board, dot_args$parent, session)
         }
       )
 

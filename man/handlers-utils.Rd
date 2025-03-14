@@ -7,22 +7,22 @@
 \alias{board_restore}
 \title{Manage board sidebars}
 \usage{
-manage_sidebars(rv, update, parent, ...)
+manage_sidebars(board, update, parent, ...)
 
-manage_block_visibility(rv, update, parent, ...)
+manage_block_visibility(board, update, parent, ...)
 
-manage_app_mode(rv, update, parent, ...)
+manage_app_mode(board, update, parent, ...)
 
-board_restore(rv, update, parent, ...)
+board_restore(board, update, parent, ...)
 }
 \arguments{
-\item{rv}{Board reactiveValues. Read-only.}
-
 \item{update}{Update reactiveVal to signal change to the board.}
 
 \item{parent}{Parent global reactiveValues.}
 
 \item{...}{Extra elements.}
+
+\item{rv}{Board reactiveValues. Read-only.}
 }
 \description{
 Manage board sidebars

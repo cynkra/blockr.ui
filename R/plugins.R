@@ -19,6 +19,10 @@ custom_board_plugins <- function(which = NULL) {
     edit_block(
       server = blockr.core::edit_block_server,
       ui = blockr.core::edit_block_ui
+    ),
+    edit_stack(
+      server = blockr.core::edit_stack_server,
+      ui = blockr.core::edit_stack_ui
     )
   )
 

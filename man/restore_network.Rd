@@ -4,10 +4,10 @@
 \alias{restore_network}
 \title{Restore network from saved snapshot}
 \usage{
-restore_network(links, vals, session)
+restore_network(rv, vals, session)
 }
 \arguments{
-\item{links}{Board links.}
+\item{rv}{Board internal reactive values. Read-only}
 
 \item{vals}{Global vals reactive values. Read-write access.}
 

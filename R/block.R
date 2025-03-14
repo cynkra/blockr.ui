@@ -9,24 +9,46 @@
 #' @rdname custom-board
 block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
   block_card <- function(x, id, ns) {
+    id <- paste0("block_", id)
+
     blk_info <- get_block_registry(x)
     div(
       class = "m-2",
       id = ns(id),
       card(
         full_screen = TRUE,
-        card_title(sprintf("Node %s properties", id)),
-        expr_ui(ns(id), x),
-        block_ui(ns(id), x),
-        card_footer(
-          div(
-            class = "callout callout-info",
+        card_header(
+          class = "d-flex justify-content-between",
+          card_title(
+            icon(blk_icon(attr(blk_info, "category"))),
+            sprintf(
+              "Block: %s (id: %s)",
+              attr(blk_info, "name"),
+              gsub("block_", "", id)
+            )
+          ),
+          tooltip(
+            icon("info-circle"),
             p(
               icon("lightbulb"),
               "How to use this block?",
             ),
             p(attr(blk_info, "description"), ".")
           )
+        ),
+        # subtitle
+        div(
+          class = "card-subtitle mb-2 text-body-secondary",
+          sprintf(
+            "Type: %s; Package: %s",
+            attr(blk_info, "category"),
+            attr(blk_info, "package")
+          )
+        ),
+        expr_ui(ns(id), x),
+        block_ui(ns(id), x),
+        card_footer(
+          "TBD"
         )
       )
     )
@@ -64,10 +86,10 @@ remove_block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
       immediate = TRUE
     )
   } else {
-    stopifnot(is.character(blocks), all(blocks %in% board_block_ids(x)))
+    stopifnot(is.character(blocks))
     for (block in blocks) {
       removeUI(
-        sprintf("#%s-%s", id, block),
+        sprintf("#%s-%s", id, paste0("block_", block)),
         immediate = TRUE
       )
     }
