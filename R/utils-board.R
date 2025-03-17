@@ -206,7 +206,7 @@ board_header <- function(id, board_ui, grid_ui) {
 
 #' Manage board sidebars
 #'
-#' @param rv Board reactiveValues. Read-only.
+#' @param board Board reactiveValues. Read-only.
 #' @param update Update reactiveVal to signal change to the board.
 #' @param parent Parent global reactiveValues.
 #' @param ... Extra elements.
