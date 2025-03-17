@@ -9,7 +9,7 @@ like adding a node to a grid..."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">blockr.ui</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,7 +42,7 @@ like adding a node to a grid...</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">show_node_menu</span><span class="op">(</span><span class="va">value</span>, <span class="va">session</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">show_node_menu</span><span class="op">(</span><span class="va">value</span>, <span class="va">stacks</span>, <span class="va">has_stack</span>, <span class="va">session</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -52,6 +52,14 @@ like adding a node to a grid...</p>
 <dl><dt id="arg-value">value<a class="anchor" aria-label="anchor" href="#arg-value"></a></dt>
 <dd><p>Initial state of the grid switch. Depends
 on the value set in the grid vals module.</p></dd>
+
+
+<dt id="arg-stacks">stacks<a class="anchor" aria-label="anchor" href="#arg-stacks"></a></dt>
+<dd><p>Stack ids.</p></dd>
+
+
+<dt id="arg-has-stack">has_stack<a class="anchor" aria-label="anchor" href="#arg-has-stack"></a></dt>
+<dd><p>Whether the current block belongs to a stack.</p></dd>
 
 
 <dt id="arg-session">session<a class="anchor" aria-label="anchor" href="#arg-session"></a></dt>
