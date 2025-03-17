@@ -43,6 +43,7 @@ Remotes:
     cynkra/blockr.core,
     cynkra/blockr.dplyr,
     dreamRs/gridstackr
+    rstudio/chromote
 Suggests: 
     shinytest2,
     testthat (>= 3.0.0),
