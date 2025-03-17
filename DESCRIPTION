@@ -42,7 +42,7 @@ Imports:
 Remotes:
     cynkra/blockr.core,
     cynkra/blockr.dplyr,
-    dreamRs/gridstackr
+    dreamRs/gridstackr,
     rstudio/chromote
 Suggests: 
     shinytest2,
