@@ -41,8 +41,10 @@ devtools::install_github("cynkra/blockr.ui")
 To run the demo app:
 
 ```{r blockr.ui-demo, eval=FALSE, echo = TRUE}
-library(blockr.dplyr)
 library(blockr.ui)
+library(blockr.dplyr)
+library(blockr.sdtm)
+library(blockr.io)
 run_demo_app()
 ```
 
@@ -56,6 +58,8 @@ code <- paste0(
   c(
     "webr::install(\"blockr.ui\", repos = \"https://cynkra.github.io/blockr.webR/\")",
     "webr::install(\"blockr.dplyr\", repos = \"https://cynkra.github.io/blockr.webR/\")",
+    "webr::install(\"blockr.sdtm\", repos = \"https://cynkra.github.io/blockr.webR/\")",
+    "webr::install(\"blockr.io\", repos = \"https://cynkra.github.io/blockr.webR/\")",
     knitr::knit_code$get("blockr.ui-demo")
   ),
   collapse = "\n"
@@ -68,8 +72,9 @@ url <- roxy.shinylive::create_shinylive_url(code, header = FALSE)
 tags$iframe(
   class = "border border-5 rounded shadow-lg",
   src = url,
-  width = "150%",
-  height = "900px"
+  style = "zoom: 0.75;",
+  width = "100%",
+  height = "1100px"
 )
 ```
 

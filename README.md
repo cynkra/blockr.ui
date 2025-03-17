@@ -30,8 +30,10 @@ devtools::install_github("cynkra/blockr.ui")
 To run the demo app:
 
 ``` r
-library(blockr.dplyr)
 library(blockr.ui)
+library(blockr.dplyr)
+library(blockr.sdtm)
+library(blockr.io)
 
 run_demo_app()
 ```
