@@ -1215,7 +1215,8 @@ trigger_create_stack <- function(selected, parent) {
     showNotification(
       duration = NA,
       sprintf(
-        "Error: (One of or some of the) selected blocks (ids(s): %s) is/are already bound to a stack.",
+        "Error: (One of or some of the) selected blocks (ids(s): %s)
+        is/are already bound to a stack.",
         paste(selected, collapse = ", ")
       ),
       type = "error"
