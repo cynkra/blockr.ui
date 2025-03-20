@@ -238,7 +238,7 @@ add_rm_link_server <- function(id, board, update, ...) {
         )
       })
 
-      observeEvent(input$remove_edge, {
+      observeEvent(req(input$remove_edge > 0), {
         remove_edge(input$selected_edge, dot_args$parent, session)
         # Update link callback
         update(
@@ -301,10 +301,8 @@ add_rm_link_server <- function(id, board, update, ...) {
       # control + select to multiselect nodes
       # Receive new stack to update nodes
       vals <- reactiveValues(
-        stacks = structure(
-          list(),
-          palette = hcl.colors(20, palette = "spectral")
-        )
+        stacks = list(),
+        palette = hcl.colors(20, palette = "spectral")
       )
       observeEvent(input$selected_nodes, {
         show_stack_actions(input$selected_nodes, dot_args$parent, session)
@@ -321,6 +319,7 @@ add_rm_link_server <- function(id, board, update, ...) {
         {
           req(
             length(board_stacks(board$board)) > 0,
+            # Only stack nodes that are not already in a stack
             !(tail(board_stack_ids(board$board)) %in% vals$stacks)
           )
         },

@@ -1008,8 +1008,9 @@ stack_nodes <- function(vals, rv, parent, session) {
 
   stack_id <- tail(board_stack_ids(rv$board), n = 1)
 
-  vals$stacks[[length(vals$stacks) + 1]] <- stack_id
-  stack_color <- attr(vals$stacks, "palette")[length(vals$stacks)]
+  vals$stacks[[stack_id]] <- stack_id
+
+  stack_color <- vals$palette[[length(vals$stacks)]]
   lapply(input$selected_nodes, \(id) {
     add_node_to_stack(id, stack_id, stack_color, parent, session = session)
   })
@@ -1042,7 +1043,9 @@ unstack_nodes <- function(vals, rv, parent, session) {
   input <- session$input
 
   stack_id <- parent$removed_stack
-  nodes_to_reset <- parent$nodes[parent$nodes$group == stack_id, ]
+  nodes_to_reset <- parent$nodes[
+    !is.na(parent$nodes$group) & parent$nodes$group == stack_id,
+  ]
 
   for (row in seq_len(nrow(nodes_to_reset))) {
     tmp <- nodes_to_reset[row, ]
@@ -1057,6 +1060,7 @@ unstack_nodes <- function(vals, rv, parent, session) {
     list(id = sprintf("#%s", ns("network")))
   )
   parent$selected_block <- NULL
+  parent$removed_stack <- NULL
 
   parent
 }
@@ -1180,7 +1184,12 @@ can_create_stack <- function(selected, parent) {
 trigger_remove_stack <- function(selected, parent) {
   if (!can_remove_stack(selected, parent)) {
     showNotification(
-      sprintf("Error: block %s does not belong to any stack.", selected),
+      duration = NA,
+      sprintf(
+        "Error: (One of or some of the) selected blocks 
+        (ids(s): %s) does/do not not belong to any stack.",
+        selected
+      ),
       type = "error"
     )
     return(NULL)
@@ -1204,8 +1213,9 @@ trigger_remove_stack <- function(selected, parent) {
 trigger_create_stack <- function(selected, parent) {
   if (!can_create_stack(selected, parent)) {
     showNotification(
+      duration = NA,
       sprintf(
-        "Error: blocks %s are already bound to a stack.",
+        "Error: (One of or some of the) selected blocks (ids(s): %s) is/are already bound to a stack.",
         paste(selected, collapse = ", ")
       ),
       type = "error"
