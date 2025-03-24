@@ -176,9 +176,9 @@ manage_board_grid <- function(mode, vals, session) {
 #' Contains blocks coordinates, dimensions, ...
 #' @keywords internal
 process_grid_content <- function(vals, grid_layout) {
-  if (is.null(grid_layout)) return(data.frame())
   if (
-    !length(grid_layout$children) && length(which(vals$in_grid == TRUE)) > 0
+    is.null(grid_layout) ||
+      (!length(grid_layout$children) && length(which(vals$in_grid == TRUE)) > 0)
   ) {
     return(vals$grid)
   }

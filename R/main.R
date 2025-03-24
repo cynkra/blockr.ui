@@ -41,7 +41,7 @@ main_server <- function(id, board) {
       app_state <- reactiveValues(
         mode = "network",
         preview = FALSE,
-        grid = NULL,
+        grid = data.frame(),
         in_grid = list(),
         refreshed = NULL,
         nodes = data.frame(),
