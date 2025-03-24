@@ -249,6 +249,10 @@ testServer(
       dot_args$parent$cancelled_edge,
       board_block_ids(board$board)[2]
     )
+
+    # Restore
+    dot_args$parent$refreshed <- "board"
+    session$flushReact()
   }
 )
 

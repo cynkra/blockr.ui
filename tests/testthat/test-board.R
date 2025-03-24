@@ -2,10 +2,13 @@ library(shinytest2)
 library(blockr.dplyr)
 #library(blockr.ai)
 
-mock_add_block <- function(blk, board_update, session) {
+mock_add_block <- function(blk, board_update, parent, session) {
+  new_blk <- as_blocks(blk)
   board_update(
-    list(blocks = list(add = as_blocks(blk)))
+    list(blocks = list(add = new_blk))
   )
+  parent$added_block <- new_blk[[1]]
+  attr(parent$added_block, "uid") <- names(new_blk)
   session$flushReact()
 }
 
@@ -68,9 +71,49 @@ testServer(
     expect_identical(dot_args$parent$mode, "network")
 
     # Add a block
-    mock_add_block(new_dataset_block(), board_update, session)
-    mock_add_block(new_select_block(), board_update, session)
+    mock_add_block(new_dataset_block(), board_update, dot_args$parent, session)
+    mock_add_block(new_select_block(), board_update, dot_args$parent, session)
     dot_args$parent$selected_block <- board_block_ids(rv$board)[[1]]
+    session$flushReact()
+
+    # Grid
+    lapply(board_block_ids(rv$board), \(blk_id) {
+      expect_false(dot_args$parent$in_grid[[blk_id]])
+    })
+    session$setInputs(add_to_grid = TRUE)
+    expect_true(dot_args$parent$in_grid[[dot_args$parent$selected_block]])
+    session$setInputs(mode = 3)
+    dot_args$parent$selected_block <- board_block_ids(rv$board)[[2]]
+    session$flushReact()
+    session$setInputs(add_to_grid = TRUE)
+    lapply(board_block_ids(rv$board), \(blk_id) {
+      expect_true(dot_args$parent$in_grid[[blk_id]])
+    })
+
+    session$setInputs(add_to_grid = FALSE)
+    dot_args$parent$selected_block <- board_block_ids(rv$board)[[1]]
+    session$flushReact()
+    session$setInputs(add_to_grid = FALSE)
+    lapply(board_block_ids(rv$board), \(blk_id) {
+      expect_false(dot_args$parent$in_grid[[blk_id]])
+    })
+
+    output$grid
+
+    # Remove block (see if vals$in_grid is updated)
+    session$setInputs(add_to_grid = TRUE)
+    dot_args$parent$removed_block <- board_block_ids(rv$board)[[1]]
+    session$flushReact()
+    expect_named(dot_args$parent$in_grid, board_block_ids(rv$board))
+
+    # Grid zoom
+    session$setInputs(grid_zoom = 1)
+
+    # Lock grid
+    session$setInputs(lock = TRUE)
+
+    # Restore
+    dot_args$parent$refreshed <- "network"
     session$flushReact()
   }
 )
