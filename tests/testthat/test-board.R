@@ -2,13 +2,14 @@ library(shinytest2)
 library(blockr.dplyr)
 #library(blockr.ai)
 
-chromote::local_chrome_version(
-  "latest-stable",
-  binary = "chrome-headless-shell"
-)
-
 test_that("Board works", {
   skip_on_cran()
+
+  chromote::local_chrome_version(
+    "latest-stable",
+    binary = "chrome-headless-shell"
+  )
+
   demo_app <- run_demo_app()
   app <- AppDriver$new(
     demo_app,
