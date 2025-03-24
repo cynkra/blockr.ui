@@ -1,0 +1,34 @@
+testServer(
+  main_server,
+  args = list(board = new_board(class = "custom_board")),
+  {
+    expect_named(
+      app_state,
+      c(
+        "mode",
+        "preview",
+        "grid",
+        "in_grid",
+        "refreshed",
+        "nodes",
+        "append_block",
+        "added_block",
+        "removed_block",
+        "selected_block",
+        "edges",
+        "cancelled_edge",
+        "added_edge",
+        "removed_edge",
+        "added_stack",
+        "stack_added_block",
+        "stack_removed_block",
+        "removed_stack"
+      )
+    )
+  }
+)
+
+test_that("main ui works", {
+  ui <- main_ui("main", new_board())
+  expect_s3_class(ui, "shiny.tag.list")
+})
