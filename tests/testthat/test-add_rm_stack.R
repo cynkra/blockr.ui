@@ -114,3 +114,8 @@ testServer(
     board_stacks(board$board) <- stacks()
   }
 )
+
+test_that("add_rm_stack_ui works", {
+  ui <- blockr.ui::add_rm_stack_ui("mod", new_board())
+  expect_s3_class(ui, "shiny.tag.list")
+})

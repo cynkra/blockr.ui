@@ -103,3 +103,9 @@ testServer(
     }
   }
 )
+
+test_that("ser_deser_ui works", {
+  ui <- blockr.ui::ser_deser_ui("mod", new_board())
+  expect_length(ui, 2)
+  expect_named(ui, c("buttons", "restore"))
+})

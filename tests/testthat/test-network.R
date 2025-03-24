@@ -108,7 +108,7 @@ mock_cleanup_state <- function(state) {
 }
 
 testServer(
-  add_rm_link_server,
+  blockr.ui::add_rm_link_server,
   args = list(
     board = reactiveValues(
       blocks = list(),
@@ -253,3 +253,8 @@ testServer(
 )
 
 # TBD test network restore?
+
+test_that("network ui works", {
+  ui <- blockr.ui::add_rm_link_ui("mod", new_board())
+  expect_s3_class(ui, "shiny.tag.list")
+})

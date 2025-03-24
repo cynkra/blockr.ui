@@ -55,3 +55,9 @@ testServer(
     expect_identical(update()$block$rm, dot_args$parent$cancelled_edge)
   }
 )
+
+test_that("add_rm_bloc_ui works", {
+  ui <- blockr.ui::add_rm_block_ui("mod", new_board())
+  expect_length(ui, 2)
+  expect_named(ui, c("toolbar", "sidebar"))
+})
