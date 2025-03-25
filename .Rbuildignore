@@ -20,3 +20,4 @@ inst/examples/demo/\.posit
 ^styles$
 ^esbuild\.dev\.js$
 ^esbuild\.prod\.js$
+^codecov\.yml$
