@@ -24,7 +24,7 @@ mock_add_block <- function(blk, rv, parent, session) {
       block_inputs(blk)
     )
   }
-  create_node(blk, parent, rv, session)
+  create_node(blk, parent, rv, TRUE, session)
   session$flushReact()
 }
 

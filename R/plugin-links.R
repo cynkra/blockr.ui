@@ -22,6 +22,18 @@ add_rm_link_server <- function(id, board, update, ...) {
 
       obs <- list()
 
+      # When starting from non empty board (happens once)
+      observeEvent(
+        req(
+          length(board_blocks(board$board)) > 0,
+          !length(dot_args$parent$added_block)
+        ),
+        {
+          restore_network(board, dot_args$parent, session)
+        },
+        once = TRUE
+      )
+
       # Restore network from serialisation
       observeEvent(req(dot_args$parent$refreshed == "board"), {
         restore_network(board, dot_args$parent, session)
@@ -43,8 +55,13 @@ add_rm_link_server <- function(id, board, update, ...) {
       #)
 
       output$network <- renderVisNetwork({
-        # Initialized as empty, we'll update with the proxy
-        create_network_widget(ns = ns)
+        isolate({
+          create_network_widget(
+            init_nodes = dot_args$parent$nodes,
+            init_edges = dot_args$parent$edges,
+            ns = ns
+          )
+        })
       })
 
       # Bind shift+e and esc to toggle the add edge mode
@@ -110,19 +127,6 @@ add_rm_link_server <- function(id, board, update, ...) {
         })
       })
 
-      # Handle node update. Change of color due to block validity change ...
-      # This needs input parameter from the parent module which contains
-      # the list of block server functions.
-      # For Nicolas: why does board$msgs() triggers infinitely?
-      observeEvent(dot_args$parent$added_block, {
-        register_node_validation(
-          block_uid(dot_args$parent$added_block),
-          board,
-          dot_args$parent,
-          session
-        )
-      })
-
       # Implement edge creation, we can drag from one node
       # to another to connect them.
       # Validation mechanism to allow connections or not...
@@ -182,6 +186,7 @@ add_rm_link_server <- function(id, board, update, ...) {
               dot_args$parent$added_block,
               dot_args$parent,
               board,
+              validate = TRUE,
               session
             )
             if (dot_args$parent$append_block) {
@@ -318,9 +323,10 @@ add_rm_link_server <- function(id, board, update, ...) {
       observeEvent(
         {
           req(
+            input$network_initialized,
             length(board_stacks(board$board)) > 0,
             # Only stack nodes that are not already in a stack
-            !(tail(board_stack_ids(board$board)) %in% vals$stacks)
+            !(tail(board_stack_ids(board$board), n = 1) %in% vals$stacks)
           )
         },
         {
