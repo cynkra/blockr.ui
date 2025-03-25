@@ -9,10 +9,12 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![ci](https://github.com/cynkra/blockr.ui/actions/workflows/ci.yml/badge.svg)](https://github.com/cynkra/blockr.ui/actions/workflows/ci.yml)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/blockr.ui)](https://CRAN.R-project.org/package=blockr.ui)
+[![Codecov test
+coverage](https://codecov.io/gh/cynkra/blockr.ui/graph/badge.svg)](https://app.codecov.io/gh/cynkra/blockr.ui)
 <!-- badges: end -->
 
 The goal of blockr.ui is to provide an alternative user interface for
-`{blockr.core}`.
+[`{blockr.core}`](https://cynkra.github.io/blockr.core/).
 
 ## Installation
 
@@ -33,8 +35,10 @@ devtools::install_github("cynkra/blockr.ui")
 To run the demo app:
 
 ``` r
-library(blockr.dplyr)
 library(blockr.ui)
+library(blockr.dplyr)
+library(blockr.sdtm)
+library(blockr.io)
 run_demo_app()
 ```
 
@@ -43,7 +47,7 @@ run_demo_app()
 > The demo below runs with shinylive. Not all feature may work as
 > expected due to compatibility issues with webR.
 
-<iframe class="border border-5 rounded shadow-lg" src="https://shinylive.io/r/app/#h=0&amp;code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAdzgCMAnRRASwgGdSoAbbgCgA6YOtyIEA1gwwBXFkNwACBnFRF2CgLwKhAC1KlU7RAHpjBAJ4RJUDAHMWpHdLoYWRYyLGSMtOlmNCAJQCEL5MrBxcvILCohJSACao3OYM8koqapraYHoGRqYWVgw29o7Oru6e8T70-kEh3CyMUAzmfNXeSSkMwRBNLW0dcd6yfQzSEAD6CXAwRFNoqHyBYAC+ALpAA" width="150%" height="900px"></iframe>
+<iframe class="border border-5 rounded shadow-lg" src="https://shinylive.io/r/app/#h=0&amp;code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAdzgCMAnRRASwgGdSoAbbgCgA6YOtyIEA1gwwBXFkNwACBnFRF2CgLwKhAC1KlU7RAHpjBAJ4RJUDAHMWpHdLoYWRYyLGSMtOlmNCAJQCEL5MrBxcvILCohJSACao3OYM8koqapraYHoGRqYWVgw29o7Oru6e8T70-kEhYcxsnDz8QtXe7AmkMOnKqupauvqGJmaW1nYOTi5uHnHevvVgwaH04S1R7bFeUm79mUM5eWOFkyXT5XNVi1LLAash3CyMUAzmfJ1Ssmsvbx8vncMEkUgw-q8SoDvhhur0IQDPjC3GsGNIIAB9BJwGBEDFoVB8QJgAC+AF0gA" style="zoom: 0.75;" width="100%" height="1100px"></iframe>
 
 ## Development
 

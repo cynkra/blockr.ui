@@ -68,3 +68,5 @@ process_app_state <- function(state) {
     names(state)
   )
 }
+
+globalVariables(c("x", "y"))

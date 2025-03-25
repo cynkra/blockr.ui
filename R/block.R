@@ -77,20 +77,26 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
 #' @rdname custom-board
 #' @export
 remove_block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
+  pars <- list(...)
+
   if (is.null(blocks)) {
     stopifnot(is.character(id) && length(id) == 1L)
 
     removeUI(
       paste0("#", id, "_blocks > div"),
       multiple = TRUE,
-      immediate = TRUE
+      immediate = TRUE,
+      session = if (!is.null(pars$session)) pars$session else
+        getDefaultReactiveDomain()
     )
   } else {
     stopifnot(is.character(blocks))
     for (block in blocks) {
       removeUI(
         sprintf("#%s-%s", id, paste0("block_", block)),
-        immediate = TRUE
+        immediate = TRUE,
+        session = if (!is.null(pars$session)) pars$session else
+          getDefaultReactiveDomain()
       )
     }
   }
