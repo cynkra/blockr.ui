@@ -9,7 +9,7 @@ mock_add_block <- function(blk, rv, parent, session) {
     # Need server part for serialisation
     server = block_server(attr(blk, "uid"), blk)
   )
-  create_node(blk, parent, rv, session)
+  create_node(blk, parent, rv, FALSE, session)
 }
 
 testServer(

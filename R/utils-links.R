@@ -404,9 +404,11 @@ create_edge <- function(new, vals, rv, session) {
 #' @param new New block to add.
 #' @param vals Global reactive values. To communicate between modules.
 #' @param rv Board reactive values. Read-only.
+#' @param validate Whether to register validation observers for the node.
+#' Default to TRUE.
 #' @param session Shiny session object.
 #' @keywords internal
-create_node <- function(new, vals, rv, session) {
+create_node <- function(new, vals, rv, validate = TRUE, session) {
   input <- session$input
   ns <- session$ns
 
@@ -433,6 +435,18 @@ create_node <- function(new, vals, rv, session) {
         vals
       )
     }
+  }
+
+  # Handle node update. Change of color due to block validity change ...
+  # This needs input parameter from the parent module which contains
+  # the list of block server functions.
+  if (validate) {
+    register_node_validation(
+      block_uid(new),
+      rv,
+      vals,
+      session
+    )
   }
 
   visNetworkProxy(ns("network")) |>
@@ -464,6 +478,7 @@ register_node_validation <- function(id, rv, vals, session) {
         nrow(vals$nodes) == length(board_block_ids(rv$board)),
         id %in% board_block_ids(rv$board)
       )
+      # For Nicolas: why does board$msgs() triggers infinitely?
       rv$msgs()[[id]]
     },
     {
@@ -754,6 +769,8 @@ default_network_events <- function(ns, ...) {
 #' Network is populated via a proxy. This function initialises an empty
 #' network with the right setup.
 #'
+#' @param init_nodes Initial set of nodes.
+#' @param init_edges Initial set of edges.
 #' @param ns Namespace.
 #' @param height Network height.
 #' @param width Network width.
@@ -766,6 +783,8 @@ default_network_events <- function(ns, ...) {
 #' @return A visNetwork object.
 #' @keywords internal
 create_network_widget <- function(
+  init_nodes = data.frame(),
+  init_edges = data.frame(),
   ns,
   height = "100vh",
   width = "100%",
@@ -776,8 +795,8 @@ create_network_widget <- function(
   events = default_network_events(ns)
 ) {
   vis_network <- visNetwork(
-    data.frame(),
-    data.frame(),
+    nodes = init_nodes,
+    edges = init_edges,
     height = height,
     width = width
   )
@@ -815,6 +834,28 @@ restore_network <- function(rv, vals, session) {
 
   if (nrow(vals$edges) > 0) {
     vals$edges <- data.frame()
+  }
+
+  # Create nodes if the board has blocks but
+  # the network does not have any nodes yet
+  # This happens when we call the app with predefined
+  # set of blocks. This does not happen when restoring from
+  # a json as nodes are also captured.
+  if (nrow(vals$nodes) == 0 && length(board_blocks(rv$board))) {
+    for (i in seq_along(board_blocks(rv$board))) {
+      current <- board_blocks(rv$board)[[i]]
+      attr(current, "uid") <- board_block_ids(
+        rv$board
+      )[[i]]
+      # We register validation right after
+      create_node(
+        current,
+        vals,
+        rv,
+        validate = FALSE,
+        session
+      )
+    }
   }
 
   # Restore nodes
@@ -1011,9 +1052,10 @@ stack_nodes <- function(vals, rv, parent, session) {
   vals$stacks[[stack_id]] <- stack_id
 
   stack_color <- vals$palette[[length(vals$stacks)]]
-  lapply(input$selected_nodes, \(id) {
-    add_node_to_stack(id, stack_id, stack_color, parent, session = session)
-  })
+
+  for (block in board_stacks(rv$board)[[stack_id]]) {
+    add_node_to_stack(block, stack_id, stack_color, parent, session = session)
+  }
 
   # Unselect all nodes
   session$sendCustomMessage(

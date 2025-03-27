@@ -4,7 +4,7 @@
 \alias{create_node}
 \title{Create a new node it to the network}
 \usage{
-create_node(new, vals, rv, session)
+create_node(new, vals, rv, validate = TRUE, session)
 }
 \arguments{
 \item{new}{New block to add.}
@@ -12,6 +12,9 @@ create_node(new, vals, rv, session)
 \item{vals}{Global reactive values. To communicate between modules.}
 
 \item{rv}{Board reactive values. Read-only.}
+
+\item{validate}{Whether to register validation observers for the node.
+Default to TRUE.}
 
 \item{session}{Shiny session object.}
 }

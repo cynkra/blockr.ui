@@ -5,6 +5,8 @@
 \title{Create network widget}
 \usage{
 create_network_widget(
+  init_nodes = data.frame(),
+  init_edges = data.frame(),
   ns,
   height = "100vh",
   width = "100\%",
@@ -16,6 +18,10 @@ create_network_widget(
 )
 }
 \arguments{
+\item{init_nodes}{Initial set of nodes.}
+
+\item{init_edges}{Initial set of edges.}
+
 \item{ns}{Namespace.}
 
 \item{height}{Network height.}
