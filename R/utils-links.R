@@ -1025,7 +1025,7 @@ register_node_menu_obs <- function(block_id, parent, obs, session) {
               parent$nodes$group ==
                 input[[sprintf("%s-add_to_stack_selected", block_id)]],
             "color.background"
-          ],
+          ][1],
           parent,
           standalone = TRUE,
           session
