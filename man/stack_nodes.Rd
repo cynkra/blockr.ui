@@ -4,9 +4,13 @@
 \alias{stack_nodes}
 \title{Dynamically group nodes}
 \usage{
-stack_nodes(vals, rv, parent, session)
+stack_nodes(stack_id, color, vals, rv, parent, session)
 }
 \arguments{
+\item{stack_id}{Stack unique id.}
+
+\item{color}{Stack color. Given by color picker input.}
+
 \item{vals}{Local scope (links module) reactive values.}
 
 \item{rv}{Board reactive values.}

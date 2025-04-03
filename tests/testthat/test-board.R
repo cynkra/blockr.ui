@@ -1,6 +1,8 @@
 library(shinytest2)
 library(blockr.dplyr)
-#library(blockr.ai)
+library(blockr.sdtm)
+library(blockr.ai)
+library(blockr.io)
 
 mock_add_block <- function(blk, board_update, parent, session) {
   new_blk <- as_blocks(blk)
@@ -15,7 +17,13 @@ mock_add_block <- function(blk, board_update, parent, session) {
 testServer(
   board_server,
   args = list(
-    x = new_board(class = "custom_board"),
+    x = new_board(
+      class = "custom_board",
+      options = new_board_options(
+        dark_mode = "light",
+        stacks_colors = hcl.colors(20, palette = "spectral")
+      )
+    ),
     plugins = custom_board_plugins(
       c(
         "preserve_board",
