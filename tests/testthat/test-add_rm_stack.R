@@ -28,14 +28,20 @@ mock_add_block <- function(blk, rv, parent, session) {
   session$flushReact()
 }
 
-mock_stack_nodes <- function(update, rv, parent, session) {
+mock_stack_nodes <- function(
+  stack_id,
+  color,
+  update,
+  rv,
+  parent,
+  session
+) {
   board_stacks(rv$board) <- update()$stacks$add
   vals <- reactiveValues(
-    stacks = list(),
-    palette = hcl.colors(20, palette = "spectral")
+    stacks = list()
   )
   session$setInputs(selected_nodes = board_block_ids(rv$board))
-  stack_nodes(vals, rv, parent, session)
+  stack_nodes(stack_id, color, vals, rv, parent, session)
 }
 
 mock_cleanup_state <- function(state) {
@@ -77,7 +83,14 @@ testServer(
     session$flushReact()
     expect_s3_class(update()$stacks$add, "stacks")
     board_stacks(board$board) <- update()$stacks$add
-    mock_stack_nodes(update, board, dot_args$parent, session)
+    mock_stack_nodes(
+      board_stack_ids(board$board),
+      color = "#A71B4B",
+      update,
+      board,
+      dot_args$parent,
+      session
+    )
 
     # Remove node from stack
     remove_node_from_stack(

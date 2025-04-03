@@ -4,10 +4,12 @@
 \alias{show_stack_actions}
 \title{Show stack actions}
 \usage{
-show_stack_actions(selected, parent, session)
+show_stack_actions(selected, rv, parent, session)
 }
 \arguments{
 \item{selected}{Set of selected nodes.}
+
+\item{rv}{Reactive values containing board elements. Read-only.}
 
 \item{parent}{Global reactive values.}
 

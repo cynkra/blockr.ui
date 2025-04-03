@@ -709,7 +709,9 @@ default_network_events <- function(ns, ...) {
       # within the event 'this' refers to the network instance
       select = sprintf(
         "function(e) {
-          if (e.nodes.length > 1) {
+          // do trigger only when brushing to multiselect nodes
+          if (e.nodes.length >= 1 && e.event.type !== 'tap') {
+            console.log(e);
             Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
           }
         }",
@@ -932,13 +934,12 @@ show_node_menu <- function(value, stacks, has_stack, session) {
 #' nodes and to append to a given node.
 #'
 #' @param blocks_ids Board block ids.
-#' @param vals Local scope reactive values.
 #' @param parent Global scope reactive values.
 #' @param obs Plugin observers list.
 #' @param session Shiny session object.
 #'
 #' @keywords internal
-register_node_menu_obs <- function(blocks_ids, vals, parent, obs, session) {
+register_node_menu_obs <- function(blocks_ids, parent, obs, session) {
   input <- session$input
 
   lapply(blocks_ids, \(id) {
@@ -1017,9 +1018,12 @@ register_node_menu_obs <- function(blocks_ids, vals, parent, obs, session) {
           add_node_to_stack(
             id,
             input[[sprintf("%s-add_to_stack_selected", id)]],
-            attr(vals$stacks, "palette")[which(
-              vals$stacks == input[[sprintf("%s-add_to_stack_selected", id)]]
-            )],
+            parent$nodes[
+              !is.na(parent$nodes$group) &
+                parent$nodes$group ==
+                  input[[sprintf("%s-add_to_stack_selected", id)]],
+              "color.background"
+            ],
             parent,
             standalone = TRUE,
             session
@@ -1037,24 +1041,33 @@ register_node_menu_obs <- function(blocks_ids, vals, parent, obs, session) {
 #'
 #' This function must be called after \link{trigger_create_stack}.
 #'
+#' @param stack_id Stack unique id.
+#' @param color Stack color. Given by color picker input.
 #' @param vals Local scope (links module) reactive values.
 #' @param rv Board reactive values.
 #' @param parent Global scope (entire app) reactive values.
 #' @param session Shiny session object.
 #'
 #' @keywords internal
-stack_nodes <- function(vals, rv, parent, session) {
+stack_nodes <- function(stack_id, color, vals, rv, parent, session) {
   ns <- session$ns
   input <- session$input
 
-  stack_id <- tail(board_stack_ids(rv$board), n = 1)
+  # Handle when color is NULL when initializing a board with predefined stacks
+  color <- input$stack_color
+  if (is.null(input$stack_color)) {
+    colors <- board_option("stacks_colors", rv$board)
+    if (length(vals$stacks) == 0) {
+      color <- colors[1]
+    } else {
+      color <- colors[length(vals$stacks) * 5]
+    }
+  }
 
   vals$stacks[[stack_id]] <- stack_id
 
-  stack_color <- vals$palette[[length(vals$stacks)]]
-
   for (block in board_stacks(rv$board)[[stack_id]]) {
-    add_node_to_stack(block, stack_id, stack_color, parent, session = session)
+    add_node_to_stack(block, stack_id, color, parent, session = session)
   }
 
   # Unselect all nodes
@@ -1275,24 +1288,38 @@ trigger_create_stack <- function(selected, parent) {
 #' So far we support adding a stack and removing multiple blocks from a stack.
 #'
 #' @param selected Set of selected nodes.
+#' @param rv Reactive values containing board elements. Read-only.
 #' @param parent Global reactive values.
 #' @param session Shiny session object.
 #'
 #' @keywords internal
-show_stack_actions <- function(selected, parent, session) {
+show_stack_actions <- function(selected, rv, parent, session) {
   ns <- session$ns
 
   showModal(
     modalDialog(
       title = "Node multi action",
-      size = "s",
+      size = "m",
       div(
         class = "d-grid gap-2 mx-auto",
         role = "group",
-        actionButton(
-          ns("new_stack"),
-          "New stack",
-          icon = icon("object-group")
+        div(
+          class = "d-flex gap-4 align-items-center justify-content-around",
+          actionButton(
+            ns("new_stack"),
+            "New stack",
+            icon = icon("object-group")
+          ),
+          shinyWidgets::colorPickr(
+            inputId = ns("stack_color"),
+            label = "Pick a color for the stack:",
+            hue = FALSE,
+            preview = FALSE,
+            swatches = board_option("stacks_colors", rv$board),
+            theme = "nano",
+            position = "right-end",
+            useAsButton = TRUE
+          )
         ),
         actionButton(
           ns("remove_stack"),
