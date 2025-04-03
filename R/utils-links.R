@@ -406,9 +406,10 @@ create_edge <- function(new, vals, rv, session) {
 #' @param rv Board reactive values. Read-only.
 #' @param validate Whether to register validation observers for the node.
 #' Default to TRUE.
+#' @param obs Observer list.
 #' @param session Shiny session object.
 #' @keywords internal
-create_node <- function(new, vals, rv, validate = TRUE, session) {
+create_node <- function(new, vals, rv, validate = TRUE, obs, session) {
   input <- session$input
   ns <- session$ns
 
@@ -448,6 +449,14 @@ create_node <- function(new, vals, rv, validate = TRUE, session) {
       session
     )
   }
+
+  # Register right click menu
+  register_node_menu_obs(
+    block_uid(new),
+    vals,
+    obs,
+    session
+  )
 
   visNetworkProxy(ns("network")) |>
     visUpdateNodes(vals$nodes) |>
@@ -822,11 +831,12 @@ create_network_widget <- function(
 #'
 #' @param rv Board internal reactive values. Read-only
 #' @param vals Global vals reactive values. Read-write access.
+#' @param obs List of module observers.
 #' @param session Shiny session object
 #'
 #' @return A reactiveValues object.
 #' @keywords internal
-restore_network <- function(rv, vals, session) {
+restore_network <- function(rv, vals, obs, session) {
   ns <- session$ns
   # Cleanup old setup
   if (length(session$input$network_nodes)) {
@@ -855,6 +865,7 @@ restore_network <- function(rv, vals, session) {
         vals,
         rv,
         validate = FALSE,
+        obs = obs,
         session
       )
     }
@@ -933,105 +944,95 @@ show_node_menu <- function(value, stacks, has_stack, session) {
 #' an observer to handle serialisation/restoration, to remove
 #' nodes and to append to a given node.
 #'
-#' @param blocks_ids Board block ids.
+#' @param block_id Block id.
 #' @param parent Global scope reactive values.
 #' @param obs Plugin observers list.
 #' @param session Shiny session object.
 #'
 #' @keywords internal
-register_node_menu_obs <- function(blocks_ids, parent, obs, session) {
+register_node_menu_obs <- function(block_id, parent, obs, session) {
   input <- session$input
 
-  lapply(blocks_ids, \(id) {
-    if (is.null(obs[[sprintf("%s-add_to_grid", id)]])) {
-      # Send callback to grid module to maintain the grid switch state
-      obs[[sprintf("%s-add_to_grid", id)]] <- observeEvent(
-        input[[sprintf("%s-add_to_grid", id)]],
-        {
-          parent$in_grid[[id]] <- input[[
-            sprintf("%s-add_to_grid", id)
-          ]]
-        }
-      )
+  if (is.null(obs[[sprintf("%s-add_to_grid", block_id)]])) {
+    # Send callback to grid module to maintain the grid switch state
+    obs[[sprintf("%s-add_to_grid", block_id)]] <- observeEvent(
+      input[[sprintf("%s-add_to_grid", block_id)]],
+      {
+        parent$in_grid[[block_id]] <- input[[
+          sprintf("%s-add_to_grid", block_id)
+        ]]
+      }
+    )
 
-      # Receive callback from grid to maintain the block option
-      # card switch
-      obs[[sprintf("update-%s-add_to_grid", id)]] <- observeEvent(
-        parent$in_grid[[id]],
-        {
-          update_switch(
-            sprintf("%s-add_to_grid", id),
-            value = parent$in_grid[[id]]
-          )
-        }
-      )
+    # Receive callback from grid to maintain the block option
+    # card switch
+    obs[[sprintf("update-%s-add_to_grid", block_id)]] <- observeEvent(
+      parent$in_grid[[block_id]],
+      {
+        update_switch(
+          sprintf("%s-add_to_grid", block_id),
+          value = parent$in_grid[[block_id]]
+        )
+      }
+    )
 
-      # Update the in_grid switch inputs to handle serialisation
-      # restoration
-      obs[[sprintf("restore-%s-add_to_grid", id)]] <- observeEvent(
-        req(parent$refreshed == "grid"),
-        {
-          update_switch(
-            sprintf("%s-add_to_grid", id),
-            value = parent$in_grid[[id]]
-          )
-        }
-      )
+    # Update the in_grid switch inputs to handle serialisation
+    # restoration
+    obs[[sprintf("restore-%s-add_to_grid", block_id)]] <- observeEvent(
+      req(parent$refreshed == "grid"),
+      {
+        update_switch(
+          sprintf("%s-add_to_grid", block_id),
+          value = parent$in_grid[[block_id]]
+        )
+      }
+    )
 
-      # Remove node and block
-      obs[[sprintf("%s-remove_block", id)]] <- observeEvent(
-        input[[sprintf("%s-remove_block", id)]],
-        {
-          # Avoid triggering too many times (wait until next flush cycle)
-          freezeReactiveValue(input, sprintf("%s-remove_block", id))
-          parent$removed_block <- id
-        }
-      )
+    # Remove node and block
+    obs[[sprintf("%s-remove_block", block_id)]] <- observeEvent(
+      input[[sprintf("%s-remove_block", block_id)]],
+      {
+        parent$removed_block <- block_id
+      }
+    )
 
-      # Append block
-      obs[[sprintf("%s-append_block", id)]] <- observeEvent(
-        input[[sprintf("%s-append_block", id)]],
-        {
-          # Avoid triggering too many times (wait until next flush cycle)
-          freezeReactiveValue(input, sprintf("%s-append_block", id))
-          if (isFALSE(parent$append_block)) parent$append_block <- TRUE
-        }
-      )
+    # Append block
+    obs[[sprintf("%s-append_block", block_id)]] <- observeEvent(
+      input[[sprintf("%s-append_block", block_id)]],
+      {
+        if (isFALSE(parent$append_block)) parent$append_block <- TRUE
+      }
+    )
 
-      # Remove from stack
-      obs[[sprintf("%s-remove_from_stack", id)]] <- observeEvent(
-        input[[sprintf("%s-remove_from_stack", id)]],
-        {
-          # Avoid triggering too many times (wait until next flush cycle)
-          freezeReactiveValue(input, sprintf("%s-remove_from_stack", id))
-          remove_node_from_stack(id, parent, standalone = TRUE, session)
-        }
-      )
+    # Remove from stack
+    obs[[sprintf("%s-remove_from_stack", block_id)]] <- observeEvent(
+      input[[sprintf("%s-remove_from_stack", block_id)]],
+      {
+        remove_node_from_stack(block_id, parent, standalone = TRUE, session)
+      }
+    )
 
-      # Add to stack
-      obs[[sprintf("%s-add_to_stack", id)]] <- observeEvent(
-        input[[sprintf("%s-add_to_stack", id)]],
-        {
-          # Avoid triggering too many times (wait until next flush cycle)
-          freezeReactiveValue(input, sprintf("%s-add_to_stack", id))
-          # TBD: user should be able to choose any stack within a menu
-          add_node_to_stack(
-            id,
-            input[[sprintf("%s-add_to_stack_selected", id)]],
-            parent$nodes[
-              !is.na(parent$nodes$group) &
-                parent$nodes$group ==
-                  input[[sprintf("%s-add_to_stack_selected", id)]],
-              "color.background"
-            ],
-            parent,
-            standalone = TRUE,
-            session
-          )
-        }
-      )
-    }
-  })
+    # Add to stack
+    obs[[sprintf("%s-add_to_stack", block_id)]] <- observeEvent(
+      input[[sprintf("%s-add_to_stack", block_id)]],
+      {
+        # TBD: user should be able to choose any stack within a menu
+        add_node_to_stack(
+          block_id,
+          input[[sprintf("%s-add_to_stack_selected", block_id)]],
+          parent$nodes[
+            !is.na(parent$nodes$group) &
+              parent$nodes$group ==
+                input[[sprintf("%s-add_to_stack_selected", block_id)]],
+            "color.background"
+          ],
+          parent,
+          standalone = TRUE,
+          session
+        )
+      }
+    )
+  }
 }
 
 #' Dynamically group nodes
@@ -1141,7 +1142,6 @@ add_node_to_stack <- function(
   standalone = FALSE,
   session
 ) {
-  parent$nodes[parent$nodes$id == id, "group"] <- stack_id
   parent$nodes[parent$nodes$id == id, "color.background"] <- color
   parent$nodes[parent$nodes$id == id, "color.border"] <- color
   parent$nodes[
@@ -1156,6 +1156,7 @@ add_node_to_stack <- function(
     parent$nodes[parent$nodes$id == id, "label"],
     sprintf("\n Stack: %s", stack_id)
   )
+  parent$nodes[parent$nodes$id == id, "group"] <- stack_id
 
   if (standalone)
     parent$stack_added_node <- list(

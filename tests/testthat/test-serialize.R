@@ -1,7 +1,7 @@
 library(blockr.core)
 library(blockr.dplyr)
 
-mock_add_block <- function(blk, rv, parent, session) {
+mock_add_block <- function(blk, rv, parent, obs, session) {
   board_blocks(rv$board) <- c(board_blocks(rv$board), as_blocks(blk))
   attr(blk, "uid") <- tail(board_block_ids(rv$board), n = 1)
   rv$blocks[[attr(blk, "uid")]] <- list(
@@ -9,7 +9,7 @@ mock_add_block <- function(blk, rv, parent, session) {
     # Need server part for serialisation
     server = block_server(attr(blk, "uid"), blk)
   )
-  create_node(blk, parent, rv, FALSE, session)
+  create_node(blk, parent, rv, FALSE, obs, session)
 }
 
 testServer(
@@ -37,6 +37,7 @@ testServer(
     )
   ),
   {
+    obs <- list()
     expect_null(vals$current_backup)
 
     # Add new block
@@ -44,6 +45,7 @@ testServer(
       new_dataset_block(dataset = "BOD"),
       board,
       dot_args$parent,
+      obs,
       session
     )
     dot_args$parent$selected_block <- board_block_ids(board$board)
@@ -56,6 +58,7 @@ testServer(
       new_dataset_block(dataset = "CO2"),
       board,
       dot_args$parent,
+      obs,
       session
     )
     dot_args$parent$selected_block <- board_block_ids(board$board)[2]

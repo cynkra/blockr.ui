@@ -1,7 +1,7 @@
 library(blockr.core)
 library(blockr.dplyr)
 
-mock_add_block <- function(blk, rv, parent, session) {
+mock_add_block <- function(blk, rv, parent, obs, session) {
   board_blocks(rv$board) <- c(board_blocks(rv$board), as_blocks(blk))
   attr(blk, "uid") <- tail(board_block_ids(rv$board), n = 1)
   rv$msgs(c(
@@ -24,7 +24,7 @@ mock_add_block <- function(blk, rv, parent, session) {
       block_inputs(blk)
     )
   }
-  create_node(blk, parent, rv, TRUE, session)
+  create_node(blk, parent, rv, TRUE, obs, session)
   session$flushReact()
 }
 
@@ -56,7 +56,11 @@ testServer(
     board = reactiveValues(
       blocks = list(),
       board = new_board(
-        class = "custom_board"
+        class = "custom_board",
+        options = new_board_options(
+          dark_mode = "light",
+          stacks_colors = hcl.colors(20, palette = "spectral")
+        )
       ),
       board_id = "board",
       inputs = list(),
@@ -76,9 +80,10 @@ testServer(
     )
   ),
   {
+    obs <- list()
     # Add stack
-    mock_add_block(new_dataset_block(), board, dot_args$parent, session)
-    mock_add_block(new_dataset_block(), board, dot_args$parent, session)
+    mock_add_block(new_dataset_block(), board, dot_args$parent, obs, session)
+    mock_add_block(new_dataset_block(), board, dot_args$parent, obs, session)
     dot_args$parent$added_stack <- board_block_ids(board$board)
     session$flushReact()
     expect_s3_class(update()$stacks$add, "stacks")
@@ -108,7 +113,7 @@ testServer(
     board_stacks(board$board) <- update()$stacks$mod
 
     # Add block to stack
-    mock_add_block(new_dataset_block(), board, dot_args$parent, session)
+    mock_add_block(new_dataset_block(), board, dot_args$parent, obs, session)
     dot_args$parent$stack_added_node <- list(
       stack_id = board_stack_ids(board$board),
       node_id = tail(board_block_ids(board$board), n = 1)

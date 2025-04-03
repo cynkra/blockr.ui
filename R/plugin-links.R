@@ -29,14 +29,14 @@ add_rm_link_server <- function(id, board, update, ...) {
           !length(dot_args$parent$added_block)
         ),
         {
-          restore_network(board, dot_args$parent, session)
+          restore_network(board, dot_args$parent, obs, session)
         },
         once = TRUE
       )
 
       # Restore network from serialisation
       observeEvent(req(dot_args$parent$refreshed == "board"), {
-        restore_network(board, dot_args$parent, session)
+        restore_network(board, dot_args$parent, obs, session)
       })
 
       # Get nodes and coordinates: useful to cache the current
@@ -187,6 +187,7 @@ add_rm_link_server <- function(id, board, update, ...) {
               dot_args$parent,
               board,
               validate = TRUE,
+              obs,
               session
             )
             if (dot_args$parent$append_block) {
@@ -289,16 +290,6 @@ add_rm_link_server <- function(id, board, update, ...) {
           )
         }
       )
-
-      # Register add_to_grid observers
-      observeEvent(req(length(board_block_ids(board$board)) > 0), {
-        register_node_menu_obs(
-          board_block_ids(board$board),
-          dot_args$parent,
-          obs,
-          session
-        )
-      })
 
       # Multi actions
       # Stack creation from network
