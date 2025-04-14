@@ -2,9 +2,12 @@
 % Please edit documentation in R/apps.R
 \name{run_demo_app}
 \alias{run_demo_app}
+\alias{new_custom_board}
 \title{Demo app}
 \usage{
 run_demo_app(...)
+
+new_custom_board(...)
 }
 \arguments{
 \item{...}{Forwarded to \code{\link[=new_board]{new_board()}}}
