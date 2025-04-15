@@ -7,15 +7,14 @@
 #' @export
 run_demo_app <- function(...) {
   serve(
-    new_custom_board(...),
+    new_dash_board(...),
     "main"
   )
 }
 
 #' @rdname run_demo_app
 #' @export
-new_custom_board <- function(...) {
-
+new_dash_board <- function(...) {
   # TBD customize blockr options
   n_stacks <- 40
   stacks_color_palette <- "spectral"
@@ -28,7 +27,7 @@ new_custom_board <- function(...) {
 
   new_board(
     ...,
-    class = "custom_board",
+    class = "dash_board",
     options = new_board_options(
       dark_mode = "light",
       stacks_colors = hcl.colors(n_stacks, palette = stacks_color_palette)
@@ -37,8 +36,7 @@ new_custom_board <- function(...) {
 }
 
 #' @export
-serve.custom_board <- function(x, id = "main", ...) {
-
+serve.dash_board <- function(x, id = "main", ...) {
   Sys.setenv("blockr_dark_mode" = "light")
 
   addResourcePath(

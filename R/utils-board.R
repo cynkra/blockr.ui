@@ -367,7 +367,7 @@ board_restore <- function(board, update, parent, ...) {
 #' @param ... Generic consistency.
 #' @rdname board_ui
 #' @export
-board_ui.custom_board <- function(id, x, plugins = list(), ...) {
+board_ui.dash_board <- function(id, x, plugins = list(), ...) {
   plugins <- as_plugins(plugins)
 
   toolbar_plugins <- c(

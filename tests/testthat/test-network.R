@@ -113,7 +113,7 @@ testServer(
     board = reactiveValues(
       blocks = list(),
       board = new_board(
-        class = "custom_board",
+        class = "dash_board",
         options = new_board_options(
           dark_mode = "light",
           stacks_colors = hcl.colors(20, palette = "spectral")

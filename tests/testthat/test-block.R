@@ -8,7 +8,7 @@ test_that("get_block_registry works", {
 
 my_board <- new_board(
   blocks = new_dataset_block(),
-  class = "custom_board"
+  class = "dash_board"
 )
 
 test_that("block ui works", {

@@ -6,8 +6,8 @@
 #' @param ... Generic consistency.
 #'
 #' @export
-#' @rdname custom-board
-block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
+#' @rdname block_ui
+block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
   block_card <- function(x, id, ns) {
     id <- paste0("block_", id)
 
@@ -74,9 +74,9 @@ block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
   )
 }
 
-#' @rdname custom-board
+#' @rdname block_ui
 #' @export
-remove_block_ui.custom_board <- function(id, x, blocks = NULL, ...) {
+remove_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
   pars <- list(...)
 
   if (is.null(blocks)) {
