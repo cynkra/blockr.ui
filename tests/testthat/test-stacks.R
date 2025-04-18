@@ -1,4 +1,4 @@
-my_board <- new_board(class = "custom_board")
+my_board <- new_board(class = "dash_board")
 
 test_that("add_block_to_stack works", {
   expect_null(add_block_to_stack(

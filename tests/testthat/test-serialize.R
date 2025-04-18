@@ -18,7 +18,7 @@ testServer(
     board = reactiveValues(
       blocks = list(),
       board = new_board(
-        class = "custom_board"
+        class = "dash_board"
       ),
       board_id = "board" #,
       #inputs = list(),
