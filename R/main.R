@@ -77,7 +77,8 @@ main_server <- function(id, board) {
           )
         ),
         callbacks = list(
-          grid = grid_server,
+          grid = if (board_option("dashboard_type", board) == "grid")
+            grid_server else dock_server,
           app_mod = manage_app_mode,
           manage_sidebars = manage_sidebars,
           # Only one block can be visible at a time in the sidebar,

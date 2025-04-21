@@ -406,7 +406,8 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
     board_options_ui = board_ui(id, board_options(x))
   )
 
-  my_grid <- grid_ui(id)
+  my_grid <- if (board_option("dashboard_type", x) == "grid") grid_ui(id) else
+    dock_ui(id)
 
   tagList(
     board_header(id, my_board_ui, my_grid),
