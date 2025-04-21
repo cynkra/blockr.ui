@@ -4,7 +4,7 @@
 \alias{create_node}
 \title{Create a new node it to the network}
 \usage{
-create_node(new, vals, rv, validate = TRUE, session)
+create_node(new, vals, rv, validate = TRUE, obs, session)
 }
 \arguments{
 \item{new}{New block to add.}
@@ -15,6 +15,8 @@ create_node(new, vals, rv, validate = TRUE, session)
 
 \item{validate}{Whether to register validation observers for the node.
 Default to TRUE.}
+
+\item{obs}{Observer list.}
 
 \item{session}{Shiny session object.}
 }

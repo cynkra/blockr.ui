@@ -42,6 +42,9 @@ Imports:
 Remotes:
     cynkra/blockr.core,
     cynkra/blockr.dplyr,
+    cynkra/blockr.io,
+    cynkra/blockr.ai,
+    cynkra/blockr.sdtm,
     dreamRs/gridstackr,
     rstudio/chromote
 Suggests: 
@@ -49,6 +52,9 @@ Suggests:
     testthat (>= 3.0.0),
     rlang,
     blockr.dplyr,
+    blockr.io,
+    blockr.ai,
+    blockr.sdtm,
     cyclocomp,
     roxy.shinylive,
     chromote

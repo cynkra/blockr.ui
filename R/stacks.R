@@ -1,5 +1,5 @@
 #' @export
-add_block_to_stack.custom_board <- function(
+add_block_to_stack.dash_board <- function(
   board,
   block_id,
   stack_id,
@@ -10,7 +10,7 @@ add_block_to_stack.custom_board <- function(
 }
 
 #' @export
-remove_block_from_stack.custom_board <- function(
+remove_block_from_stack.dash_board <- function(
   board,
   block_id,
   board_id,
@@ -21,6 +21,6 @@ remove_block_from_stack.custom_board <- function(
 }
 
 #' @export
-stack_ui.custom_board <- function(id, x, stacks = NULL, edit_ui = NULL, ...) {
+stack_ui.dash_board <- function(id, x, stacks = NULL, edit_ui = NULL, ...) {
   NULL
 }

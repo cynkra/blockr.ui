@@ -5,7 +5,7 @@
 #' @param which (Optional) character vectors of plugins to include
 #' @rdname plugins
 #' @export
-custom_board_plugins <- function(which = NULL) {
+dash_board_plugins <- function(which = NULL) {
   plugins <- plugins(
     preserve_board(server = ser_deser_server, ui = ser_deser_ui),
     manage_blocks(server = add_rm_block_server, ui = add_rm_block_ui),

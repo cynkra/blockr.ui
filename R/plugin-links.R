@@ -29,14 +29,14 @@ add_rm_link_server <- function(id, board, update, ...) {
           !length(dot_args$parent$added_block)
         ),
         {
-          restore_network(board, dot_args$parent, session)
+          restore_network(board, dot_args$parent, obs, session)
         },
         once = TRUE
       )
 
       # Restore network from serialisation
       observeEvent(req(dot_args$parent$refreshed == "board"), {
-        restore_network(board, dot_args$parent, session)
+        restore_network(board, dot_args$parent, obs, session)
       })
 
       # Get nodes and coordinates: useful to cache the current
@@ -187,6 +187,7 @@ add_rm_link_server <- function(id, board, update, ...) {
               dot_args$parent,
               board,
               validate = TRUE,
+              obs,
               session
             )
             if (dot_args$parent$append_block) {
@@ -290,27 +291,18 @@ add_rm_link_server <- function(id, board, update, ...) {
         }
       )
 
-      # Register add_to_grid observers
-      observeEvent(req(length(board_block_ids(board$board)) > 0), {
-        register_node_menu_obs(
-          board_block_ids(board$board),
-          vals,
-          dot_args$parent,
-          obs,
-          session
-        )
-      })
-
       # Multi actions
       # Stack creation from network
       # control + select to multiselect nodes
       # Receive new stack to update nodes
-      vals <- reactiveValues(
-        stacks = list(),
-        palette = hcl.colors(20, palette = "spectral")
-      )
+      vals <- reactiveValues(stacks = list())
       observeEvent(input$selected_nodes, {
-        show_stack_actions(input$selected_nodes, dot_args$parent, session)
+        show_stack_actions(
+          input$selected_nodes,
+          board,
+          dot_args$parent,
+          session
+        )
       })
 
       # Order stack creation to stack plugin
@@ -325,12 +317,24 @@ add_rm_link_server <- function(id, board, update, ...) {
           req(
             input$network_initialized,
             length(board_stacks(board$board)) > 0,
-            # Only stack nodes that are not already in a stack
-            !(tail(board_stack_ids(board$board), n = 1) %in% vals$stacks)
+            # As soon as one board stack isn't in vals$stacks
+            any(!(board_stack_ids(board$board) %in% vals$stacks))
           )
         },
         {
-          stack_nodes(vals, board, dot_args$parent, session)
+          stacks_ids <- which(
+            !(board_stack_ids(board$board) %in% vals$stacks)
+          )
+          for (stack_id in board_stack_ids(board$board)[stacks_ids]) {
+            stack_nodes(
+              stack_id,
+              input$stack_color,
+              vals,
+              board,
+              dot_args$parent,
+              session
+            )
+          }
         }
       )
 

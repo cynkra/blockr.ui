@@ -11,7 +11,7 @@ main_ui <- function(id, board) {
   board_ui(
     ns("board"),
     board,
-    plugins = custom_board_plugins(
+    plugins = dash_board_plugins(
       c(
         "preserve_board",
         "manage_blocks",
@@ -66,7 +66,7 @@ main_server <- function(id, board) {
       board_server(
         "board",
         board,
-        plugins = custom_board_plugins(
+        plugins = dash_board_plugins(
           c(
             "preserve_board",
             "manage_blocks",

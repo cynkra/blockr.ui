@@ -31,6 +31,86 @@
             },
             {
               "children": {
+                "ariaLabel": "readcsv_block",
+                "label": "Read csv data",
+                "description": "Read tabular data from a csv file",
+                "closeOnClick": true,
+                "icon": {
+                  "type": "i",
+                  "key": null,
+                  "ref": null,
+                  "props": {
+                    "class": "fas fa-table",
+                    "role": "presentation",
+                    "aria-label": "table icon"
+                  },
+                  "_owner": null
+                }
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
+                "ariaLabel": "readxlsx_block",
+                "label": "Read Excel data",
+                "description": "Read tabular data from an Excel file",
+                "closeOnClick": true,
+                "icon": {
+                  "type": "i",
+                  "key": null,
+                  "ref": null,
+                  "props": {
+                    "class": "fas fa-table",
+                    "role": "presentation",
+                    "aria-label": "table icon"
+                  },
+                  "_owner": null
+                }
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
+                "ariaLabel": "readxpt_block",
+                "label": "Read xpt data",
+                "description": "Read tabular data from an xpt file",
+                "closeOnClick": true,
+                "icon": {
+                  "type": "i",
+                  "key": null,
+                  "ref": null,
+                  "props": {
+                    "class": "fas fa-table",
+                    "role": "presentation",
+                    "aria-label": "table icon"
+                  },
+                  "_owner": null
+                }
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
+                "ariaLabel": "sdtm_block",
+                "label": "SDTM dataset block",
+                "description": "SDTM datasets as provided by 'pharmaversesdtm'",
+                "closeOnClick": true,
+                "icon": {
+                  "type": "i",
+                  "key": null,
+                  "ref": null,
+                  "props": {
+                    "class": "fas fa-table",
+                    "role": "presentation",
+                    "aria-label": "table icon"
+                  },
+                  "_owner": null
+                }
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
                 "ariaLabel": "static_block",
                 "label": "static data block",
                 "description": "Static data",
@@ -107,6 +187,26 @@
         },
         {
           "children": [
+            {
+              "children": {
+                "ariaLabel": "llm_plot_block",
+                "label": "LLM plot block",
+                "description": "Create plots using LLM-generated R code based on natural language questions",
+                "closeOnClick": true,
+                "icon": {
+                  "type": "i",
+                  "key": null,
+                  "ref": null,
+                  "props": {
+                    "class": "fas fa-chart-line",
+                    "role": "presentation",
+                    "aria-label": "chart-line icon"
+                  },
+                  "_owner": null
+                }
+              },
+              "class": "scout_action"
+            },
             {
               "children": {
                 "ariaLabel": "scatter_block",
@@ -215,6 +315,26 @@
             },
             {
               "children": {
+                "ariaLabel": "llm_transform_block",
+                "label": "LLM transform block",
+                "description": "Transform data using LLM-generated R code based on natural language questions",
+                "closeOnClick": true,
+                "icon": {
+                  "type": "i",
+                  "key": null,
+                  "ref": null,
+                  "props": {
+                    "class": "fas fa-wand-magic-sparkles",
+                    "role": "presentation",
+                    "aria-label": "wand-magic-sparkles icon"
+                  },
+                  "_owner": null
+                }
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
                 "ariaLabel": "merge_block",
                 "label": "merge block",
                 "description": "Joining or datasets",
@@ -298,6 +418,66 @@
                 "ariaLabel": "subset_block",
                 "label": "subset block",
                 "description": "Row and column subsetting",
+                "closeOnClick": true,
+                "icon": {
+                  "type": "i",
+                  "key": null,
+                  "ref": null,
+                  "props": {
+                    "class": "fas fa-wand-magic-sparkles",
+                    "role": "presentation",
+                    "aria-label": "wand-magic-sparkles icon"
+                  },
+                  "_owner": null
+                }
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
+                "ariaLabel": "writecsv_block",
+                "label": "Write csv data",
+                "description": "Write tabular data to a csv file",
+                "closeOnClick": true,
+                "icon": {
+                  "type": "i",
+                  "key": null,
+                  "ref": null,
+                  "props": {
+                    "class": "fas fa-wand-magic-sparkles",
+                    "role": "presentation",
+                    "aria-label": "wand-magic-sparkles icon"
+                  },
+                  "_owner": null
+                }
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
+                "ariaLabel": "writexlsx_block",
+                "label": "Write Excel data",
+                "description": "Write tabular data to an Excel file",
+                "closeOnClick": true,
+                "icon": {
+                  "type": "i",
+                  "key": null,
+                  "ref": null,
+                  "props": {
+                    "class": "fas fa-wand-magic-sparkles",
+                    "role": "presentation",
+                    "aria-label": "wand-magic-sparkles icon"
+                  },
+                  "_owner": null
+                }
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
+                "ariaLabel": "writexpt_block",
+                "label": "Write xpt data",
+                "description": "Write tabular data to an xpt file",
                 "closeOnClick": true,
                 "icon": {
                   "type": "i",

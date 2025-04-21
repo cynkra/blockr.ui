@@ -4,12 +4,10 @@
 \alias{register_node_menu_obs}
 \title{Register observers related to the node menu}
 \usage{
-register_node_menu_obs(blocks_ids, vals, parent, obs, session)
+register_node_menu_obs(block_id, parent, obs, session)
 }
 \arguments{
-\item{blocks_ids}{Board block ids.}
-
-\item{vals}{Local scope reactive values.}
+\item{block_id}{Block id.}
 
 \item{parent}{Global scope reactive values.}
 

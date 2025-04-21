@@ -1,7 +1,7 @@
 library(blockr.core)
 library(blockr.dplyr)
 
-mock_add_block <- function(blk, rv, parent, session) {
+mock_add_block <- function(blk, rv, parent, obs, session) {
   board_blocks(rv$board) <- c(board_blocks(rv$board), as_blocks(blk))
   attr(blk, "uid") <- tail(board_block_ids(rv$board), n = 1)
   rv$msgs(c(
@@ -24,18 +24,24 @@ mock_add_block <- function(blk, rv, parent, session) {
       block_inputs(blk)
     )
   }
-  create_node(blk, parent, rv, TRUE, session)
+  create_node(blk, parent, rv, TRUE, obs, session)
   session$flushReact()
 }
 
-mock_stack_nodes <- function(update, rv, parent, session) {
+mock_stack_nodes <- function(
+  stack_id,
+  color,
+  update,
+  rv,
+  parent,
+  session
+) {
   board_stacks(rv$board) <- update()$stacks$add
   vals <- reactiveValues(
-    stacks = list(),
-    palette = hcl.colors(20, palette = "spectral")
+    stacks = list()
   )
   session$setInputs(selected_nodes = board_block_ids(rv$board))
-  stack_nodes(vals, rv, parent, session)
+  stack_nodes(stack_id, color, vals, rv, parent, session)
 }
 
 mock_cleanup_state <- function(state) {
@@ -50,7 +56,11 @@ testServer(
     board = reactiveValues(
       blocks = list(),
       board = new_board(
-        class = "custom_board"
+        class = "dash_board",
+        options = new_board_options(
+          dark_mode = "light",
+          stacks_colors = hcl.colors(20, palette = "spectral")
+        )
       ),
       board_id = "board",
       inputs = list(),
@@ -70,14 +80,22 @@ testServer(
     )
   ),
   {
+    obs <- list()
     # Add stack
-    mock_add_block(new_dataset_block(), board, dot_args$parent, session)
-    mock_add_block(new_dataset_block(), board, dot_args$parent, session)
+    mock_add_block(new_dataset_block(), board, dot_args$parent, obs, session)
+    mock_add_block(new_dataset_block(), board, dot_args$parent, obs, session)
     dot_args$parent$added_stack <- board_block_ids(board$board)
     session$flushReact()
     expect_s3_class(update()$stacks$add, "stacks")
     board_stacks(board$board) <- update()$stacks$add
-    mock_stack_nodes(update, board, dot_args$parent, session)
+    mock_stack_nodes(
+      board_stack_ids(board$board),
+      color = "#A71B4B",
+      update,
+      board,
+      dot_args$parent,
+      session
+    )
 
     # Remove node from stack
     remove_node_from_stack(
@@ -95,7 +113,7 @@ testServer(
     board_stacks(board$board) <- update()$stacks$mod
 
     # Add block to stack
-    mock_add_block(new_dataset_block(), board, dot_args$parent, session)
+    mock_add_block(new_dataset_block(), board, dot_args$parent, obs, session)
     dot_args$parent$stack_added_node <- list(
       stack_id = board_stack_ids(board$board),
       node_id = tail(board_block_ids(board$board), n = 1)

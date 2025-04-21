@@ -113,7 +113,11 @@ testServer(
     board = reactiveValues(
       blocks = list(),
       board = new_board(
-        class = "custom_board"
+        class = "dash_board",
+        options = new_board_options(
+          dark_mode = "light",
+          stacks_colors = hcl.colors(20, palette = "spectral")
+        )
       ),
       board_id = "board",
       inputs = list(),
@@ -194,13 +198,10 @@ testServer(
       board_stack_ids(board$board)
     )
 
-    # Add block to existing stack (should belong to the current stack)
+    # Add block to existing stack (should not belong to any stack)
     dot_args$parent$append_block <- TRUE
     mock_add_block(new_select_block(), board, dot_args$parent, session)
-    expect_identical(
-      tail(dot_args$parent$nodes$group, n = 1),
-      board_stack_ids(board$board)
-    )
+    expect_true(is.na(tail(dot_args$parent$nodes$group, n = 1)))
 
     # Sadly this does not work due to a bug in Shiny: remove stack
     session$setInputs(
