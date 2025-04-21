@@ -32,7 +32,7 @@ new_dash_board <- function(...) {
 
   new_board(
     ...,
-    class = "dash_board",
+    class = c(sprintf("%s_board", dashboard_type), "dash_board"),
     options = new_board_options(
       dark_mode = "light",
       stacks_colors = hcl.colors(n_stacks, palette = stacks_color_palette),

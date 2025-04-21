@@ -41,7 +41,7 @@ main_server <- function(id, board) {
       app_state <- reactiveValues(
         mode = "network",
         preview = FALSE,
-        grid = data.frame(),
+        grid = NULL,
         in_grid = list(),
         refreshed = NULL,
         nodes = data.frame(),
@@ -77,8 +77,7 @@ main_server <- function(id, board) {
           )
         ),
         callbacks = list(
-          grid = if (board_option("dashboard_type", board) == "grid")
-            grid_server else dock_server,
+          grid = dashboard_server,
           app_mod = manage_app_mode,
           manage_sidebars = manage_sidebars,
           # Only one block can be visible at a time in the sidebar,

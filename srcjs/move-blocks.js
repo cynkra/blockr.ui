@@ -34,4 +34,13 @@ export const setupBlocksGrid = () => {
   Shiny.addCustomMessageHandler('update-grid-zoom', (m) => {
     $(m.id).css('zoom', m.zoom);
   });
+
+  // Manage dock mode
+  Shiny.addCustomMessageHandler("move-block-in-dock", (m) => {
+    $(m.panel_id).append($(m.block_id));
+  })
+
+  Shiny.addCustomMessageHandler("remove-block-from-dock", (m) => {
+    $(m.id).append($(`${m.panel_id} > *`));
+  })
 } 

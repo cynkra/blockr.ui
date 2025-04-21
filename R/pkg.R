@@ -11,4 +11,5 @@
 #' @importFrom stats setNames
 #' @importFrom grDevices hcl.colors
 #' @importFrom utils tail
+#' @import dockViewR
 NULL

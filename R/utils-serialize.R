@@ -42,6 +42,14 @@ blockr_ser.data.frame <- function(x, ...) {
   )
 }
 
+#' @export
+blockr_ser.dock <- function(x, ...) {
+  list(
+    object = class(x),
+    payload = lapply(x, blockr_ser)
+  )
+}
+
 #' @rdname blockr_ser
 #' @param data Data to restore.
 #' @export

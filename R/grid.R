@@ -1,9 +1,8 @@
-#' Dashboard grid UI
+#' Dashboard grid UI method
 #'
-#' @param id Module id.
-#' @rdname grid
+#' @rdname dashboard
 #' @export
-grid_ui <- function(id) {
+dashboard_ui.grid_board <- function(id, x, ...) {
   ns <- NS(id)
   list(
     add_to_grid = bslib::input_switch(
@@ -27,15 +26,11 @@ grid_ui <- function(id) {
   )
 }
 
-#' Dashboard grid server
+#' Dashboard grid server method
 #'
-#' @param board Board reactiveValues. Read-only.
-#' @param update Update reactiveVal to signal change to the board.
-#' @param parent Parent global reactiveValues.
-#' @param ... Extra parameters.
-#' @rdname grid
+#' @rdname dashboard
 #' @export
-grid_server <- function(board, update, parent, ...) {
+dashboard_server.grid_board <- function(board, update, parent, ...) {
   session <- get("session", parent.frame(1))
   input <- session$input
   ns <- session$ns
@@ -56,7 +51,7 @@ grid_server <- function(board, update, parent, ...) {
       req(parent$refreshed == "network")
     },
     {
-      restore_grid(board$blocks, vals, parent, session)
+      restore_dashboard(board$board, board$blocks, vals, parent, session)
       parent$refreshed <- "grid"
     }
   )
@@ -70,7 +65,7 @@ grid_server <- function(board, update, parent, ...) {
       board$blocks
     },
     {
-      init_blocks_grid_state(board$blocks, vals)
+      init_dashboard_state(board$board, board$blocks, vals)
     }
   )
 
@@ -104,7 +99,8 @@ grid_server <- function(board, update, parent, ...) {
 
   # Toggle state for each selected block to update the state
   observeEvent(input$add_to_grid, {
-    update_block_grid_state(
+    update_dashboard_state(
+      board$board,
       parent$selected_block,
       input$add_to_grid,
       vals
@@ -122,7 +118,7 @@ grid_server <- function(board, update, parent, ...) {
       parent$refreshed == "grid"
     },
     {
-      manage_board_grid(parent$mode, vals, session)
+      manage_dashboard(board$board, parent$mode, vals, session)
     }
   )
 
