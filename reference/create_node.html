@@ -60,7 +60,7 @@ as many children nodes as required.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_node</span><span class="op">(</span><span class="va">new</span>, <span class="va">vals</span>, <span class="va">rv</span>, validate <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">session</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">create_node</span><span class="op">(</span><span class="va">new</span>, <span class="va">vals</span>, <span class="va">rv</span>, validate <span class="op">=</span> <span class="cn">TRUE</span>, <span class="va">obs</span>, <span class="va">session</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -82,6 +82,10 @@ as many children nodes as required.</p>
 <dt id="arg-validate">validate<a class="anchor" aria-label="anchor" href="#arg-validate"></a></dt>
 <dd><p>Whether to register validation observers for the node.
 Default to TRUE.</p></dd>
+
+
+<dt id="arg-obs">obs<a class="anchor" aria-label="anchor" href="#arg-obs"></a></dt>
+<dd><p>Observer list.</p></dd>
 
 
 <dt id="arg-session">session<a class="anchor" aria-label="anchor" href="#arg-session"></a></dt>
