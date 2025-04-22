@@ -9,7 +9,7 @@
 \alias{dashboard_server.grid_board}
 \title{Dashboard Ui generic}
 \usage{
-dashboard_ui(id, x, ...)
+dashboard_ui(id, board, ...)
 
 dashboard_server(board, update, parent, ...)
 
@@ -24,9 +24,9 @@ dashboard_server(board, update, parent, ...)
 \arguments{
 \item{id}{Module id.}
 
-\item{...}{Extra parameters.}
-
 \item{board}{Board reactiveValues. Read-only.}
+
+\item{...}{Extra parameters.}
 
 \item{update}{Update reactiveVal to signal change to the board.}
 

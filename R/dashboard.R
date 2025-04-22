@@ -1,8 +1,8 @@
 #' Dashboard Ui generic
 #' @param id Module id.
 #' @rdname dashboard
-dashboard_ui <- function(id, x, ...) {
-  UseMethod("dashboard_ui", x)
+dashboard_ui <- function(id, board, ...) {
+  UseMethod("dashboard_ui", board)
 }
 
 #' Dashboard grid server
