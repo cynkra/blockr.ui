@@ -7,7 +7,7 @@
 blk_icon(category)
 }
 \arguments{
-\item{category}{Block category. See \link{available_blocks}.}
+\item{category}{Block category. See \link[blockr.core]{available_blocks}.}
 }
 \description{
 Blocks are categorized. This function

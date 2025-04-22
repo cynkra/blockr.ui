@@ -10,7 +10,7 @@ update_dashboard_state(board, selected, value, vals)
 
 \method{update_dashboard_state}{dock_board}(board, selected, value, vals)
 
-\method{update_dashboard_state}{grid_board}(selected, value, vals)
+\method{update_dashboard_state}{grid_board}(board, selected, value, vals)
 }
 \arguments{
 \item{board}{Board object.}

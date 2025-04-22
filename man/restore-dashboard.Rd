@@ -13,6 +13,8 @@ restore_dashboard(board, blocks, vals, parent, session)
 \method{restore_dashboard}{grid_board}(board, blocks, vals, parent, session)
 }
 \arguments{
+\item{board}{Board object.}
+
 \item{blocks}{Board block objects.}
 
 \item{vals}{Local reactive values.}

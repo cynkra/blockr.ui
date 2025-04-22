@@ -5,6 +5,7 @@
 #' block should be in the dashboard, so that \link{manage_dashboard}
 #' knows what to do.
 #'
+#' @param board Board object.
 #' @param blocks Board blocks.
 #' @param vals Local reactive values.
 #' @rdname init-dashboard-state
@@ -73,7 +74,7 @@ update_dashboard_state.dock_board <- function(board, selected, value, vals) {
 #'
 #' @export
 #' @rdname update-dashboard-state
-update_dashboard_state.grid_board <- function(selected, value, vals) {
+update_dashboard_state.grid_board <- function(board, selected, value, vals) {
   if (is.null(selected)) return(NULL)
   if (!(selected %in% names(vals$in_grid))) {
     vals$in_grid[[selected]] <- value
@@ -155,7 +156,7 @@ add_dashboard_block.dock_board <- function(board, id, vals, session) {
 #'
 #' @rdname manage-dashboard
 #' @export
-add_block_to_grid <- function(id, vals, session) {
+add_dashboard_block.grid_board <- function(board, id, vals, session) {
   ns <- session$ns
   # Similar gs_proxy_add so that we can
   # move an element to the grid and call the JS method
@@ -230,7 +231,7 @@ remove_dashboard_block.grid_board <- function(board, id, session) {
 }
 
 #' Manage dashboard generic
-#' @param Board Board.
+#' @param board Board.
 #' @param mode App mode.
 #' @param vals Local reactive values.
 #' @param session Shiny session object.
@@ -348,6 +349,7 @@ process_grid_content <- function(vals, grid_layout) {
 
 #' Restore dashboard state from board state
 #'
+#' @param board Board object.
 #' @param blocks Board block objects.
 #' @param vals Local reactive values.
 #' @param parent Parent reactive values.

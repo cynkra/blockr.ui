@@ -3,7 +3,7 @@
 \name{add_dashboard_block}
 \alias{add_dashboard_block}
 \alias{add_dashboard_block.dock_board}
-\alias{add_block_to_grid}
+\alias{add_dashboard_block.grid_board}
 \alias{remove_dashboard_block}
 \alias{remove_dashboard_block.dock_board}
 \alias{remove_dashboard_block.grid_board}
@@ -16,7 +16,7 @@ add_dashboard_block(board, id, vals, session)
 
 \method{add_dashboard_block}{dock_board}(board, id, vals, session)
 
-add_block_to_grid(id, vals, session)
+\method{add_dashboard_block}{grid_board}(board, id, vals, session)
 
 remove_dashboard_block(board, id, session)
 
@@ -31,6 +31,8 @@ manage_dashboard(board, mode, vals, session)
 \method{manage_dashboard}{grid_board}(board, mode, vals, session)
 }
 \arguments{
+\item{board}{Board.}
+
 \item{id}{Block id.}
 
 \item{vals}{Local reactive values.}
@@ -38,8 +40,6 @@ manage_dashboard(board, mode, vals, session)
 \item{session}{Shiny session object.}
 
 \item{mode}{App mode.}
-
-\item{Board}{Board.}
 }
 \description{
 Add block to dashboard generic

@@ -10,7 +10,7 @@ run_demo_app(...)
 new_dash_board(...)
 }
 \arguments{
-\item{...}{Forwarded to \code{\link[=new_board]{new_board()}}}
+\item{...}{Forwarded to \code{\link[blockr.core:new_board]{blockr.core::new_board()}}}
 }
 \description{
 Run demo app

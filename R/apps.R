@@ -2,7 +2,7 @@
 #'
 #' Run demo app
 #'
-#' @param ... Forwarded to [new_board()]
+#' @param ... Forwarded to [blockr.core::new_board()]
 #'
 #' @export
 run_demo_app <- function(...) {

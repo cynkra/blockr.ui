@@ -89,6 +89,7 @@ dashboard_server.grid_board <- function(board, update, parent, ...) {
     },
     {
       update_block_grid_input(
+        board$board,
         parent$selected_block,
         parent$in_grid[[parent$selected_block]],
         vals,

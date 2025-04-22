@@ -8,11 +8,13 @@
 \usage{
 init_dashboard_state(board, blocks, vals)
 
-init_dashboard_state.dock_board(board, blocks, vals)
+\method{init_dashboard_state}{dock_board}(board, blocks, vals)
 
-init_dashboard_state.grid_board(board, blocks, vals)
+\method{init_dashboard_state}{grid_board}(board, blocks, vals)
 }
 \arguments{
+\item{board}{Board object.}
+
 \item{blocks}{Board blocks.}
 
 \item{vals}{Local reactive values.}
