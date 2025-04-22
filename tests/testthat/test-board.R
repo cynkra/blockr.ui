@@ -18,7 +18,7 @@ testServer(
   board_server,
   args = list(
     x = new_board(
-      class = "dash_board",
+      class = c("grid_board", "dash_board"),
       options = new_board_options(
         dark_mode = "light",
         stacks_colors = hcl.colors(20, palette = "spectral")
@@ -35,7 +35,7 @@ testServer(
       )
     ),
     callbacks = list(
-      grid = grid_server,
+      grid = dashboard_server,
       app_mod = manage_app_mode,
       manage_sidebars = manage_sidebars,
       # Only one block can be visible at a time in the sidebar,
@@ -128,11 +128,6 @@ testServer(
 
 test_that("Board works", {
   skip_on_cran()
-
-  chromote::local_chrome_version(
-    "latest-stable",
-    binary = "chrome-headless-shell"
-  )
 
   demo_app <- run_demo_app()
   app <- AppDriver$new(

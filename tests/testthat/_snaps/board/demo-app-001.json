@@ -1,7 +1,6 @@
 {
   "input": {
     "main-board-dashboard": false,
-    "main-board-lock": false,
     "main-board-manage_blocks-scoutbar-configuration": {
       "id": "main-board-manage_blocks-scoutbar",
       "theme": "light",
@@ -507,9 +506,9 @@
     "main-res": {
       "mode": "network",
       "preview": false,
-      "grid": {
+      "grid": [
 
-      },
+      ],
       "in_grid": [
 
       ],
