@@ -13,7 +13,7 @@ dashboard_ui(id, board, ...)
 
 dashboard_server(board, update, parent, ...)
 
-\method{dashboard_ui}{dock_board}(id, x, ...)
+\method{dashboard_ui}{dock_board}(id, board, ...)
 
 \method{dashboard_server}{dock_board}(board, update, parent, ...)
 
