@@ -17,7 +17,7 @@ dashboard_server(board, update, parent, ...)
 
 \method{dashboard_server}{dock_board}(board, update, parent, ...)
 
-\method{dashboard_ui}{grid_board}(id, x, ...)
+\method{dashboard_ui}{grid_board}(id, board, ...)
 
 \method{dashboard_server}{grid_board}(board, update, parent, ...)
 }

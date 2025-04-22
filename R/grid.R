@@ -2,7 +2,7 @@
 #'
 #' @rdname dashboard
 #' @export
-dashboard_ui.grid_board <- function(id, x, ...) {
+dashboard_ui.grid_board <- function(id, board, ...) {
   ns <- NS(id)
   list(
     add_to_grid = bslib::input_switch(
