@@ -141,7 +141,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       input$dock_state
     },
     {
-      vals$grid <- input$dock_state
+      vals$grid <- structure(input$dock_state, class = "dock")
     }
   )
 

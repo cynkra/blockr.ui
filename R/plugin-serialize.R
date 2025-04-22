@@ -64,7 +64,7 @@ ser_deser_server <- function(id, board, ...) {
           snapshot_trigger()
         },
         {
-          #snapshot_board(vals, board, dot_args$parent, session)
+          snapshot_board(vals, board, dot_args$parent, session)
         }
       )
 

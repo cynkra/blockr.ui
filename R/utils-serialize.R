@@ -34,19 +34,21 @@ blockr_ser.dash_board <- function(
   )
 }
 
+#' @rdname blockr_ser
+#' @export
+blockr_ser.dock <- function(x, ...) {
+  list(
+    object = class(x),
+    payload = unclass(x)
+  )
+}
+
+#' @rdname blockr_ser
 #' @export
 blockr_ser.data.frame <- function(x, ...) {
   list(
     object = class(x),
     payload = as.list(x)
-  )
-}
-
-#' @export
-blockr_ser.dock <- function(x, ...) {
-  list(
-    object = class(x),
-    payload = lapply(x, blockr_ser)
   )
 }
 
@@ -69,6 +71,12 @@ blockr_deser.dash_board <- function(x, data, ...) {
     grid = blockr_deser(data[["grid"]]),
     mode = data[["mode"]]
   )
+}
+
+#' @rdname blockr_ser
+#' @export
+blockr_deser.dock <- function(x, data, ...) {
+  data[["payload"]]
 }
 
 #' @rdname blockr_ser
