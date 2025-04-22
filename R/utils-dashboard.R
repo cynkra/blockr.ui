@@ -245,7 +245,6 @@ manage_dashboard <- function(board, mode, vals, session) {
 #' @rdname manage-dashboard
 #' @export
 manage_dashboard.dock_board <- function(board, mode, vals, session) {
-  if (!length(vals$in_grid)) return(NULL)
   ns <- session$ns
 
   in_grid_ids <- get_panels_ids("dock")

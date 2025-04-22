@@ -87,7 +87,7 @@ There are few __options__ you can customize through setting up environment varia
 - `STACKS_COLOR_PALETTE`: the color palette type. Default is `spectral`. We use `hcl.colors` to setup
 the palette.
 - `DASHBOARD_TYPE`: either `grid` to leverage `{gridstackr}` or `dock` for `{dockVieweR}`. Default is `dock`.
-  - `DOCK_THEME`: when `DASHBOARD_TYPE` is `dock` you can customize the dock skin. Choose among `c("light-spaced", "light", "abyss", "abyss-spaced", "dark", "vs", "dracula", "replit")`. Default is `replit`.
+  - `DOCK_THEME`: when `DASHBOARD_TYPE` is `dock` you can customize the dock skin. Choose among `c("light", "abyss", "dark", "vs", "dracula", "replit")`. Default is `replit`.
 
 ## Development
 

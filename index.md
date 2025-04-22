@@ -62,7 +62,7 @@ environment variables:
     for `{dockVieweR}`. Default is `dock`.
     -   `DOCK_THEME`: when `DASHBOARD_TYPE` is `dock` you can customize
         the dock skin. Choose among
-        `c("light-spaced", "light", "abyss", "abyss-spaced", "dark", "vs", "dracula", "replit")`.
+        `c("light", "abyss", "dark", "vs", "dracula", "replit")`.
         Default is `replit`.
 
 ## Development

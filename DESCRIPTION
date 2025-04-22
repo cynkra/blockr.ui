@@ -38,7 +38,8 @@ Imports:
     shinyjs,
     gridstackr,
     jsonlite,
-    htmltools
+    htmltools,
+    dockViewR
 Remotes:
     cynkra/blockr.core,
     cynkra/blockr.dplyr,
@@ -46,7 +47,8 @@ Remotes:
     cynkra/blockr.ai,
     cynkra/blockr.sdtm,
     dreamRs/gridstackr,
-    rstudio/chromote
+    rstudio/chromote,
+    cynkra/dockViewR
 Suggests: 
     shinytest2,
     testthat (>= 3.0.0),

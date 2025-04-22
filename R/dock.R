@@ -13,7 +13,7 @@ dashboard_ui.dock_board <- function(id, x, ...) {
     content = div(
       id = ns("grid_zoom_target"),
       style = "zoom: 0.5;",
-      dock_viewOutput(ns("dock"))
+      dockViewOutput(ns("dock"), height = "100vh")
     )
   )
 }
@@ -117,6 +117,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   observeEvent(
     {
       parent$mode
+      req(length(vals$in_grid))
       parent$refreshed == "grid"
     },
     {
@@ -124,7 +125,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
     }
   )
 
-  output$dock <- renderDock_view({
+  output$dock <- renderDockView({
     dock_view(
       panels = list(), # TBD handle when we initalise from a non empty dock
       theme = if (nchar(Sys.getenv("DOCK_THEME")) > 0)
