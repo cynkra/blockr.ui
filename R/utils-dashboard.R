@@ -10,6 +10,7 @@
 #' @rdname init-dashboard-state
 #' @export
 init_dashboard_state <- function(board, blocks, vals) {
+  UseMethod("init_dashboard_state", board)
 }
 
 #' Init dock state method
@@ -120,10 +121,11 @@ add_dashboard_block.dock_board <- function(board, id, vals, session) {
   if (!length(get_panels_ids("dock"))) {
     will_add_panel <- TRUE
   } else {
-    if (!all(grepl(id, get_panels_ids("dock")))) {
+    if (!any(grepl(id, get_panels_ids("dock")))) {
       will_add_panel <- TRUE
     }
   }
+
   # If panel was not here, we create it, if not we just move
   # from sidebar to dock
   if (will_add_panel) {
@@ -136,11 +138,14 @@ add_dashboard_block.dock_board <- function(board, id, vals, session) {
       )
     )
   }
+
+  dock_id <- sprintf("#%s", ns("dock"))
   # Move sidebar block ui to panel
   session$sendCustomMessage(
     "move-block-in-dock",
     list(
-      panel_id = sprintf("#%s-%s", ns("dock"), id),
+      dock_id = dock_id,
+      panel_id = id,
       block_id = sprintf("#%s", ns(id))
     )
   )
@@ -196,11 +201,14 @@ remove_dashboard_block <- function(board, id, session) {
 #' @export
 remove_dashboard_block.dock_board <- function(board, id, session) {
   ns <- session$ns
+  dock_id <- sprintf("#%s", ns("dock"))
+
   session$sendCustomMessage(
     "remove-block-from-dock",
     list(
       id = sprintf("#%s_blocks", ns(NULL)),
-      panel_id = sprintf("#%s-%s", ns("dock"), id)
+      panel_id = id,
+      dock_id = sprintf("%s", dock_id)
     )
   )
 }
@@ -237,6 +245,7 @@ manage_dashboard <- function(board, mode, vals, session) {
 #' @rdname manage-dashboard
 #' @export
 manage_dashboard.dock_board <- function(board, mode, vals, session) {
+  if (!length(vals$in_grid)) return(NULL)
   ns <- session$ns
 
   in_grid_ids <- get_panels_ids("dock")
@@ -258,8 +267,10 @@ manage_dashboard.dock_board <- function(board, mode, vals, session) {
       add_dashboard_block(board, nme, vals, session)
     }
     if (!new_state && length(in_grid_ids)) {
-      remove_dashboard_block(board, nme, session)
-      remove_panel("dock", nme)
+      if (nme %in% in_grid_ids) {
+        remove_dashboard_block(board, nme, session)
+        remove_panel("dock", nme)
+      }
     }
   })
 }

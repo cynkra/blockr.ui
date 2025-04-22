@@ -74,7 +74,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   # Toggle state for each selected block and update the state
   observeEvent(
     {
-      req(length(board$blocks) > 0, parent$selected_block)
+      req(length(board$blocks) > 0)
       input$add_to_grid
     },
     {
@@ -84,7 +84,8 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
         input$add_to_grid,
         vals
       )
-    }
+    },
+    ignoreInit = TRUE
   )
 
   # When we change block, update the switch to the value it should
@@ -116,7 +117,6 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   observeEvent(
     {
       parent$mode
-      req(length(vals$in_grid))
       parent$refreshed == "grid"
     },
     {
