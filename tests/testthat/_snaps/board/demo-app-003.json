@@ -497,7 +497,8 @@
           "class": "scout_section"
         }
       ],
-      "showRecentSearch": true
+      "showRecentSearch": true,
+      "revealScoutbar": true
     },
     "main-board-manage_links-network_initialized": true,
     "main-board-properties": false
@@ -510,16 +511,57 @@
       "grid": [
 
       ],
-      "in_grid": [
+      "in_grid": {
 
-      ],
+      },
       "refreshed": null,
       "nodes": {
+        "id": [
 
+        ],
+        "label": [
+
+        ],
+        "title": [
+
+        ],
+        "shape": [
+
+        ],
+        "shapeProperties.borderDashes": [
+
+        ],
+        "color.background": [
+
+        ],
+        "color.border": [
+
+        ],
+        "color.highlight.background": [
+
+        ],
+        "color.highlight.border": [
+
+        ],
+        "borderWidth": [
+
+        ],
+        "group": [
+
+        ],
+        "icon.code": [
+
+        ],
+        "x": [
+
+        ],
+        "y": [
+
+        ]
       },
       "append_block": false,
       "added_block": null,
-      "removed_block": null,
+      "removed_block": "bywdmhugjutgwsd",
       "selected_block": null,
       "edges": {
 

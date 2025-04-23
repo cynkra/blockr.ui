@@ -41,7 +41,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
     },
     {
       restore_dashboard(board$board, board$blocks, vals, parent, session)
-      parent$refreshed <- "grid"
+      # We don't even need to call restore_dock!
     }
   )
 
@@ -49,7 +49,11 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   # ids and whether they are in the grid.
   observeEvent(
     {
-      req(length(board$blocks) > 0)
+      req(
+        length(board$blocks) > 0,
+        # Don't trigger when restoring.
+        nchar(parent$refreshed) == 0
+      )
     },
     {
       init_dashboard_state(board$board, board$blocks, vals)
@@ -65,9 +69,11 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   # Removed block(s) must not be referenced in the grid
   observeEvent(parent$removed_block, {
     lapply(parent$removed_block, \(removed) {
+      # Signal to remove panel from dock.
+      # Panel will be removed by manage_dashboard.
       vals$in_grid[[removed]] <- NULL
-      # remove panel from dock
-      remove_panel(ns("dock"), removed)
+      if (paste0("block_", removed) %in% get_panels_ids("dock"))
+        remove_panel("dock", paste0("block_", removed))
     })
   })
 
@@ -84,8 +90,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
         input$add_to_grid,
         vals
       )
-    },
-    ignoreInit = TRUE
+    }
   )
 
   # When we change block, update the switch to the value it should
@@ -117,7 +122,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   observeEvent(
     {
       parent$mode
-      req(length(vals$in_grid))
+      req(length(vals$in_grid) > 0)
       parent$refreshed == "grid"
     },
     {

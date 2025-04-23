@@ -869,6 +869,15 @@ restore_network <- function(rv, vals, obs, session) {
         session
       )
     }
+  } else {
+    # Register callback for node menu
+    lapply(
+      vals$nodes$id,
+      register_node_menu_obs,
+      parent = vals,
+      obs = obs,
+      session = session
+    )
   }
 
   # Restore nodes

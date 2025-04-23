@@ -47,6 +47,7 @@ testServer(
     ),
     parent = reactiveValues(
       mode = "network",
+      cold_start = TRUE,
       preview = FALSE,
       grid = data.frame(),
       in_grid = list(),

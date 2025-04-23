@@ -2,15 +2,21 @@
 % Please edit documentation in R/utils-dashboard.R
 \name{restore_dashboard}
 \alias{restore_dashboard}
-\alias{restore_dashboard.dock_board}
-\alias{restore_dashboard.grid_board}
+\alias{restore_dashboard.dash_board}
+\alias{find_blocks_ids}
+\alias{find_blocks_ids.dock_board}
+\alias{find_blocks_ids.grid_board}
 \title{Restore dashboard state from board state}
 \usage{
 restore_dashboard(board, blocks, vals, parent, session)
 
-\method{restore_dashboard}{dock_board}(board, blocks, vals, parent, session)
+\method{restore_dashboard}{dash_board}(board, blocks, vals, parent, session)
 
-\method{restore_dashboard}{grid_board}(board, blocks, vals, parent, session)
+find_blocks_ids(board, parent, session)
+
+\method{find_blocks_ids}{dock_board}(board, parent, session)
+
+\method{find_blocks_ids}{grid_board}(board, parent, session)
 }
 \arguments{
 \item{board}{Board object.}
@@ -27,7 +33,9 @@ Contains blocks coordinates, dimensions, ...}
 \description{
 Restore dashboard state from board state
 
-Restore grid state from board state
+Find blocks ids generic
 
-Restore grid state from board state
+Find blocks ids dock method
+
+Find blocks ids grid method
 }

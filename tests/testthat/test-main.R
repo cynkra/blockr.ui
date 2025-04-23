@@ -6,6 +6,7 @@ testServer(
       app_state,
       c(
         "mode",
+        "cold_start",
         "preview",
         "grid",
         "in_grid",

@@ -63,6 +63,7 @@ update_dashboard_state <- function(board, selected, value, vals) {
 #' @export
 #' @rdname update-dashboard-state
 update_dashboard_state.dock_board <- function(board, selected, value, vals) {
+  if (is.null(selected) || !length(vals$in_grid)) return(NULL)
   if (vals$in_grid[[selected]] == value) return(NULL)
   vals$in_grid[[selected]] <- value
 }
@@ -361,26 +362,18 @@ restore_dashboard <- function(board, blocks, vals, parent, session) {
   UseMethod("restore_dashboard", board)
 }
 
-#' Restore grid state from board state
-#'
-#' @rdname restore-dashboard
 #' @export
-restore_dashboard.dock_board <- function(board, blocks, vals, parent, session) {
-  # TBD
-}
-
-#' Restore grid state from board state
-#'
 #' @rdname restore-dashboard
-#' @export
-restore_dashboard.grid_board <- function(board, blocks, vals, parent, session) {
+restore_dashboard.dash_board <- function(board, blocks, vals, parent, session) {
   vals$in_grid <- NULL
   vals$grid <- parent$grid
   ids <- names(blocks)
 
+  in_grid_ids <- find_blocks_ids(board, parent, session)
+
   # When the grid was empty, we still need to initialise the block state
   # and all values are false
-  if (!nrow(vals$grid)) {
+  if (!length(in_grid_ids)) {
     lapply(ids, \(id) {
       vals$in_grid[[id]] <- FALSE
     })
@@ -388,11 +381,6 @@ restore_dashboard.grid_board <- function(board, blocks, vals, parent, session) {
   }
 
   # Otherwise we spread elements between the grid and the network
-  in_grid_ids <- chr_ply(
-    strsplit(vals$grid$id, session$ns("block_")),
-    `[[`,
-    2
-  )
   not_in_grid <- which(!(ids %in% in_grid_ids))
 
   lapply(in_grid_ids, \(id) {
@@ -402,6 +390,53 @@ restore_dashboard.grid_board <- function(board, blocks, vals, parent, session) {
   lapply(ids[not_in_grid], \(id) {
     vals$in_grid[[id]] <- FALSE
   })
+  parent$refreshed <- "grid"
+}
+
+#' Find blocks ids generic
+#'
+#' @rdname restore-dashboard
+#' @export
+find_blocks_ids <- function(
+  board,
+  parent,
+  session
+) {
+  UseMethod("find_blocks_ids", board)
+}
+
+#' Find blocks ids dock method
+#'
+#' @rdname restore-dashboard
+#' @export
+find_blocks_ids.dock_board <- function(
+  board,
+  parent,
+  session
+) {
+  if (!length(names(parent$grid$panels))) return(NULL)
+  chr_ply(
+    strsplit(names(parent$grid$panels), "block_"),
+    `[[`,
+    2
+  )
+}
+
+#' Find blocks ids grid method
+#'
+#' @rdname restore-dashboard
+#' @export
+find_blocks_ids.grid_board <- function(
+  board,
+  parent,
+  session
+) {
+  if (!length(parent$grid$id)) return(NULL)
+  chr_ply(
+    strsplit(parent$grid$id, session$ns("block_")),
+    `[[`,
+    2
+  )
 }
 
 #' Update grid zoom on the client
