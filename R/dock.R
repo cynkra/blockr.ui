@@ -45,22 +45,6 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
     }
   )
 
-  # Initialise a mapping list containing all blocks
-  # ids and whether they are in the grid.
-  observeEvent(
-    {
-      req(
-        length(board$blocks) > 0,
-        # Don't trigger when restoring.
-        nchar(parent$refreshed) == 0
-      )
-    },
-    {
-      init_dashboard_state(board$board, board$blocks, vals)
-    },
-    once = TRUE
-  )
-
   # Whenever a new block is created, we initialise its grid state
   observeEvent(parent$added_block, {
     vals$in_grid[[block_uid(parent$added_block)]] <- FALSE

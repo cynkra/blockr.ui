@@ -14,16 +14,6 @@ init_dashboard_state <- function(board, blocks, vals) {
   UseMethod("init_dashboard_state", board)
 }
 
-#' Init dock state method
-#'
-#' @rdname init-dashboard-state
-#' @export
-init_dashboard_state.dock_board <- function(board, blocks, vals) {
-  lapply(names(blocks), \(nme) {
-    vals$in_grid[[nme]] <- FALSE
-  })
-}
-
 #' Init grid state method
 #'
 #' @rdname init-dashboard-state

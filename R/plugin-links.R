@@ -206,6 +206,7 @@ add_rm_link_server <- function(id, board, update, ...) {
       # Multi nodes removal
       observeEvent(input$remove_blocks, {
         dot_args$parent$removed_block <- input$selected_nodes
+        removeModal()
       })
 
       # Remove node + associated edges (we can remove multiple nodes at once)

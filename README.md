@@ -37,6 +37,7 @@ library(blockr.dplyr)
 library(blockr.sdtm)
 library(blockr.io)
 
+Sys.setenv("DASHBOARD_TYPE" = "dock")
 run_demo_app()
 ```
 
