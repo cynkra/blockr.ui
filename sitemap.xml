@@ -16,7 +16,6 @@
 <url><loc>https://cynkra.github.io/blockr.ui/reference/block_ui.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/blockr.ui-package.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/blockr_ser.html</loc></url>
-<url><loc>https://cynkra.github.io/blockr.ui/reference/board-grid.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/board-layout.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/board-sidebar.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/board_actions.html</loc></url>
@@ -27,6 +26,7 @@
 <url><loc>https://cynkra.github.io/blockr.ui/reference/create_edge.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/create_network_widget.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/create_node.html</loc></url>
+<url><loc>https://cynkra.github.io/blockr.ui/reference/dashboard.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/default_edges_options.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/default_network.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/default_network_events.html</loc></url>
@@ -38,13 +38,13 @@
 <url><loc>https://cynkra.github.io/blockr.ui/reference/gen_code.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/get_block_registry.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/get_blocks_state.html</loc></url>
-<url><loc>https://cynkra.github.io/blockr.ui/reference/grid.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/handle_grid_zoom.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/handlers-utils.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/index.html</loc></url>
-<url><loc>https://cynkra.github.io/blockr.ui/reference/init_blocks_grid_state.html</loc></url>
+<url><loc>https://cynkra.github.io/blockr.ui/reference/init-dashboard-state.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/list_empty_connections.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/main.html</loc></url>
+<url><loc>https://cynkra.github.io/blockr.ui/reference/manage-dashboard.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/node-validation.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/off_canvas.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/plugins.html</loc></url>
@@ -54,8 +54,8 @@
 <url><loc>https://cynkra.github.io/blockr.ui/reference/remove_edge.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/remove_node.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/remove_node_from_stack.html</loc></url>
+<url><loc>https://cynkra.github.io/blockr.ui/reference/restore-dashboard.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/restore_board.html</loc></url>
-<url><loc>https://cynkra.github.io/blockr.ui/reference/restore_grid.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/restore_network.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/run_demo_app.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/save-board.html</loc></url>
@@ -68,8 +68,8 @@
 <url><loc>https://cynkra.github.io/blockr.ui/reference/trigger_create_stack.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/trigger_remove_stack.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/unstack_nodes.html</loc></url>
+<url><loc>https://cynkra.github.io/blockr.ui/reference/update-dashboard-state.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/update_block_grid_input.html</loc></url>
-<url><loc>https://cynkra.github.io/blockr.ui/reference/update_block_grid_state.html</loc></url>
 <url><loc>https://cynkra.github.io/blockr.ui/reference/validate_edge_creation.html</loc></url>
 </urlset>
 
