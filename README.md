@@ -37,6 +37,7 @@ library(blockr.dplyr)
 library(blockr.sdtm)
 library(blockr.io)
 
+Sys.setenv("DASHBOARD_TYPE" = "dock")
 run_demo_app()
 ```
 
@@ -59,6 +60,22 @@ run_demo_app()
 ### Rearrange output on a grid
 
 ![](./man/figures/blockr-dashboard.png)
+
+## App options
+
+There are few **options** you can customize through setting up
+environment variables:
+
+- `N_STACKS_COLORS`: how many colors to support in the stack color
+  pickerInput. Default is 40.
+- `STACKS_COLOR_PALETTE`: the color palette type. Default is `spectral`.
+  We use `hcl.colors` to setup the palette.
+- `DASHBOARD_TYPE`: either `grid` to leverage `{gridstackr}` or `dock`
+  for `{dockVieweR}`. Default is `dock`.
+  - `DOCK_THEME`: when `DASHBOARD_TYPE` is `dock` you can customize the
+    dock skin. Choose among
+    `c("light", "abyss", "dark", "vs", "dracula", "replit")`. Default is
+    `replit`.
 
 ## Development
 

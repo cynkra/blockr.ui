@@ -2,7 +2,7 @@
 #'
 #' Run demo app
 #'
-#' @param ... Forwarded to [new_board()]
+#' @param ... Forwarded to [blockr.core::new_board()]
 #'
 #' @export
 run_demo_app <- function(...) {
@@ -25,14 +25,25 @@ new_dash_board <- function(...) {
     stacks_color_palett <- Sys.getenv("STACKS_COLOR_PALETTE")
   }
 
+  dashboard_type <- "dock"
+  if (nchar(Sys.getenv("DASHBOARD_TYPE")) > 0) {
+    dashboard_type <- validate_dashboard_type(Sys.getenv("DASHBOARD_TYPE"))
+  }
+
   new_board(
     ...,
-    class = "dash_board",
+    class = c(sprintf("%s_board", dashboard_type), "dash_board"),
     options = new_board_options(
       dark_mode = "light",
-      stacks_colors = hcl.colors(n_stacks, palette = stacks_color_palette)
+      stacks_colors = hcl.colors(n_stacks, palette = stacks_color_palette),
+      dashboard_type = dashboard_type
     )
   )
+}
+
+#' @keywords internal
+validate_dashboard_type <- function(type = c("grid", "dock")) {
+  type <- match.arg(type)
 }
 
 #' @export

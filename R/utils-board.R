@@ -5,7 +5,7 @@
 #' It may be used in different places like in the nodes
 #' or in the contextual menu (scoutbar) ...
 #'
-#' @param category Block category. See \link{available_blocks}.
+#' @param category Block category. See \link[blockr.core]{available_blocks}.
 #'
 #' @keywords internal
 blk_icon <- function(category) {
@@ -406,10 +406,10 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
     board_options_ui = board_ui(id, board_options(x))
   )
 
-  my_grid <- grid_ui(id)
+  my_dash <- dashboard_ui(id, x)
 
   tagList(
-    board_header(id, my_board_ui, my_grid),
-    board_body(id, my_board_ui, my_grid)
+    board_header(id, my_board_ui, my_dash),
+    board_body(id, my_board_ui, my_dash)
   )
 }

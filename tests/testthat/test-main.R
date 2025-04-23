@@ -1,11 +1,12 @@
 testServer(
   main_server,
-  args = list(board = new_board(class = "dash_board")),
+  args = list(board = new_board(class = c("grid_board", "dash_board"))),
   {
     expect_named(
       app_state,
       c(
         "mode",
+        "cold_start",
         "preview",
         "grid",
         "in_grid",

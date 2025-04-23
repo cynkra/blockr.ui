@@ -24,10 +24,7 @@ add_rm_link_server <- function(id, board, update, ...) {
 
       # When starting from non empty board (happens once)
       observeEvent(
-        req(
-          length(board_blocks(board$board)) > 0,
-          !length(dot_args$parent$added_block)
-        ),
+        req(isFALSE(dot_args$parent$cold_start)),
         {
           restore_network(board, dot_args$parent, obs, session)
         },
@@ -209,6 +206,7 @@ add_rm_link_server <- function(id, board, update, ...) {
       # Multi nodes removal
       observeEvent(input$remove_blocks, {
         dot_args$parent$removed_block <- input$selected_nodes
+        removeModal()
       })
 
       # Remove node + associated edges (we can remove multiple nodes at once)

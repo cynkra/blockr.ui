@@ -506,6 +506,7 @@
   "export": {
     "main-res": {
       "mode": "network",
+      "cold_start": true,
       "preview": false,
       "grid": {
 

@@ -1,7 +1,6 @@
 {
   "input": {
     "main-board-dashboard": false,
-    "main-board-lock": false,
     "main-board-manage_blocks-scoutbar-configuration": {
       "id": "main-board-manage_blocks-scoutbar",
       "theme": "light",
@@ -502,67 +501,85 @@
       "revealScoutbar": true
     },
     "main-board-manage_links-network_initialized": true,
-    "main-board-properties": false
+    "main-board-properties": true
   },
   "export": {
     "main-res": {
       "mode": "network",
+      "cold_start": true,
       "preview": false,
-      "grid": {
+      "grid": [
 
-      },
+      ],
       "in_grid": {
         "bywdmhugjutgwsd": false
       },
       "refreshed": null,
       "nodes": {
         "id": [
-
+          "bywdmhugjutgwsd"
         ],
         "label": [
-
+          "dataset_block \n id: bywdmhugjutgwsd"
         ],
         "title": [
-
+          "State errors: 0 <br> Data errors: 0 <br> Eval errors: 0"
         ],
         "shape": [
-
+          "dot"
         ],
         "shapeProperties.borderDashes": [
-
+          false
         ],
         "color.background": [
-
+          "#dbebff"
         ],
         "color.border": [
-
+          "#dbebff"
         ],
         "color.highlight.background": [
-
+          "#dbebff"
         ],
         "color.highlight.border": [
-
+          "#dbebff"
         ],
         "borderWidth": [
-
+          4
         ],
         "group": [
-
+          null
         ],
         "icon.code": [
-
-        ],
-        "x": [
-
-        ],
-        "y": [
-
+          null
         ]
       },
       "append_block": false,
-      "added_block": null,
-      "removed_block": "bywdmhugjutgwsd",
-      "selected_block": null,
+      "added_block": {
+        "expr_server": [
+          "function (id) ",
+          "{",
+          "    moduleServer(id, function(input, output, session) {",
+          "        dat <- reactiveVal(dataset)",
+          "        observeEvent(input$dataset, dat(input$dataset))",
+          "        list(expr = reactive({",
+          "            eval(bquote(as.call(c(as.symbol(\"::\"), quote(.(pkg)), ",
+          "                quote(.(dat)))), list(pkg = as.name(package), ",
+          "                dat = as.name(dat()))))",
+          "        }), state = list(dataset = dat, package = package))",
+          "    })",
+          "}"
+        ],
+        "expr_ui": [
+          "function (id) ",
+          "{",
+          "    selectInput(inputId = NS(id, \"dataset\"), label = \"Dataset\", ",
+          "        choices = list_datasets(package), selected = dataset)",
+          "}"
+        ],
+        "dat_valid": null
+      },
+      "removed_block": null,
+      "selected_block": "bywdmhugjutgwsd",
       "edges": {
 
       },

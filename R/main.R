@@ -24,6 +24,72 @@ main_ui <- function(id, board) {
   )
 }
 
+#' Create app state generic
+#'
+#' @param board Board object.
+#'
+#' @rdname main
+#' @export
+create_app_state <- function(board) {
+  UseMethod("create_app_state", board)
+}
+
+#' Create app state dock board method
+#'
+#' @rdname main
+#' @export
+create_app_state.dock_board <- function(board) {
+  reactiveValues(
+    mode = "network",
+    cold_start = TRUE,
+    preview = FALSE,
+    grid = structure(list(), class = "dock"),
+    in_grid = list(),
+    refreshed = NULL,
+    nodes = data.frame(),
+    append_block = FALSE,
+    added_block = NULL,
+    removed_block = NULL,
+    selected_block = NULL,
+    edges = data.frame(),
+    cancelled_edge = NULL,
+    added_edge = NULL,
+    removed_edge = NULL,
+    added_stack = NULL,
+    stack_added_block = NULL,
+    stack_removed_block = NULL,
+    removed_stack = NULL
+  )
+}
+
+#' Create app state grid board method
+#'
+#' @rdname main
+#' @export
+create_app_state.grid_board <- function(board) {
+  reactiveValues(
+    mode = "network",
+    cold_start = TRUE,
+    preview = FALSE,
+    grid = data.frame(),
+    in_grid = list(),
+    refreshed = NULL,
+    nodes = data.frame(),
+    append_block = FALSE,
+    added_block = NULL,
+    removed_block = NULL,
+    selected_block = NULL,
+    edges = data.frame(),
+    cancelled_edge = NULL,
+    added_edge = NULL,
+    removed_edge = NULL,
+    added_stack = NULL,
+    stack_added_block = NULL,
+    stack_removed_block = NULL,
+    removed_stack = NULL
+  )
+}
+
 #' Main server function
 #'
 #' Server module for board.
@@ -38,26 +104,13 @@ main_server <- function(id, board) {
     function(input, output, session) {
       ns <- session$n
 
-      app_state <- reactiveValues(
-        mode = "network",
-        preview = FALSE,
-        grid = data.frame(),
-        in_grid = list(),
-        refreshed = NULL,
-        nodes = data.frame(),
-        append_block = FALSE,
-        added_block = NULL,
-        removed_block = NULL,
-        selected_block = NULL,
-        edges = data.frame(),
-        cancelled_edge = NULL,
-        added_edge = NULL,
-        removed_edge = NULL,
-        added_stack = NULL,
-        stack_added_block = NULL,
-        stack_removed_block = NULL,
-        removed_stack = NULL
-      )
+      app_state <- create_app_state(board)
+
+      # Indicate whether we start from an empty board or not
+      # This is needed by downtream plugins such as links ...
+      observeEvent(TRUE, {
+        if (length(board_blocks(board))) app_state$cold_start <- FALSE
+      })
 
       # For shinytest2 (don't remove)
       exportTestValues(res = process_app_state(app_state))
@@ -77,7 +130,7 @@ main_server <- function(id, board) {
           )
         ),
         callbacks = list(
-          grid = grid_server,
+          grid = dashboard_server,
           app_mod = manage_app_mode,
           manage_sidebars = manage_sidebars,
           # Only one block can be visible at a time in the sidebar,
