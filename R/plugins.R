@@ -10,20 +10,11 @@ dash_board_plugins <- function(which = NULL) {
     preserve_board(server = ser_deser_server, ui = ser_deser_ui),
     manage_blocks(server = add_rm_block_server, ui = add_rm_block_ui),
     manage_links(server = add_rm_link_server, ui = add_rm_link_ui),
-    manage_stacks(
-      server = add_rm_stack_server,
-      ui = add_rm_stack_ui
-    ),
-    notify_user(server = blockr.core::block_notification_server),
-    generate_code(server = blockr.core::gen_code_server, ui = gen_code_ui),
-    edit_block(
-      server = blockr.core::edit_block_server,
-      ui = blockr.core::edit_block_ui
-    ),
-    edit_stack(
-      server = blockr.core::edit_stack_server,
-      ui = blockr.core::edit_stack_ui
-    )
+    manage_stacks(server = add_rm_stack_server, ui = add_rm_stack_ui),
+    notify_user(),
+    generate_code(ui = gen_code_ui),
+    edit_block(),
+    edit_stack()
   )
 
   if (is.null(which)) {
