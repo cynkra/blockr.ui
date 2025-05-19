@@ -136,6 +136,26 @@
           "children": [
             {
               "children": {
+                "ariaLabel": "filebrowser_block",
+                "label": "file browser block",
+                "description": "Browse local files",
+                "closeOnClick": true,
+                "icon": {
+                  "type": "i",
+                  "key": null,
+                  "ref": null,
+                  "props": {
+                    "class": "fas fa-file-import",
+                    "role": "presentation",
+                    "aria-label": "file-import icon"
+                  },
+                  "_owner": null
+                }
+              },
+              "class": "scout_action"
+            },
+            {
+              "children": {
                 "ariaLabel": "upload_block",
                 "label": "data upload block",
                 "description": "Upload data",
