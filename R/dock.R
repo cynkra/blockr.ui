@@ -9,7 +9,16 @@ dashboard_ui.dock_board <- function(id, board, ...) {
       ns("add_to_grid"),
       "Use in dashboard?"
     ),
-    options = tagList(),
+    options = tagList(
+      numericInput(
+        ns("grid_zoom"),
+        "Dock zoom level",
+        min = 0.5,
+        max = 1,
+        value = 1,
+        step = 0.1,
+      )
+    ),
     content = div(
       id = ns("grid_zoom_target"),
       style = "zoom: 0.5;",
@@ -122,6 +131,11 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
     )
   })
   outputOptions(output, "dock", suspendWhenHidden = FALSE)
+
+  # Handle zoom on grid element
+  observeEvent(input$grid_zoom, {
+    handle_grid_zoom(session)
+  })
 
   # Update rv cache to real time change in the grid only
   # in dashboard mode.
