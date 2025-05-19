@@ -114,7 +114,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   # duplication.
   observeEvent(
     {
-      parent$mode
+      req(parent$mode)
       req(length(vals$in_grid) > 0)
       parent$refreshed == "grid"
     },
@@ -153,6 +153,6 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   })
 
   observeEvent(vals$grid, {
-    parent$grid <- vals$grid
+    parent$grid <- structure(vals$grid, class = "dock")
   })
 }

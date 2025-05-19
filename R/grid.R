@@ -114,7 +114,7 @@ dashboard_server.grid_board <- function(board, update, parent, ...) {
   # duplication.
   observeEvent(
     {
-      parent$mode
+      req(parent$mode)
       req(length(vals$in_grid))
       parent$refreshed == "grid"
     },
