@@ -13,7 +13,7 @@ dashboard_ui.grid_board <- function(id, board, ...) {
       ns("grid_zoom"),
       "Grid zoom level",
       min = 0.5,
-      max = 1,
+      max = 1.5,
       value = 0.5,
       step = 0.1,
     ),

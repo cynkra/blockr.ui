@@ -14,7 +14,7 @@ dashboard_ui.dock_board <- function(id, board, ...) {
         ns("grid_zoom"),
         "Dock zoom level",
         min = 0.5,
-        max = 1,
+        max = 1.5,
         value = 1,
         step = 0.1,
       )
