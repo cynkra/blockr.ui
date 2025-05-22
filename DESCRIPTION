@@ -39,16 +39,17 @@ Imports:
     gridstackr,
     jsonlite,
     htmltools,
-    dockViewR
+    dockViewR,
+    g6R
 Remotes:
-    cynkra/blockr.core,
+    BristolMyersSquibb/blockr.core,
     cynkra/blockr.dplyr,
     cynkra/blockr.io,
     cynkra/blockr.ai,
     cynkra/blockr.sdtm,
     dreamRs/gridstackr,
     rstudio/chromote,
-    cynkra/dockViewR
+    cynkra/g6R
 Suggests: 
     shinytest2,
     testthat (>= 3.0.0),

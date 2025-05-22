@@ -11,4 +11,5 @@
 #' @importFrom grDevices hcl.colors
 #' @importFrom utils tail
 #' @import dockViewR
+#' @import g6R
 NULL
