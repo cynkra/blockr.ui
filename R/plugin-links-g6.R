@@ -37,18 +37,15 @@ add_rm_link_g6_server <- function(id, board, update, ...) {
       observeEvent(dot_args$parent$added_block, {
         tryCatch(
           {
-            new <- dot_args$parent$added_block
-            g6_proxy(ns("network")) |>
-              g6_add_nodes(
-                list(list(
-                  id = block_uid(new),
-                  label = paste(
-                    attr(new, "class")[1],
-                    "\n id:",
-                    block_uid(new)
-                  )
-                ))
-              )
+            create_g6_node(
+              new = dot_args$parent$added_block,
+              vals = dot_args$parent,
+              rv = board,
+              validate = TRUE,
+              obs,
+              session
+            )
+
             if (dot_args$parent$append_block) {
               # Send any created link back to the board
               update(
@@ -89,7 +86,7 @@ add_rm_link_g6_server <- function(id, board, update, ...) {
 #' @export
 add_rm_link_g6_ui <- function(id, board) {
   tagList(
-    g6_output(NS(id, "network"), height = "400px"),
-    verbatimTextOutput(NS(id, "state"))
+    g6_output(NS(id, "network"), height = "400px") #,
+    #verbatimTextOutput(NS(id, "state"))
   )
 }
