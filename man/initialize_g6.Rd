@@ -4,7 +4,7 @@
 \alias{initialize_g6}
 \title{Initialize a G6 ANTV Network Visualization}
 \usage{
-initialize_g6(nodes = NULL, edges = NULL)
+initialize_g6(nodes = NULL, edges = NULL, ns)
 }
 \arguments{
 \item{nodes}{A data frame or list containing node information. Each node should
@@ -13,6 +13,8 @@ Default is \code{NULL}.}
 
 \item{edges}{A data frame or list containing edge information. Each edge typically
 needs \code{source} and \code{target} fields to define connections. Default is \code{NULL}.}
+
+\item{ns}{Session namespace.}
 }
 \value{
 A G6 network visualization object that can be further customized or directly

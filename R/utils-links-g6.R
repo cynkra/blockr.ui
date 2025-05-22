@@ -8,7 +8,7 @@
 #'   Default is `NULL`.
 #' @param edges A data frame or list containing edge information. Each edge typically
 #'   needs `source` and `target` fields to define connections. Default is `NULL`.
-#'
+#' @param ns Session namespace.
 #' @details
 #' This function initializes a G6 network visualization with several pre-configured features:
 #'
@@ -24,7 +24,7 @@
 #' @return A G6 network visualization object that can be further customized or directly
 #'   rendered in R Markdown, Shiny, or other R environments.
 #' @keywords internal
-initialize_g6 <- function(nodes = NULL, edges = NULL) {
+initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
   g6(
     nodes = nodes,
     edges = edges
@@ -87,7 +87,54 @@ initialize_g6 <- function(nodes = NULL, edges = NULL) {
       "minimap",
       "tooltip",
       fullscreen(),
-      context_menu(),
+      # Conditional menu for edge and nodes
+      context_menu(
+        enable = JS(
+          "(e) => { return e.targetType === 'edge' || e.targetType === 'node' }"
+        ),
+        onClick = JS(
+          sprintf(
+            "(value, target, current) => {
+              const graphId = `${target.closest('.g6').id}`;
+              const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
+              if (current.id === undefined) return;
+              if (value === 'create_edge') {
+                graph.updateBehavior({
+                  key: 'create-edge', // Specify the behavior to update
+                  enable: true,
+                });
+                // Select node
+                graph.setElementState(current.id, 'selected');
+                // Disable drag node as it is incompatible with edge creation
+                graph.updateBehavior({ key: 'drag-element', enable: false });
+                graph.updateBehavior({ key: 'drag-element-force', enable: false });
+              } else if (value === 'remove_node') {
+                graph.removeNodeData([current.id]);
+                graph.draw();
+              } else if (value === 'remove_edge') {
+                Shiny.setInputValue('%s', current.id)
+                graph.removeEdgeData([current.id]);
+                graph.draw();
+              }
+            }",
+            ns("removed_edge")
+          )
+        ),
+        getItems = JS(
+          "(e) => {
+            if (e.targetType === 'node') {
+              return [
+                { name: 'Create edge', value: 'create_edge' },
+                { name: 'Remove node', value: 'remove_node' }
+              ];
+            } else if (e.targetType === 'edge') {
+             return [
+                { name: 'Remove edge', value: 'remove_edge' }
+              ];
+            }
+          }"
+        )
+      ),
       g6R::toolbar()
     )
 }
@@ -232,6 +279,10 @@ create_g6_edge <- function(new, vals, rv, session) {
       input = new_edge$label
     )
   )
+
+  # Ensure we get the link id to be able to
+  # remove links laters ...
+  new_edge$id <- vals$added_edge$id
 
   # Create the connection
   g6_proxy(ns("network")) |>

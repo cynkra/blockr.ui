@@ -29,7 +29,7 @@ add_rm_link_g6_server <- function(id, board, update, ...) {
           # TBD allow for non empty initialisation
           #dot_args$parent$nodes
           #dot_args$parent$edges
-          initialize_g6()
+          initialize_g6(ns = session$ns)
         })
       })
 
@@ -73,6 +73,15 @@ add_rm_link_g6_server <- function(id, board, update, ...) {
         },
         ignoreNULL = FALSE
       )
+
+      # Remove edge (user selects the edge).
+      observeEvent(input$removed_edge, {
+        update(
+          list(
+            links = list(rm = input$removed_edge)
+          )
+        )
+      })
 
       output$state <- renderPrint(input[["network-state"]])
 
