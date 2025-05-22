@@ -137,7 +137,9 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
                 graph.removeNodeData([current.id]);
                 graph.draw();
               } else if (value === 'remove_edge') {
-                Shiny.setInputValue('%s', current.id)
+                // Needed to destroy the link since edge id can't be edited
+                // so the link ID is stored in the data attributes.
+                Shiny.setInputValue('%s', graph.getEdgeData(current.id).data.linkId);
                 graph.removeEdgeData([current.id]);
                 graph.draw();
               }
@@ -254,9 +256,68 @@ remove_g6_node <- function(selected, vals, session) {
 
   ns <- session$ns
 
+  # clear node selection + remove
   g6_proxy(ns("network")) |>
+    g6_set_nodes(setNames(list(""), selected)) |>
     g6_remove_nodes(ids = selected)
 
+  vals
+}
+
+
+#' Remove an edge
+#'
+#' Update dataframe for visNetwork graph
+#'
+#' @param selected UID (character string) of edge to remove.
+#' @param vals Reactive values containing dataframe representing edges data.
+#' @param session Shiny session object.
+#' @keywords internal
+remove_g6_edge <- function(selected, vals, session) {
+  stopifnot(
+    is.character(selected),
+    nchar(selected) > 0
+  )
+
+  ns <- session$ns
+
+  vals$removed_edge <- selected
+
+  g6_proxy(ns("network")) |>
+    g6_remove_edges(ids = vals$removed_edge)
+
+  vals
+}
+
+#' Remove a node and associated edges
+#'
+#' Combine \link{remove_node} with \link{remove_edge}.
+#'
+#' @param selected UID (character string) of node to remove.
+#' @param vals Reactive values with dataframe representing nodes data.
+#' @param rv Board reactive values. Read-only.
+#' @param session Shiny session object.
+#' @keywords internal
+cleanup_g6_node <- function(selected, vals, rv, session) {
+  remove_g6_node(selected, vals, session)
+  # Need to cleanup any edge associated with this node
+  edges <- as.data.frame(board_links(rv$board))
+  if (nrow(edges) > 0) {
+    # loop over all edges where the target node is part
+    edges_to_remove <- c(
+      edges[
+        edges$from == selected,
+        "id"
+      ],
+      edges[
+        edges$to == selected,
+        "id"
+      ]
+    )
+    for (edge in edges_to_remove) {
+      remove_g6_edge(edge, vals, session)
+    }
+  }
   vals
 }
 
@@ -313,11 +374,28 @@ create_g6_edge <- function(new, vals, rv, session) {
 
   # Ensure we get the link id to be able to
   # remove links laters ...
-  new_edge$id <- vals$added_edge$id
+  new_edge$data$linkId <- vals$added_edge$id
 
-  # Create the connection
-  g6_proxy(ns("network")) |>
-    g6_add_edges(list(new_edge))
+  # If edge is created via create_node. If create via
+  # DND, we don't need to draw it as it is already done via JS
+  if (!length(new$id)) {
+    # Create the connection
+    g6_proxy(ns("network")) |>
+      g6_add_edges(list(new_edge))
+  } else {
+    # Update edge id by the link ID since edge was created from JS
+    # This will be useful when we want to delete the edge from the JS
+    # side and then destroy the link from R
+    g6_proxy(ns("network")) |>
+      g6_update_edges(
+        list(
+          list(
+            id = new$id,
+            data = list(linkId = vals$added_edge$id)
+          )
+        )
+      )
+  }
 
   vals
 }

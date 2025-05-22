@@ -53,7 +53,12 @@ update_dashboard_state <- function(board, selected, value, vals) {
 #' @export
 #' @rdname update-dashboard-state
 update_dashboard_state.dock_board <- function(board, selected, value, vals) {
-  if (is.null(selected) || !length(vals$in_grid)) return(NULL)
+  if (
+    is.null(selected) ||
+      !length(vals$in_grid) ||
+      !(selected %in% names(vals$in_grid))
+  )
+    return(NULL)
   if (vals$in_grid[[selected]] == value) return(NULL)
   vals$in_grid[[selected]] <- value
 }

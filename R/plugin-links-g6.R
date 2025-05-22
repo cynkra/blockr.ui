@@ -122,6 +122,20 @@ add_rm_link_g6_server <- function(id, board, update, ...) {
         )
       })
 
+      # TBD Multi nodes removal
+      #observeEvent(input$remove_blocks, {
+      #  dot_args$parent$removed_block <- input[["network-selected_node"]]
+      #  removeModal()
+      #})
+
+      # FIXME: Remove node + associated edges (we can remove multiple nodes at once)
+      observeEvent(dot_args$parent$removed_block, {
+        # Note: links are cleaned in the add_rm_blocks plugin
+        lapply(dot_args$parent$removed_block, \(removed) {
+          cleanup_g6_node(removed, dot_args$parent, board, session)
+        })
+      })
+
       output$state <- renderPrint(input[["network-state"]])
 
       NULL
