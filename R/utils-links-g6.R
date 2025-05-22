@@ -81,7 +81,32 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
       click_select(multiple = TRUE),
       brush_select(),
       # avoid conflict with internal function
-      g6R::create_edge()
+      g6R::create_edge(
+        onFinish = JS(
+          sprintf(
+            "(edge) => {
+              const graph = HTMLWidgets.find('#%s').getWidget();
+              const targetType = graph.getElementType(edge.target);
+              // Avoid to create edges in combos. If so, we remove it
+              if (targetType !== 'node') {
+                graph.removeEdgeData([edge.id]);
+              } else {
+                Shiny.setInputValue('%s', edge);
+                // Then we reset the behaviors so there is no conflict
+                graph.updateBehavior({
+                  key: 'create-edge', // Specify the behavior to update
+                  enable: false,
+                });
+                // Re-enable drag element bahaviors
+                graph.updateBehavior({ key: 'drag-element', enable: true });
+                graph.updateBehavior({ key: 'drag-element-force', enable: true });
+              }
+            }",
+            ns("network"),
+            ns("added_edge")
+          )
+        )
+      )
     ) |>
     g6_plugins(
       "minimap",
@@ -253,8 +278,14 @@ create_g6_edge <- function(new, vals, rv, session) {
   stopifnot(is.list(new))
 
   if (!validate_edge_creation(new$target, rv)) {
+    # remove edge when it was created from DND
+    g6_proxy(ns("network")) |>
+      g6_remove_edges(ids = new$id)
+
+    # Cleanup node when it was created from Append block
     if (vals$append_block) {
       remove_g6_node(new$target, vals, session)
+      # send callback to add/rm block plugin
       vals$cancelled_edge <- new$target
       # Re-select source node
       g6_proxy(ns("network")) |>

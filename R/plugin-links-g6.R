@@ -62,6 +62,45 @@ add_rm_link_g6_server <- function(id, board, update, ...) {
         dot_args$parent$append_block <- FALSE
       })
 
+      # Implement Edge creation by DND
+      # we can drag from one node
+      # to another to connect them.
+      # Validation mechanism to allow connections or not...
+      # Rules:
+      # - The dragged target must exist.
+      # - We can't drag the edge on the current selected node (avoid loops).
+      # - A node that has already all input slots connected can't received any incoming connection.
+      # data block can't receive input data. Transform block receive
+      # as many input data as slot they have (1 for select, 2 for join, ...).
+      observeEvent(input$added_edge, {
+        dot_args$parent$append_block <- FALSE
+        tryCatch(
+          {
+            create_g6_edge(
+              new = list(
+                source = input$added_edge$source,
+                target = input$added_edge$target,
+                # also pass the edge id ...
+                id = input$added_edge$id
+              ),
+              dot_args$parent,
+              board,
+              session
+            )
+
+            # Send callback to create corresponding link
+            update(
+              list(
+                links = list(add = dot_args$parent$added_edge)
+              )
+            )
+          },
+          error = function(e) {
+            e$message
+          }
+        )
+      })
+
       # Communicate selected to upstream modules
       observeEvent(
         {
