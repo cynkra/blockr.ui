@@ -34,9 +34,8 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
       node = list(
         style = list(
           labelBackground = TRUE,
-          labelBackgroundFill = '#FFB6C1',
           labelBackgroundRadius = 4,
-          labelFontFamily = 'Arial',
+          labelFontFamily = "Arial",
           labelPadding = c(0, 4),
           labelText = JS(
             "(d) => {
@@ -57,7 +56,6 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
         )
       ),
       edge = list(
-        type = "fly-marker-cubic",
         endArrow = TRUE,
         zIndex = 100,
         style = list(
@@ -77,6 +75,7 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
     ) |>
     g6_behaviors(
       "zoom-canvas",
+      "drag-canvas",
       drag_element(),
       click_select(multiple = TRUE),
       brush_select(),
@@ -109,8 +108,9 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
       )
     ) |>
     g6_plugins(
-      "minimap",
+      #"minimap",
       "tooltip",
+      grid_line(),
       fullscreen(),
       # Conditional menu for edge and nodes
       context_menu(
@@ -169,6 +169,7 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
         )
       ),
       g6R::toolbar(
+        position = "left",
         onClick = JS(
           sprintf(
             "( value, target, current ) => {   
@@ -183,9 +184,11 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
                 } else if ( value === 'auto-fit' ) {     
                   graph.fitView ( ) ;
                 } else if (value === 'delete') {
-                  const selectedNodes = graph.getElementDataByState('node', 'selected').map((node) => {
+                  const selectedNodes = graph.getElementDataByState('node', 'selected').map(
+                    (node) => {
                     return node.id
-                  });
+                    }
+                  );
                   // Send message R so we can modify the network from R
                   // and not JS.
                   Shiny.setInputValue('%s', selectedNodes);
@@ -237,6 +240,9 @@ create_g6_node <- function(new, vals, rv, validate = TRUE, obs, session) {
       attr(new, "class")[1],
       "\n id:",
       block_uid(new)
+    ),
+    style = list(
+      labelBackgroundFill = "#a0cafa"
     )
   )
 
@@ -270,12 +276,12 @@ create_g6_node <- function(new, vals, rv, validate = TRUE, obs, session) {
   # This needs input parameter from the parent module which contains
   # the list of block server functions.
   if (validate) {
-    #register_g6_node_validation(
-    #  block_uid(new),
-    #  rv,
-    #  vals,
-    #  session
-    #)
+    register_g6_node_validation(
+      block_uid(new),
+      rv,
+      vals,
+      session
+    )
   }
 
   vals
@@ -462,14 +468,13 @@ register_g6_node_validation <- function(id, rv, vals, session) {
     {
       req(
         length(board_block_ids(rv$board)) > 0,
-        nrow(vals$nodes) == length(board_block_ids(rv$board)),
         id %in% board_block_ids(rv$board)
       )
       # For Nicolas: why does board$msgs() triggers infinitely?
       rv$msgs()[[id]]
     },
     {
-      apply_g6_validation(rv$msgs()[[id]], id, vals, session)
+      apply_g6_validation(id, vals, rv, session)
     },
     ignoreNULL = FALSE
   )
@@ -482,32 +487,45 @@ register_g6_node_validation <- function(id, rv, vals, session) {
 #' this function only updates the node color
 #' based on the valid status.
 #'
-#' @param message Message.
 #' @rdname node-validation
 #' @keywords internal
-apply_g6_validation <- function(message, id, vals, session) {
+apply_g6_validation <- function(id, vals, rv, session) {
+  message <- rv$msgs()[[id]]
   ns <- session$ns
   # Restore blue color if valid
-  selected_color <- vals$nodes[vals$nodes$id == id, "color.border"]
-  connected_edges <- vals$edges[vals$edges$to == id, ]
+  edges <- as.data.frame(board_links(rv$board))
+  connected_edges <- edges[edges$from == id, ]
 
   if (is.null(message)) {
-    if (selected_color != "#ff0018") return(NULL)
-    if (nrow(connected_edges) > 0) {
-      vals$edges[vals$edges$to == id, "color"] <- "#9db5cc"
-      vals$edges[vals$edges$to == id, "dashes"] <- FALSE
-      vals$edges[vals$edges$to == id, "arrows.to.type"] <- "arrow"
+    # Reset node defaults
+    node_config <- list(
+      list(
+        id = id,
+        style = list(
+          fill = "#1783FF",
+          labelBackgroundFill = "#a0cafa",
+          badges = list()
+        )
+      )
+    )
 
-      visNetworkProxy(ns("network")) |>
-        visUpdateEdges(vals$edges)
+    # Reset connected edges
+    if (nrow(connected_edges) > 0) {
+      ids <- paste(connected_edges$from, connected_edges$to, sep = "-")
+      new_edges <- lapply(ids, \(id) {
+        list(
+          id = id,
+          type = "fly-marker-cubic",
+          style = list(
+            stroke = "#000",
+            badgeText = NULL
+          ),
+          states = list()
+        )
+      })
+      g6_proxy(ns("network")) |>
+        g6_update_edges(new_edges)
     }
-    vals$nodes[vals$nodes$id == id, "color.border"] <- "#dbebff"
-    vals$nodes[vals$nodes$id == id, "color.highlight.border"] <- "#dbebff"
-    vals$nodes[vals$nodes$id == id, "shapeProperties.borderDashes"] <- FALSE
-    vals$nodes[
-      vals$nodes$id == id,
-      "title"
-    ] <- "State errors: 0 <br> Data errors: 0 <br> Eval errors: 0"
   }
 
   # Color invalid nodes in red
@@ -516,39 +534,69 @@ apply_g6_validation <- function(message, id, vals, session) {
       length(message$data$error) ||
       length(message$eval$error)
   ) {
-    if (selected_color == "#ff0018") return(NULL)
-    # Any linked edge would also get styled
-    if (nrow(connected_edges) > 0) {
-      vals$edges[vals$edges$to == id, "color"] <- "#ff0018"
-      vals$edges[vals$edges$to == id, "dashes"] <- TRUE
-      vals$edges[vals$edges$to == id, "arrows.to.type"] <- "image"
-      vals$edges[
-        vals$edges$to == id,
-        "arrows.to.src"
-      ] <- "www/images/cross-sign.svg"
-      vals$edges[
-        vals$edges$to == id,
-        "arrows.to.imageWidth"
-      ] <- 15
-      vals$edges[
-        vals$edges$to == id,
-        "arrows.to.imageHeight"
-      ] <- 15
-
-      visNetworkProxy(ns("network")) |>
-        visUpdateEdges(vals$edges)
+    state_badge <- list()
+    if (length(message$state$error)) {
+      state_badge <- list(
+        text = sprintf("State errors: '%s'", length(message$state$error)),
+        placement = "right-top",
+        backgroundFill = "#ee705c"
+      )
     }
-    vals$nodes[vals$nodes$id == id, "color.border"] <- "#ff0018"
-    vals$nodes[vals$nodes$id == id, "color.highlight.border"] <- "#ff0018"
-    vals$nodes[vals$nodes$id == id, "shapeProperties.borderDashes"] <- TRUE
-    vals$nodes[vals$nodes$id == id, "title"] <- sprintf(
-      "State errors: %s <br> Data errors: %s <br> Eval errors: %s",
-      if (length(message$state$error)) message$state$error else "0.",
-      if (length(message$data$error)) message$data$error else "0.",
-      if (length(message$eval$error)) message$eval$error else "0."
+
+    data_badge <- list()
+    if (length(message$data$error)) {
+      data_badge <- list(
+        text = sprintf("Data errors: '%s'", length(message$date$error)),
+        placement = "right",
+        backgroundFill = "#edb528"
+      )
+    }
+
+    eval_badge <- list()
+    if (length(message$eval$error)) {
+      eval_badge <- list(
+        text = sprintf("Eval errors: '%s'", length(message$eval$error)),
+        placement = "right-bottom",
+        backgroundFill = "#85847e"
+      )
+    }
+
+    node_config <- list(
+      list(
+        id = id,
+        style = list(
+          fill = "#ee705c",
+          labelBackgroundFill = "#FFB6C1",
+          badges = list(
+            state_badge,
+            data_badge,
+            eval_badge
+          )
+        )
+      )
     )
+
+    # Style connected edges
+    if (nrow(connected_edges) > 0) {
+      ids <- paste(connected_edges$from, connected_edges$to, sep = "-")
+      new_edges <- lapply(ids, \(id) {
+        list(
+          id = id,
+          type = "cubic",
+          style = list(
+            stroke = "#ee705c",
+            badgeText = "🛑",
+            badgeBackground = FALSE
+          ),
+          animation = list(),
+          states = list("inactive")
+        )
+      })
+      g6_proxy(ns("network")) |>
+        g6_update_edges(new_edges)
+    }
   }
 
-  visNetworkProxy(ns("network")) |>
-    visUpdateNodes(vals$nodes)
+  g6_proxy(ns("network")) |>
+    g6_update_nodes(node_config)
 }

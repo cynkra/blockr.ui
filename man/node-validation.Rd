@@ -9,7 +9,7 @@
 \usage{
 register_g6_node_validation(id, rv, vals, session)
 
-apply_g6_validation(message, id, vals, session)
+apply_g6_validation(id, vals, rv, session)
 
 register_node_validation(id, rv, vals, session)
 
