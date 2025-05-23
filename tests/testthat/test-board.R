@@ -155,10 +155,49 @@ test_that("Board grid app works", {
   )
   app$wait_for_idle()
   app$expect_values(input = inputs, export = TRUE)
-  app$click("main-board-manage_blocks-remove_block")
-  app$wait_for_idle()
-  app$expect_values(input = inputs, export = TRUE)
-  app$stop()
+
+  # # Dashboard
+  # app$click("main-board-mode")
+  # app$expect_values(input = inputs, export = TRUE)
+  # # Preview
+  # app$click("main-board-preview")
+  # app$expect_values(input = inputs, export = TRUE)
+  # # Back to dashboard + network
+  # app$click("main-board-preview")
+  # app$expect_values(input = inputs, export = TRUE)
+  # # Back to network
+  # app$click("main-board-mode")
+  # app$expect_values(input = inputs, export = TRUE)
+
+  # # Add to dashboard
+  # app$set_inputs("main-board-add_to_grid" = TRUE)
+  # app$expect_values(input = inputs, export = TRUE)
+  # app$click("main-board-mode")
+  # app$expect_values(input = inputs, export = TRUE)
+  # app$set_inputs("main-board-grid_zoom" = 1)
+  # app$expect_values(input = inputs, export = TRUE)
+  # app$set_inputs("main-board-grid_zoom" = 0.5, "main-board-lock" = TRUE)
+
+  # # Add new node
+  # app$click("main-board-manage_blocks-add_block")
+  # app$wait_for_idle()
+  # app$click(
+  #   selector = ".scout__bar-wrapper button[aria-label=\"select_block\"]"
+  # )
+  # app$expect_values(input = inputs, export = TRUE)
+  # app$click("main-board-mode")
+  # app$set_inputs("main-board-add_to_grid" = TRUE)
+  # app$click("main-board-mode")
+  # app$click("main-board-preview")
+  # app$expect_values(input = inputs, export = TRUE)
+
+  # # Remove block
+  # app$click("main-board-mode")
+
+  # app$click("main-board-manage_blocks-remove_block")
+  # app$wait_for_idle()
+  # app$expect_values(input = inputs, export = TRUE)
+  # app$stop()
 })
 
 ###### DOCK ######
