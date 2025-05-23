@@ -62,6 +62,12 @@ add_rm_link_g6_server <- function(id, board, update, ...) {
         dot_args$parent$append_block <- FALSE
       })
 
+      # Append block
+      observeEvent(input$append_node, {
+        if (isFALSE(dot_args$parent$append_block))
+          dot_args$parent$append_block <- TRUE
+      })
+
       # Implement Edge creation by DND
       # we can drag from one node
       # to another to connect them.
@@ -122,13 +128,12 @@ add_rm_link_g6_server <- function(id, board, update, ...) {
         )
       })
 
-      # TBD Multi nodes removal
-      #observeEvent(input$remove_blocks, {
-      #  dot_args$parent$removed_block <- input[["network-selected_node"]]
-      #  removeModal()
-      #})
+      # Node removal: from context menu or from toolbar (multi nodes possible)
+      observeEvent(input$removed_node, {
+        dot_args$parent$removed_block <- input$removed_node
+      })
 
-      # FIXME: Remove node + associated edges (we can remove multiple nodes at once)
+      # Remove node + associated edges (we can remove multiple nodes at once)
       observeEvent(dot_args$parent$removed_block, {
         # Note: links are cleaned in the add_rm_blocks plugin
         lapply(dot_args$parent$removed_block, \(removed) {

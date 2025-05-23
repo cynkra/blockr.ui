@@ -134,17 +134,22 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
                 graph.updateBehavior({ key: 'drag-element', enable: false });
                 graph.updateBehavior({ key: 'drag-element-force', enable: false });
               } else if (value === 'remove_node') {
-                graph.removeNodeData([current.id]);
-                graph.draw();
+                // Send message to R so we can modify the
+                // graph from R and not from JS
+                Shiny.setInputValue('%s', current.id)
               } else if (value === 'remove_edge') {
                 // Needed to destroy the link since edge id can't be edited
                 // so the link ID is stored in the data attributes.
                 Shiny.setInputValue('%s', graph.getEdgeData(current.id).data.linkId);
                 graph.removeEdgeData([current.id]);
                 graph.draw();
+              } else if (value === 'append_node') {
+                Shiny.setInputValue('%s', true, {priority: 'event'})
               }
             }",
-            ns("removed_edge")
+            ns("removed_node"),
+            ns("removed_edge"),
+            ns("append_node")
           )
         ),
         getItems = JS(
@@ -152,17 +157,53 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
             if (e.targetType === 'node') {
               return [
                 { name: 'Create edge', value: 'create_edge' },
+                { name: 'Append node', value: 'append_node' },
                 { name: 'Remove node', value: 'remove_node' }
               ];
             } else if (e.targetType === 'edge') {
-             return [
+              return [
                 { name: 'Remove edge', value: 'remove_edge' }
               ];
             }
           }"
         )
       ),
-      g6R::toolbar()
+      g6R::toolbar(
+        onClick = JS(
+          sprintf(
+            "( value, target, current ) => {   
+                // Handle button click events
+              const graph = HTMLWidgets.find(`#${target.closest('.g6').id}`).getWidget();
+              const fullScreen = graph.getPluginInstance('fullscreen');
+              const zoomLevel = graph.getZoom();
+                if ( value === 'zoom-in' ) {   
+                  graph.zoomTo (graph.getZoom() + 0.1);
+                } else if ( value === 'zoom-out' ) {     
+                  graph.zoomTo (graph.getZoom() - 0.1);
+                } else if ( value === 'auto-fit' ) {     
+                  graph.fitView ( ) ;
+                } else if (value === 'delete') {
+                  const selectedNodes = graph.getElementDataByState('node', 'selected').map((node) => {
+                    return node.id
+                  });
+                  // Send message R so we can modify the network from R
+                  // and not JS.
+                  Shiny.setInputValue('%s', selectedNodes);
+                } else if (value === 'request-fullscreen') {
+                  if (fullScreen !== undefined) {
+                    fullScreen.request();
+                  }
+                } else if (value === 'exit-fullscreen') {
+                  if (fullScreen !== undefined) {
+                    fullScreen.exit();
+                  }
+                }
+              }
+            ",
+            ns("removed_node")
+          )
+        )
+      )
     )
 }
 
