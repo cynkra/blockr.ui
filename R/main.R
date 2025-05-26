@@ -47,6 +47,7 @@ create_app_state.dock_board <- function(board) {
     in_grid = list(),
     refreshed = NULL,
     nodes = data.frame(),
+    add_block = NULL,
     append_block = FALSE,
     added_block = NULL,
     removed_block = NULL,

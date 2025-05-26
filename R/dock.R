@@ -95,6 +95,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
     {
       req(length(board$blocks) > 0, length(parent$in_grid) > 0)
       req(parent$selected_block %in% names(parent$in_grid))
+      req(length(parent$selected_block) == 1)
       c(parent$selected_block, parent$in_grid)
     },
     {

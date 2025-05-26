@@ -129,7 +129,7 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
             "(value, target, current) => {
               const graphId = `${target.closest('.g6').id}`;
               const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
-              if (value !== 'create_stack' && current.id === undefined) return;
+              if ((value !== 'create_stack' && value !== 'add_block') && current.id === undefined) return;
               if (value === 'create_edge') {
                 graph.updateBehavior({
                   key: 'create-edge', // Specify the behavior to update
@@ -156,13 +156,16 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
                 Shiny.setInputValue('%s', true, {priority: 'event'})
               } else if (value === 'remove_stack') {
                 Shiny.setInputValue('%s', current.id)
+              } else if (value === 'add_block') {
+                Shiny.setInputValue('%s', true, {priority: 'event'})
               }
             }",
             ns("removed_node"),
             ns("removed_edge"),
             ns("append_node"),
             ns("create_stack"),
-            ns("remove_stack")
+            ns("remove_stack"),
+            ns("add_block")
           )
         ),
         getItems = JS(
@@ -179,7 +182,8 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
               ];
             } else if (e.targetType === 'canvas') {
               return [
-                { name: 'Create stack', value: 'create_stack' }
+                { name: 'Create stack', value: 'create_stack' },
+                { name: 'New block', value: 'add_block' }
               ];
             } else if (e.targetType === 'combo') {
               return [
@@ -533,16 +537,22 @@ register_node_stack_link <- function(id, rv, vals, session) {
   # Perform actions on state change
   observeEvent(
     {
-      req(length(board_stacks(rv$board)) > 0)
       input[[sprintf("network-%s-state", id)]]$combo
     },
     {
+      req(length(board_stacks(rv$board)) > 0)
+      # Ensure the state is up to date
+      # before triggering something
+      req(
+        length(board_stacks(rv$board)) ==
+          length(input[["network-state"]]$combos)
+      )
       stacks_blocks <- unlist(
         lapply(board_stacks(rv$board), stack_blocks),
         use.names = FALSE
       )
       node_state <- input[[sprintf("network-%s-state", id)]]
-      has_stack <- input[[sprintf("network-%s-state", id)]]$combo
+      has_stack <- node_state$combo
 
       # Send feedback to stack module to add the node to existing stack
       if (length(has_stack)) {
@@ -553,14 +563,20 @@ register_node_stack_link <- function(id, rv, vals, session) {
         )
       } else {
         if (!(id %in% stacks_blocks)) return(NULL)
-        vals$stack_removed_node <- list(
-          node_id = id,
-          # Fin stack name: can we do better?
-          stack_id = chr_ply(names(board_stacks(rv$board)), \(nme) {
+        stack_id <- unlist(lapply(
+          names(board_stacks(rv$board)),
+          \(nme) {
             stack <- board_stacks(rv$board)[[nme]]
             if (id %in% stack_blocks(stack)) nme
-          })
-        )
+          }
+        ))
+        if (length(stack_id)) {
+          vals$stack_removed_node <- list(
+            node_id = id,
+            # Fin stack name: can we do better?
+            stack_id = stack_id
+          )
+        }
       }
     },
     ignoreNULL = FALSE,
@@ -702,7 +718,10 @@ show_g6_stack_actions <- function(rv, session) {
   ns <- session$ns
 
   blk_ids <- board_block_ids(rv$board)
-  stacks_nodes <- available_stack_blocks(rv$board)
+  stacks_nodes <- unlist(
+    lapply(board_stacks(rv$board), stack_blocks),
+    use.names = FALSE
+  )
   blk_ids <- blk_ids[!(blk_ids %in% stacks_nodes)]
 
   showModal(
@@ -764,7 +783,7 @@ stack_g6_nodes <- function(vals, rv, parent, session) {
   input <- session$input
 
   stack_id <- tail(board_stack_ids(rv$board), n = 1)
-  vals$stacks <- stack_id
+  vals$stacks <- c(vals$stacks, stack_id)
   nodes_to_stack <- lapply(input$new_stack_nodes, \(node) {
     list(
       id = node,

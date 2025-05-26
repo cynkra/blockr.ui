@@ -227,7 +227,9 @@ manage_sidebars <- function(board, update, parent, ...) {
   observeEvent(
     c(parent$mode, parent$selected_block),
     {
-      cond <- if (is.null(parent$selected_block)) {
+      cond <- if (
+        is.null(parent$selected_block) || length(parent$selected_block) > 1
+      ) {
         FALSE
       } else {
         (parent$mode == "network" && nchar(parent$selected_block) > 0)

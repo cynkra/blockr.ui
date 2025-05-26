@@ -33,6 +33,11 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
         })
       })
 
+      # Trigger scoutbar from network menu
+      observeEvent(input$add_block, {
+        dot_args$parent$add_block <- input$add_block
+      })
+
       # Add node to network board$nodes so the graph is updated
       observeEvent(dot_args$parent$added_block, {
         tryCatch(

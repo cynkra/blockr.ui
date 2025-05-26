@@ -29,14 +29,15 @@ add_rm_block_server <- function(id, board, update, ...) {
 
       # Trigger add block
       observeEvent(
-        input$add_block,
+        c(input$add_block, dot_args$parent$add_block),
         {
           update_scoutbar(
             session,
             "scoutbar",
             revealScoutbar = TRUE
           )
-        }
+        },
+        ignoreInit = TRUE
       )
 
       # Reset dot_args$parent$append_block is user
