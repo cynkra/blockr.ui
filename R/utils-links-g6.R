@@ -533,6 +533,7 @@ register_node_stack_link <- function(id, rv, vals, session) {
         # Don't trigger if node is removed
         id %in% board_block_ids(rv$board)
       )
+      input[["network-state"]]
     },
     {
       g6_proxy(ns("network")) |> g6_get_nodes(id)
