@@ -164,9 +164,12 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
       # Stack nodes
       observeEvent(
         {
-          req(length(board_stack_ids(board$board)) > 0)
-          # As soon as one board stack isn't in vals$stacks
-          req(any(!(board_stack_ids(board$board) %in% vals$stacks)))
+          req(
+            length(board_stack_ids(board$board)) > 0,
+            # As soon as one board stack isn't in vals$stacks
+            any(!(board_stack_ids(board$board) %in% vals$stacks)),
+            is.null(dot_args$parent$removed_stack)
+          )
         },
         {
           stack_g6_nodes(vals, board, dot_args$parent, session)
@@ -175,7 +178,7 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
 
       # Remove stack: context menu for combo
       observeEvent(input$remove_stack, {
-        unstack_g6_nodes(dot_args$parent, session)
+        unstack_g6_nodes(vals, dot_args$parent, session)
       })
 
       output$state <- renderPrint(board_stacks(board$board))

@@ -823,12 +823,15 @@ stack_g6_nodes <- function(vals, rv, parent, session) {
 }
 
 
-unstack_g6_nodes <- function(parent, session) {
+unstack_g6_nodes <- function(vals, parent, session) {
   ns <- session$ns
   input <- session$input
 
   # Send callback to stacks plugin
   stack_id <- parent$removed_stack <- input$remove_stack
+
+  # Update local reactiveValues
+  vals$stacks <- vals$stacks[-which(vals$stacks == stack_id)]
 
   # Send message to network
   # (combos are automatically removed from node state so
