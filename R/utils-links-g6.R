@@ -50,7 +50,7 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
         style = list(
           labelText = JS(
             "(d) => {
-            return d.id
+            return `Stack: ${d.id}`
           }"
           )
         )
@@ -76,7 +76,8 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
     g6_behaviors(
       "zoom-canvas",
       "drag-canvas",
-      drag_element(),
+      # So we can add node to stack from the UI by drag and drop
+      drag_element(dropEffect = "link"),
       click_select(multiple = TRUE),
       brush_select(),
       # avoid conflict with internal function
@@ -115,14 +116,20 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
       # Conditional menu for edge and nodes
       context_menu(
         enable = JS(
-          "(e) => { return e.targetType === 'edge' || e.targetType === 'node' }"
+          "(e) => { 
+            let cond = e.targetType === 'edge' || 
+              e.targetType === 'node' || 
+              e.targetType === 'canvas' || 
+              e.targetType === 'combo';
+            return cond;
+            }"
         ),
         onClick = JS(
           sprintf(
             "(value, target, current) => {
               const graphId = `${target.closest('.g6').id}`;
               const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
-              if (current.id === undefined) return;
+              if (value !== 'create_stack' && current.id === undefined) return;
               if (value === 'create_edge') {
                 graph.updateBehavior({
                   key: 'create-edge', // Specify the behavior to update
@@ -145,11 +152,17 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
                 graph.draw();
               } else if (value === 'append_node') {
                 Shiny.setInputValue('%s', true, {priority: 'event'})
+              } else if (value === 'create_stack') {
+                Shiny.setInputValue('%s', true, {priority: 'event'})
+              } else if (value === 'remove_stack') {
+                Shiny.setInputValue('%s', current.id)
               }
             }",
             ns("removed_node"),
             ns("removed_edge"),
-            ns("append_node")
+            ns("append_node"),
+            ns("create_stack"),
+            ns("remove_stack")
           )
         ),
         getItems = JS(
@@ -163,6 +176,14 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
             } else if (e.targetType === 'edge') {
               return [
                 { name: 'Remove edge', value: 'remove_edge' }
+              ];
+            } else if (e.targetType === 'canvas') {
+              return [
+                { name: 'Create stack', value: 'create_stack' }
+              ];
+            } else if (e.targetType === 'combo') {
+              return [
+                { name: 'Remove stack', value: 'remove_stack' }
               ];
             }
           }"
@@ -283,6 +304,9 @@ create_g6_node <- function(new, vals, rv, validate = TRUE, obs, session) {
       session
     )
   }
+
+  # Register add to stack/remove from stack behavior
+  register_node_stack_link(block_uid(new), rv, vals, session)
 
   vals
 }
@@ -480,6 +504,70 @@ register_g6_node_validation <- function(id, rv, vals, session) {
   )
 }
 
+#' Register block stack bind/unbind
+#'
+#' For each block we register an observer that
+#' captures only the messages related to this block validation
+#' status.
+#'
+#' @param id Block id for which to register the validation.
+#' @param rv Board reactive values. Read-only.
+#' @param vals Global reactive values. Read-write.
+#' @param session Shiny session object.
+#' @keywords internal
+register_node_stack_link <- function(id, rv, vals, session) {
+  ns <- session$ns
+  input <- session$input
+
+  # Order state retrieval for target node
+  observeEvent(
+    {
+      req(input[["network-initialized"]])
+      input[["network-state"]]
+    },
+    {
+      g6_proxy(ns("network")) |> g6_get_nodes(id)
+    }
+  )
+
+  # Perform actions on state change
+  observeEvent(
+    {
+      req(length(board_stacks(rv$board)) > 0)
+      input[[sprintf("network-%s-state", id)]]$combo
+    },
+    {
+      stacks_blocks <- unlist(
+        lapply(board_stacks(rv$board), stack_blocks),
+        use.names = FALSE
+      )
+      node_state <- input[[sprintf("network-%s-state", id)]]
+      has_stack <- input[[sprintf("network-%s-state", id)]]$combo
+
+      # Send feedback to stack module to add the node to existing stack
+      if (length(has_stack)) {
+        if (id %in% stacks_blocks) return(NULL)
+        vals$stack_added_node <- list(
+          node_id = id,
+          stack_id = has_stack
+        )
+      } else {
+        if (!(id %in% stacks_blocks)) return(NULL)
+        vals$stack_removed_node <- list(
+          node_id = id,
+          # Fin stack name: can we do better?
+          stack_id = chr_ply(names(board_stacks(rv$board)), \(nme) {
+            stack <- board_stacks(rv$board)[[nme]]
+            if (id %in% stack_blocks(stack)) nme
+          })
+        )
+      }
+    },
+    ignoreNULL = FALSE,
+    ignoreInit = TRUE
+  )
+}
+
 
 #' Apply block validation to network elements
 #'
@@ -599,4 +687,127 @@ apply_g6_validation <- function(id, vals, rv, session) {
 
   g6_proxy(ns("network")) |>
     g6_update_nodes(node_config)
+}
+
+#' Show stack actions
+#'
+#' A modal window triggered when create stack is
+#' pressed on canvas right click
+#'
+#' @param rv Reactive values containing board elements. Read-only.
+#' @param session Shiny session object.
+#'
+#' @keywords internal
+show_g6_stack_actions <- function(rv, session) {
+  ns <- session$ns
+
+  blk_ids <- board_block_ids(rv$board)
+  stacks_nodes <- available_stack_blocks(rv$board)
+  blk_ids <- blk_ids[!(blk_ids %in% stacks_nodes)]
+
+  showModal(
+    modalDialog(
+      title = "New stack",
+      size = "m",
+      div(
+        class = "d-grid gap-2 mx-auto",
+        role = "group",
+        div(
+          class = "d-flex gap-4 align-items-center justify-content-around",
+          selectInput(
+            ns("new_stack_nodes"),
+            "Select nodes",
+            choices = blk_ids,
+            selected = blk_ids[1],
+            multiple = TRUE
+          ),
+          shinyWidgets::colorPickr(
+            inputId = ns("stack_color"),
+            label = "Pick a color for the stack:",
+            hue = FALSE,
+            preview = FALSE,
+            swatches = board_option("stacks_colors", rv$board),
+            theme = "nano",
+            position = "right-end",
+            useAsButton = TRUE
+          )
+        )
+      ),
+      footer = tagList(
+        actionButton(
+          ns("new_stack"),
+          "Confirm",
+          icon = icon("object-group")
+        ),
+        modalButton("Dismiss")
+      )
+    )
+  )
+}
+
+
+#' Dynamically group nodes
+#'
+#' Given a set of selected nodes, add them to a unique group
+#' and apply unique color and labels.
+#'
+#' This function must be called after \link{trigger_create_stack}.
+#'
+#' @param vals Local scope (links module) reactive values.
+#' @param rv Board reactive values.
+#' @param parent Global scope (entire app) reactive values.
+#' @param session Shiny session object.
+#'
+#' @keywords internal
+stack_g6_nodes <- function(vals, rv, parent, session) {
+  ns <- session$ns
+  input <- session$input
+
+  stack_id <- tail(board_stack_ids(rv$board), n = 1)
+  vals$stacks <- stack_id
+  nodes_to_stack <- lapply(input$new_stack_nodes, \(node) {
+    list(
+      id = node,
+      combo = stack_id
+    )
+  })
+
+  # Update graph
+  g6_proxy(ns("network")) |>
+    g6_add_combos(
+      list(
+        list(
+          id = stack_id,
+          label = stack_id,
+          style = list(
+            stroke = input$stack_color,
+            fill = input$stack_color,
+            fillOpacity = 0.2,
+            shadowColor = input$stack_color,
+            collapsedFill = input$stack_color,
+            collapsedStroke = input$stack_color,
+            iconFill = input$stack_color,
+            labelPlacement = "top"
+          )
+        )
+      )
+    ) |>
+    g6_update_nodes(nodes_to_stack)
+
+  parent
+}
+
+
+unstack_g6_nodes <- function(parent, session) {
+  ns <- session$ns
+  input <- session$input
+
+  # Send callback to stacks plugin
+  stack_id <- parent$removed_stack <- input$remove_stack
+
+  # Send message to network
+  # (combos are automatically removed from node state so
+  # no need to update nodes)
+  g6_proxy(ns("network")) |>
+    g6_remove_combos(stack_id)
 }

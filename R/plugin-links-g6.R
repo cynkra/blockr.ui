@@ -10,9 +10,9 @@
 #'
 #' @return NULL.
 #'
-#' @rdname add_rm_link_g6
+#' @rdname add_rm_g6_link
 #' @export
-add_rm_link_g6_server <- function(id, board, update, ...) {
+add_rm_g6_link_server <- function(id, board, update, ...) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -141,7 +141,39 @@ add_rm_link_g6_server <- function(id, board, update, ...) {
         })
       })
 
-      output$state <- renderPrint(input[["network-state"]])
+      # Create stack from canvas context menu
+      observeEvent(input$create_stack, {
+        show_g6_stack_actions(
+          board,
+          session
+        )
+      })
+
+      observeEvent(input$new_stack, {
+        dot_args$parent$added_stack <- input$new_stack_nodes
+        removeModal()
+      })
+
+      vals <- reactiveValues(stacks = NULL)
+
+      # Stack nodes
+      observeEvent(
+        {
+          req(length(board_stack_ids(board$board)) > 0)
+          # As soon as one board stack isn't in vals$stacks
+          req(any(!(board_stack_ids(board$board) %in% vals$stacks)))
+        },
+        {
+          stack_g6_nodes(vals, board, dot_args$parent, session)
+        }
+      )
+
+      # Remove stack: context menu for combo
+      observeEvent(input$remove_stack, {
+        unstack_g6_nodes(dot_args$parent, session)
+      })
+
+      output$state <- renderPrint(board_stacks(board$board))
 
       NULL
     }
@@ -149,11 +181,11 @@ add_rm_link_g6_server <- function(id, board, update, ...) {
 }
 
 #' @param board The initial `board` object
-#' @rdname add_rm_link_g6
+#' @rdname add_rm_g6_link
 #' @export
-add_rm_link_g6_ui <- function(id, board) {
+add_rm_g6_link_ui <- function(id, board) {
   tagList(
-    g6_output(NS(id, "network"), height = "400px") #,
-    #verbatimTextOutput(NS(id, "state"))
+    g6_output(NS(id, "network"), height = "400px"),
+    verbatimTextOutput(NS(id, "state"))
   )
 }
