@@ -433,6 +433,7 @@ create_g6_edge <- function(new, vals, rv, session) {
   to_blk <- rv$blocks[[new$target]]$block
 
   new_edge <- list(
+    type = "fly-marker-cubic",
     source = new$source,
     target = new$target,
     label = define_conlabel(to_blk, new$target, rv)
@@ -496,6 +497,7 @@ register_g6_node_validation <- function(id, rv, vals, session) {
     {
       req(
         length(board_block_ids(rv$board)) > 0,
+        # Don't trigger if node is removed
         id %in% board_block_ids(rv$board)
       )
       # For Nicolas: why does board$msgs() triggers infinitely?
@@ -526,8 +528,11 @@ register_node_stack_link <- function(id, rv, vals, session) {
   # Order state retrieval for target node
   observeEvent(
     {
-      req(input[["network-initialized"]])
-      input[["network-state"]]
+      req(
+        input[["network-initialized"]],
+        # Don't trigger if node is removed
+        id %in% board_block_ids(rv$board)
+      )
     },
     {
       g6_proxy(ns("network")) |> g6_get_nodes(id)
