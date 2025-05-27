@@ -312,6 +312,9 @@ create_g6_node <- function(new, vals, rv, validate = TRUE, obs, session) {
   # Register add to stack/remove from stack behavior
   register_node_stack_link(block_uid(new), rv, vals, session)
 
+  g6_proxy(ns("network")) |>
+    g6_fit_center()
+
   vals
 }
 
