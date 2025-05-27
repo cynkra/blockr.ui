@@ -21,15 +21,27 @@ add_rm_g6_stack_server <- function(id, board, update, ...) {
       dot_args <- list(...)
 
       # Add new stack from node selection
-      observeEvent(dot_args$parent$added_stack, {
-        update(
-          list(
-            stacks = list(
-              add = stacks(new_stack(blocks = dot_args$parent$added_stack))
+      observeEvent(
+        dot_args$parent$added_stack,
+        {
+          tmp_stack <- if (
+            length(dot_args$parent$added_stack) == 1 &&
+              nchar(dot_args$parent$added_stack) == 0
+          ) {
+            new_stack()
+          } else {
+            new_stack(blocks = dot_args$parent$added_stack)
+          }
+          update(
+            list(
+              stacks = list(
+                add = stacks(tmp_stack)
+              )
             )
           )
-        )
-      })
+          dot_args$parent$added_stack <- NULL
+        }
+      )
 
       # Remove stack from node selection
       observeEvent(dot_args$parent$removed_stack, {

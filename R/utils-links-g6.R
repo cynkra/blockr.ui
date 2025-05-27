@@ -744,8 +744,13 @@ show_g6_stack_actions <- function(rv, session) {
           class = "d-flex gap-4 align-items-center justify-content-around",
           selectInput(
             ns("new_stack_nodes"),
-            "Select nodes",
-            choices = blk_ids,
+            "Select nodes (leaving NULL creates an empty stack)",
+            choices = setNames(
+              blk_ids,
+              chr_ply(blk_ids, \(id) {
+                paste(attr(board_blocks(rv$board)[[blk_ids]], "name"), id)
+              })
+            ),
             selected = blk_ids[1],
             multiple = TRUE
           ),
@@ -820,7 +825,8 @@ stack_g6_nodes <- function(vals, rv, parent, session) {
         )
       )
     ) |>
-    g6_update_nodes(nodes_to_stack)
+    g6_update_nodes(nodes_to_stack) |>
+    g6_fit_center()
 
   parent
 }

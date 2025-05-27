@@ -155,7 +155,13 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
       })
 
       observeEvent(input$new_stack, {
-        dot_args$parent$added_stack <- input$new_stack_nodes
+        # Allow creation of empty stacks
+        nodes_to_stack <- if (is.null(input$new_stack_nodes)) {
+          ""
+        } else {
+          input$new_stack_nodes
+        }
+        dot_args$parent$added_stack <- nodes_to_stack
         removeModal()
       })
 
