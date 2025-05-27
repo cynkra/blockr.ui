@@ -784,14 +784,13 @@ show_g6_stack_actions <- function(rv, session) {
 #' Given a set of selected nodes, add them to a unique group
 #' and apply unique color and labels.
 #'
-#' This function must be called after \link{trigger_create_stack}.
-#'
 #' @param vals Local scope (links module) reactive values.
 #' @param rv Board reactive values.
 #' @param parent Global scope (entire app) reactive values.
 #' @param session Shiny session object.
 #'
 #' @keywords internal
+#' @rdname stack-g6-nodes
 stack_g6_nodes <- function(vals, rv, parent, session) {
   ns <- session$ns
   input <- session$input
@@ -831,7 +830,12 @@ stack_g6_nodes <- function(vals, rv, parent, session) {
   parent
 }
 
-
+#' Unstack g6 nodes
+#'
+#' Useful when removing a stack.
+#'
+#' @keywords internal
+#' @rdname stack-g6-nodes
 unstack_g6_nodes <- function(vals, parent, session) {
   ns <- session$ns
   input <- session$input

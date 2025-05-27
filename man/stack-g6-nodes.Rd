@@ -2,9 +2,12 @@
 % Please edit documentation in R/utils-links-g6.R
 \name{stack_g6_nodes}
 \alias{stack_g6_nodes}
+\alias{unstack_g6_nodes}
 \title{Dynamically group nodes}
 \usage{
 stack_g6_nodes(vals, rv, parent, session)
+
+unstack_g6_nodes(vals, parent, session)
 }
 \arguments{
 \item{vals}{Local scope (links module) reactive values.}
@@ -18,8 +21,7 @@ stack_g6_nodes(vals, rv, parent, session)
 \description{
 Given a set of selected nodes, add them to a unique group
 and apply unique color and labels.
-}
-\details{
-This function must be called after \link{trigger_create_stack}.
+
+Useful when removing a stack.
 }
 \keyword{internal}
