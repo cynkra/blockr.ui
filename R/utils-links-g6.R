@@ -464,13 +464,16 @@ create_g6_edge <- function(new, vals, rv, session) {
   } else {
     # Update edge id by the link ID since edge was created from JS
     # This will be useful when we want to delete the edge from the JS
-    # side and then destroy the link from R
+    # side and then destroy the link from R. Also add it the correct
+    # type to support data marker animation
     g6_proxy(ns("network")) |>
       g6_update_edges(
         list(
           list(
+            type = new_edge$type,
+            label = new_edge$label,
             id = new$id,
-            data = list(linkId = vals$added_edge$id)
+            data = list(linkId = new_edge$data$linkId)
           )
         )
       )
