@@ -2,12 +2,9 @@
 % Please edit documentation in R/utils-links-g6.R
 \name{restore_g6_network}
 \alias{restore_g6_network}
-\alias{cold_start}
 \title{Restore network from saved snapshot}
 \usage{
 restore_g6_network(rv, vals, session)
-
-cold_start(rv, vals, session)
 }
 \arguments{
 \item{rv}{Board internal reactive values. Read-only}

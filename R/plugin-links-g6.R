@@ -21,9 +21,12 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
 
       # TBD When starting from non empty board (happens once)
       observeEvent(
-        req(isFALSE(dot_args$parent$cold_start)),
+        req(
+          isFALSE(dot_args$parent$cold_start),
+          input[["network-initialized"]]
+        ),
         {
-          cold_start(board, dot_args$parent, session)
+          cold_start(vals, board, dot_args$parent, session)
         },
         once = TRUE
       )
@@ -194,7 +197,14 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
           )
         },
         {
-          stack_g6_nodes(vals, board, dot_args$parent, session)
+          stack_g6_nodes(
+            stack_id = NULL,
+            nodes = NULL,
+            vals,
+            board,
+            dot_args$parent,
+            session
+          )
         }
       )
 

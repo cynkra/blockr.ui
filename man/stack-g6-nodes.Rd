@@ -5,11 +5,15 @@
 \alias{unstack_g6_nodes}
 \title{Dynamically group nodes}
 \usage{
-stack_g6_nodes(vals, rv, parent, session)
+stack_g6_nodes(stack_id = NULL, nodes = NULL, vals, rv, parent, session)
 
 unstack_g6_nodes(vals, parent, session)
 }
 \arguments{
+\item{stack_id}{Stack id to attach nodes to.}
+
+\item{nodes}{Vector of node ids to stack.}
+
 \item{vals}{Local scope (links module) reactive values.}
 
 \item{rv}{Board reactive values.}

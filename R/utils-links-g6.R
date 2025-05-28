@@ -164,12 +164,13 @@ default_g6_plugins <- function(graph, ..., ns) {
           return cond;
           }"
         ),
+        # nolint start
         onClick = JS(
           sprintf(
             "(value, target, current) => {
             const graphId = `${target.closest('.g6').id}`;
             const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
-            if ((value !== 'create_stack' && value !== 'add_block') && current.id === undefined) return; #nolint
+            if ((value !== 'create_stack' && value !== 'add_block') && current.id === undefined) return;
             if (value === 'create_edge') {
               graph.updateBehavior({
                 key: 'create-edge', // Specify the behavior to update
@@ -208,6 +209,7 @@ default_g6_plugins <- function(graph, ..., ns) {
             ns("add_block")
           )
         ),
+        # nolint end
         getItems = JS(
           "(e) => {
           if (e.targetType === 'node') {
@@ -850,6 +852,8 @@ show_g6_stack_actions <- function(rv, session) {
 #' Given a set of selected nodes, add them to a unique group
 #' and apply unique color and labels.
 #'
+#' @param stack_id Stack id to attach nodes to.
+#' @param nodes Vector of node ids to stack.
 #' @param vals Local scope (links module) reactive values.
 #' @param rv Board reactive values.
 #' @param parent Global scope (entire app) reactive values.
@@ -857,18 +861,31 @@ show_g6_stack_actions <- function(rv, session) {
 #'
 #' @keywords internal
 #' @rdname stack-g6-nodes
-stack_g6_nodes <- function(vals, rv, parent, session) {
+stack_g6_nodes <- function(
+  stack_id = NULL,
+  nodes = NULL,
+  vals,
+  rv,
+  parent,
+  session
+) {
   ns <- session$ns
   input <- session$input
 
-  stack_id <- tail(board_stack_ids(rv$board), n = 1)
+  if (is.null(stack_id)) {
+    stack_id <- tail(board_stack_ids(rv$board), n = 1)
+  }
   vals$stacks <- c(vals$stacks, stack_id)
-  nodes_to_stack <- lapply(input$new_stack_nodes, \(node) {
-    list(
-      id = node,
-      combo = stack_id
-    )
-  })
+
+  nodes_to_stack <- nodes
+  if (is.null(nodes)) {
+    nodes_to_stack <- lapply(input$new_stack_nodes, \(node) {
+      list(
+        id = node,
+        combo = stack_id
+      )
+    })
+  }
 
   # Update graph
   g6_proxy(ns("network")) |>
@@ -928,7 +945,6 @@ unstack_g6_nodes <- function(vals, parent, session) {
 #' @param session Shiny session object
 #'
 #' @return A reactiveValues object.
-#' @rdname restore-g6
 #' @keywords internal
 restore_g6_network <- function(rv, vals, session) {
   ns <- session$ns
@@ -953,8 +969,8 @@ restore_g6_network <- function(rv, vals, session) {
   vals
 }
 
-#' @rdname restore-g6
-cold_start <- function(rv, vals, session) {
+#' @keywords internal
+cold_start <- function(vals, rv, parent, session) {
   ns <- session$ns
   # Cold start
   blocks <- board_blocks(rv$board)
@@ -965,13 +981,20 @@ cold_start <- function(rv, vals, session) {
   for (i in seq_along(blocks)) {
     current <- blocks[[i]]
     attr(current, "uid") <- board_block_ids(rv$board)[[i]]
-    vals$added_block <- current
+    create_g6_node(
+      new = current,
+      vals = parent,
+      rv = rv,
+      validate = TRUE,
+      session
+    )
   }
 
   # trigger create edge
   edges_data <- lapply(links, \(link) {
     to_blk <- rv$blocks[[link$to]]$block
     list(
+      id = paste0(link$from, link$to),
       type = "fly-marker-cubic",
       source = link$from,
       target = link$to,
@@ -980,5 +1003,16 @@ cold_start <- function(rv, vals, session) {
   })
 
   g6_proxy(ns("network")) |>
-    g6_add_edges(edges_data)
+    g6_add_edges(unname(edges_data))
+
+  # # Stack nodes
+  # for (id in seq_along(board_stack_ids(rv$board))) {
+  #   stack_blocks <- lapply(stack_blocks(stacks[[id]]), \(blk) {
+  #     list(
+  #       id = blk,
+  #       combo = id
+  #     )
+  #   })
+  #   stack_g6_nodes(id, stack_blocks, vals, rv, parent, session)
+  # }
 }
