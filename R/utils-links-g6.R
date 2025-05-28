@@ -29,7 +29,30 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
     nodes = nodes,
     edges = edges
   ) |>
+    default_g6_options() |>
+    g6_layout(
+      layout = list(
+        type = "force"
+      )
+    ) |>
+    default_g6_behaviors(ns = ns) |>
+    default_g6_plugins(ns = ns)
+}
+
+#' Default g6 network options
+#' @param graph g6 network instance.
+#' @param ... Extra option parameters.
+#' @param ns Module namespace.
+#' @keywords internal
+#' @rdname default-g6
+default_g6_options <- function(graph, ...) {
+  if (!inherits(graph, "g6")) {
+    stop("default_g6_options must be called on a g6 instance")
+  }
+
+  graph |>
     g6_options(
+      ...,
       animation = FALSE,
       node = list(
         style = list(
@@ -39,8 +62,8 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
           labelPadding = c(0, 4),
           labelText = JS(
             "(d) => {
-            return d.label
-          }"
+          return d.label
+        }"
           )
         )
       ),
@@ -50,8 +73,8 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
         style = list(
           labelText = JS(
             "(d) => {
-            return `Stack: ${d.id}`
-          }"
+          return `Stack: ${d.id}`
+        }"
           )
         )
       ),
@@ -62,18 +85,24 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
           lineDash = c(5, 5),
           labelText = JS(
             "(d) => {
-            return d.label
-          }"
+          return d.label
+        }"
           )
         )
       )
-    ) |>
-    g6_layout(
-      layout = list(
-        type = "force"
-      )
-    ) |>
+    )
+}
+
+#' @rdname default-g6
+#' @keywords internal
+default_g6_behaviors <- function(graph, ..., ns) {
+  if (!inherits(graph, "g6")) {
+    stop("default_g6_options must be called on a g6 instance")
+  }
+
+  graph |>
     g6_behaviors(
+      ...,
       "zoom-canvas",
       "drag-canvas",
       # So we can add node to stack from the UI by drag and drop
@@ -107,8 +136,19 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
           )
         )
       )
-    ) |>
+    )
+}
+
+#' @rdname default-g6
+#' @keywords internal
+default_g6_plugins <- function(graph, ..., ns) {
+  if (!inherits(graph, "g6")) {
+    stop("default_g6_options must be called on a g6 instance")
+  }
+
+  graph |>
     g6_plugins(
+      ...,
       #"minimap",
       "tooltip",
       grid_line(),
@@ -117,49 +157,49 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
       context_menu(
         enable = JS(
           "(e) => { 
-            let cond = e.targetType === 'edge' || 
-              e.targetType === 'node' || 
-              e.targetType === 'canvas' || 
-              e.targetType === 'combo';
-            return cond;
-            }"
+          let cond = e.targetType === 'edge' || 
+            e.targetType === 'node' || 
+            e.targetType === 'canvas' || 
+            e.targetType === 'combo';
+          return cond;
+          }"
         ),
         onClick = JS(
           sprintf(
             "(value, target, current) => {
-              const graphId = `${target.closest('.g6').id}`;
-              const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
-              if ((value !== 'create_stack' && value !== 'add_block') && current.id === undefined) return;
-              if (value === 'create_edge') {
-                graph.updateBehavior({
-                  key: 'create-edge', // Specify the behavior to update
-                  enable: true,
-                });
-                // Select node
-                graph.setElementState(current.id, 'selected');
-                // Disable drag node as it is incompatible with edge creation
-                graph.updateBehavior({ key: 'drag-element', enable: false });
-                graph.updateBehavior({ key: 'drag-element-force', enable: false });
-              } else if (value === 'remove_node') {
-                // Send message to R so we can modify the
-                // graph from R and not from JS
-                Shiny.setInputValue('%s', current.id)
-              } else if (value === 'remove_edge') {
-                // Needed to destroy the link since edge id can't be edited
-                // so the link ID is stored in the data attributes.
-                Shiny.setInputValue('%s', graph.getEdgeData(current.id).data.linkId);
-                graph.removeEdgeData([current.id]);
-                graph.draw();
-              } else if (value === 'append_node') {
-                Shiny.setInputValue('%s', true, {priority: 'event'})
-              } else if (value === 'create_stack') {
-                Shiny.setInputValue('%s', true, {priority: 'event'})
-              } else if (value === 'remove_stack') {
-                Shiny.setInputValue('%s', current.id)
-              } else if (value === 'add_block') {
-                Shiny.setInputValue('%s', true, {priority: 'event'})
-              }
-            }",
+            const graphId = `${target.closest('.g6').id}`;
+            const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
+            if ((value !== 'create_stack' && value !== 'add_block') && current.id === undefined) return; #nolint
+            if (value === 'create_edge') {
+              graph.updateBehavior({
+                key: 'create-edge', // Specify the behavior to update
+                enable: true,
+              });
+              // Select node
+              graph.setElementState(current.id, 'selected');
+              // Disable drag node as it is incompatible with edge creation
+              graph.updateBehavior({ key: 'drag-element', enable: false });
+              graph.updateBehavior({ key: 'drag-element-force', enable: false });
+            } else if (value === 'remove_node') {
+              // Send message to R so we can modify the
+              // graph from R and not from JS
+              Shiny.setInputValue('%s', current.id)
+            } else if (value === 'remove_edge') {
+              // Needed to destroy the link since edge id can't be edited
+              // so the link ID is stored in the data attributes.
+              Shiny.setInputValue('%s', graph.getEdgeData(current.id).data.linkId);
+              graph.removeEdgeData([current.id]);
+              graph.draw();
+            } else if (value === 'append_node') {
+              Shiny.setInputValue('%s', true, {priority: 'event'})
+            } else if (value === 'create_stack') {
+              Shiny.setInputValue('%s', true, {priority: 'event'})
+            } else if (value === 'remove_stack') {
+              Shiny.setInputValue('%s', current.id)
+            } else if (value === 'add_block') {
+              Shiny.setInputValue('%s', true, {priority: 'event'})
+            }
+          }",
             ns("removed_node"),
             ns("removed_edge"),
             ns("append_node"),
@@ -170,65 +210,89 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
         ),
         getItems = JS(
           "(e) => {
-            if (e.targetType === 'node') {
-              return [
-                { name: 'Create edge', value: 'create_edge' },
-                { name: 'Append node', value: 'append_node' },
-                { name: 'Remove node', value: 'remove_node' }
-              ];
-            } else if (e.targetType === 'edge') {
-              return [
-                { name: 'Remove edge', value: 'remove_edge' }
-              ];
-            } else if (e.targetType === 'canvas') {
-              return [
-                { name: 'Create stack', value: 'create_stack' },
-                { name: 'New block', value: 'add_block' }
-              ];
-            } else if (e.targetType === 'combo') {
-              return [
-                { name: 'Remove stack', value: 'remove_stack' }
-              ];
-            }
-          }"
+          if (e.targetType === 'node') {
+            return [
+              { name: 'Create edge', value: 'create_edge' },
+              { name: 'Append node', value: 'append_node' },
+              { name: 'Remove node', value: 'remove_node' }
+            ];
+          } else if (e.targetType === 'edge') {
+            return [
+              { name: 'Remove edge', value: 'remove_edge' }
+            ];
+          } else if (e.targetType === 'canvas') {
+            return [
+              { name: 'Create stack', value: 'create_stack' },
+              { name: 'New block', value: 'add_block' }
+            ];
+          } else if (e.targetType === 'combo') {
+            return [
+              { name: 'Remove stack', value: 'remove_stack' }
+            ];
+          }
+        }"
         )
       ),
       g6R::toolbar(
+        style = list(
+          backgroundColor = "#f5f5f5",
+          padding = "8px",
+          boxShadow = "0 2px 8px rgba(0, 0, 0, 0.15)",
+          borderRadius = "8px",
+          border = "1px solid #e8e8e8",
+          opacity = "0.9",
+          marginTop = "12px",
+          marginLeft = "12px"
+        ),
         position = "left",
+        getItems = JS(
+          "( ) => [   
+            { id : 'zoom-in' , value : 'zoom-in' } ,  
+            { id : 'zoom-out' , value : 'zoom-out' } ,   
+            { id : 'auto-fit' , value : 'auto-fit' } ,
+            { id: 'delete', value: 'delete' }, 
+            { id: 'request-fullscreen', value: 'request-fullscreen' },
+            { id: 'exit-fullscreen', value: 'exit-fullscreen' },
+            { id: 'add-block', value : 'add-block'}
+          ]"
+        ),
         onClick = JS(
           sprintf(
             "( value, target, current ) => {   
-                // Handle button click events
-              const graph = HTMLWidgets.find(`#${target.closest('.g6').id}`).getWidget();
-              const fullScreen = graph.getPluginInstance('fullscreen');
-              const zoomLevel = graph.getZoom();
-                if ( value === 'zoom-in' ) {   
-                  graph.zoomTo (graph.getZoom() + 0.1);
-                } else if ( value === 'zoom-out' ) {     
-                  graph.zoomTo (graph.getZoom() - 0.1);
-                } else if ( value === 'auto-fit' ) {     
-                  graph.fitView ( ) ;
-                } else if (value === 'delete') {
-                  const selectedNodes = graph.getElementDataByState('node', 'selected').map(
-                    (node) => {
-                    return node.id
-                    }
-                  );
-                  // Send message R so we can modify the network from R
-                  // and not JS.
-                  Shiny.setInputValue('%s', selectedNodes);
-                } else if (value === 'request-fullscreen') {
-                  if (fullScreen !== undefined) {
-                    fullScreen.request();
+              // Handle button click events
+            const graph = HTMLWidgets.find(`#${target.closest('.g6').id}`).getWidget();
+            const fullScreen = graph.getPluginInstance('fullscreen');
+            const zoomLevel = graph.getZoom();
+              if ( value === 'zoom-in' ) {   
+                graph.zoomTo (graph.getZoom() + 0.1);
+              } else if ( value === 'zoom-out' ) {     
+                graph.zoomTo (graph.getZoom() - 0.1);
+              } else if ( value === 'auto-fit' ) {     
+                graph.fitView ( ) ;
+              } else if (value === 'delete') {
+                const selectedNodes = graph.getElementDataByState('node', 'selected').map(
+                  (node) => {
+                  return node.id
                   }
-                } else if (value === 'exit-fullscreen') {
-                  if (fullScreen !== undefined) {
-                    fullScreen.exit();
-                  }
+                );
+                // Send message R so we can modify the network from R
+                // and not JS.
+                Shiny.setInputValue('%s', selectedNodes);
+              } else if (value === 'request-fullscreen') {
+                if (fullScreen !== undefined) {
+                  fullScreen.request();
                 }
+              } else if (value === 'exit-fullscreen') {
+                if (fullScreen !== undefined) {
+                  fullScreen.exit();
+                }
+              } else if (value === 'add-block') {
+                Shiny.setInputValue('%s', true, {priority: 'event'});
               }
-            ",
-            ns("removed_node")
+            }
+          ",
+            ns("removed_node"),
+            ns("add_block")
           )
         )
       )
@@ -249,10 +313,9 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
 #' @param rv Board reactive values. Read-only.
 #' @param validate Whether to register validation observers for the node.
 #' Default to TRUE.
-#' @param obs Observer list.
 #' @param session Shiny session object.
 #' @keywords internal
-create_g6_node <- function(new, vals, rv, validate = TRUE, obs, session) {
+create_g6_node <- function(new, vals, rv, validate = TRUE, session) {
   stopifnot(
     is_block(new)
   )
@@ -854,4 +917,68 @@ unstack_g6_nodes <- function(vals, parent, session) {
   # no need to update nodes)
   g6_proxy(ns("network")) |>
     g6_remove_combos(stack_id)
+}
+
+#' Restore network from saved snapshot
+#'
+#' Network is updated via a proxy.
+#'
+#' @param rv Board internal reactive values. Read-only
+#' @param vals Global vals reactive values. Read-write access.
+#' @param session Shiny session object
+#'
+#' @return A reactiveValues object.
+#' @rdname restore-g6
+#' @keywords internal
+restore_g6_network <- function(rv, vals, session) {
+  ns <- session$ns
+
+  # Replace all graph data and re-render
+  # This does not replace plugins and behaviors ...
+  g6_proxy(ns("network")) |>
+    g6_set_data(unclass(vals$network)) |>
+    g6_fit_center()
+
+  # Re apply node validation
+  lapply(
+    chr_ply(vals$network$nodes, `[[`, "id"),
+    register_g6_node_validation,
+    rv = rv,
+    vals = vals,
+    session = session
+  )
+
+  vals$refreshed <- "network"
+
+  vals
+}
+
+#' @rdname restore-g6
+cold_start <- function(rv, vals, session) {
+  ns <- session$ns
+  # Cold start
+  blocks <- board_blocks(rv$board)
+  links <- board_links(rv$board)
+  stacks <- board_stacks(rv$board)
+
+  # trigger create node
+  for (i in seq_along(blocks)) {
+    current <- blocks[[i]]
+    attr(current, "uid") <- board_block_ids(rv$board)[[i]]
+    vals$added_block <- current
+  }
+
+  # trigger create edge
+  edges_data <- lapply(links, \(link) {
+    to_blk <- rv$blocks[[link$to]]$block
+    list(
+      type = "fly-marker-cubic",
+      source = link$from,
+      target = link$to,
+      label = link$input
+    )
+  })
+
+  g6_proxy(ns("network")) |>
+    g6_add_edges(edges_data)
 }

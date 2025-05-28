@@ -40,12 +40,13 @@ Imports:
     jsonlite,
     htmltools,
     dockViewR,
-    g6R
+    g6R,
+    phosphoricons
 Remotes:
     BristolMyersSquibb/blockr.core,
     cynkra/blockr.dplyr,
     cynkra/blockr.io,
-    cynkra/blockr.ai,
+    BristolMyersSquibb/blockr.ai,
     cynkra/blockr.sdtm,
     dreamRs/gridstackr,
     rstudio/chromote,

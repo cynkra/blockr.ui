@@ -9,15 +9,18 @@
 #'
 #' @keywords internal
 blk_icon <- function(category) {
-  switch(
+  res <- switch(
     category,
     "data" = "table",
-    "file" = "file-import",
-    "parse" = "cogs",
+    "file" = "download-simple",
+    "parse" = "gear",
     "plot" = "chart-line",
-    "transform" = "wand-magic-sparkles",
+    "transform" = "magic-wand",
     "table" = "table"
   )
+  # FIXME: We can't use fontawesome in the scoutbaR
+  # due to compatibility issue with the g6R toolbar...
+  phosphoricons::ph_i(res)
 }
 
 #' Create block choices for scoutbaR widget

@@ -18,11 +18,28 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
     function(input, output, session) {
       ns <- session$ns
       dot_args <- list(...)
-      obs <- list()
 
       # TBD When starting from non empty board (happens once)
+      observeEvent(
+        req(isFALSE(dot_args$parent$cold_start)),
+        {
+          cold_start(board, dot_args$parent, session)
+        },
+        once = TRUE
+      )
 
       # TBD Restore network from serialisation
+      observeEvent(req(dot_args$parent$refreshed == "board"), {
+        restore_g6_network(board, dot_args$parent, session)
+      })
+
+      # Serialize state
+      observeEvent(input[["network-state"]], {
+        dot_args$parent$network <- structure(
+          input[["network-state"]],
+          class = "network"
+        )
+      })
 
       output$network <- render_g6({
         isolate({
@@ -47,7 +64,6 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
               vals = dot_args$parent,
               rv = board,
               validate = TRUE,
-              obs,
               session
             )
 

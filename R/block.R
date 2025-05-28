@@ -20,7 +20,7 @@ block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
         card_header(
           class = "d-flex justify-content-between",
           card_title(
-            icon(blk_icon(attr(blk_info, "category"))),
+            blk_icon(attr(blk_info, "category")),
             sprintf(
               "Block: %s (id: %s)",
               attr(blk_info, "name"),

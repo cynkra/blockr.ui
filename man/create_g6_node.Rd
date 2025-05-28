@@ -4,7 +4,7 @@
 \alias{create_g6_node}
 \title{Create a new node it to the network}
 \usage{
-create_g6_node(new, vals, rv, validate = TRUE, obs, session)
+create_g6_node(new, vals, rv, validate = TRUE, session)
 }
 \arguments{
 \item{new}{New block to add. A block object.}
@@ -15,8 +15,6 @@ create_g6_node(new, vals, rv, validate = TRUE, obs, session)
 
 \item{validate}{Whether to register validation observers for the node.
 Default to TRUE.}
-
-\item{obs}{Observer list.}
 
 \item{session}{Shiny session object.}
 }

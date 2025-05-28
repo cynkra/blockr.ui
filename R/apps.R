@@ -57,6 +57,7 @@ serve.dash_board <- function(x, id = "main", ...) {
 
   ui <- page_fillable(
     shinyjs::useShinyjs(),
+    custom_icons(),
     main_ui(id, x)
   )
 

@@ -154,6 +154,6 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   })
 
   observeEvent(vals$grid, {
-    parent$grid <- structure(vals$grid, class = "dock")
+    parent$grid <- vals$grid
   })
 }
