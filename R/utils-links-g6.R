@@ -79,9 +79,8 @@ default_g6_options <- function(graph, ...) {
         )
       ),
       edge = list(
-        endArrow = TRUE,
-        zIndex = 100,
         style = list(
+          endArrow = TRUE,
           lineDash = c(5, 5),
           labelText = JS(
             "(d) => {
@@ -816,7 +815,7 @@ show_g6_stack_actions <- function(rv, session) {
             choices = setNames(
               blk_ids,
               chr_ply(blk_ids, \(id) {
-                paste(attr(board_blocks(rv$board)[[blk_ids]], "name"), id)
+                paste(attr(board_blocks(rv$board)[[id]], "name"), id)
               })
             ),
             selected = blk_ids[1],
@@ -887,6 +886,16 @@ stack_g6_nodes <- function(
     })
   }
 
+  stack_color <- input$stack_color
+  if (is.null(stack_color)) {
+    colors <- board_option("stacks_colors", rv$board)
+    if (length(vals$stacks) == 0) {
+      stack_color <- colors[1]
+    } else {
+      stack_color <- colors[length(vals$stacks) * 5]
+    }
+  }
+
   # Update graph
   g6_proxy(ns("network")) |>
     g6_add_combos(
@@ -895,13 +904,13 @@ stack_g6_nodes <- function(
           id = stack_id,
           label = stack_id,
           style = list(
-            stroke = input$stack_color,
-            fill = input$stack_color,
+            stroke = stack_color,
+            fill = stack_color,
             fillOpacity = 0.2,
-            shadowColor = input$stack_color,
-            collapsedFill = input$stack_color,
-            collapsedStroke = input$stack_color,
-            iconFill = input$stack_color,
+            shadowColor = stack_color,
+            collapsedFill = stack_color,
+            collapsedStroke = stack_color,
+            iconFill = stack_color,
             labelPlacement = "top"
           )
         )
@@ -985,7 +994,9 @@ cold_start <- function(vals, rv, parent, session) {
       new = current,
       vals = parent,
       rv = rv,
-      validate = TRUE,
+      # Validation needs edge to exist before
+      # we apply it after.
+      validate = FALSE,
       session
     )
   }
@@ -1005,14 +1016,23 @@ cold_start <- function(vals, rv, parent, session) {
   g6_proxy(ns("network")) |>
     g6_add_edges(unname(edges_data))
 
-  # # Stack nodes
-  # for (id in seq_along(board_stack_ids(rv$board))) {
-  #   stack_blocks <- lapply(stack_blocks(stacks[[id]]), \(blk) {
-  #     list(
-  #       id = blk,
-  #       combo = id
-  #     )
-  #   })
-  #   stack_g6_nodes(id, stack_blocks, vals, rv, parent, session)
-  # }
+  # Node validation -> needs edge to exist
+  lapply(
+    board_block_ids(rv$board),
+    register_g6_node_validation,
+    vals = vals,
+    rv = rv,
+    session = session
+  )
+
+  # Stack nodes
+  #for (id in board_stack_ids(rv$board)) {
+  #  stack_blocks <- lapply(stack_blocks(stacks[[id]]), \(blk) {
+  #    list(
+  #      id = blk,
+  #      combo = id
+  #    )
+  #  })
+  #  stack_g6_nodes(id, stack_blocks, vals, rv, parent, session)
+  #}
 }

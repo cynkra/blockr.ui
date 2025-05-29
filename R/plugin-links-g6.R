@@ -193,7 +193,8 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
             length(board_stack_ids(board$board)) > 0,
             # As soon as one board stack isn't in vals$stacks
             any(!(board_stack_ids(board$board) %in% vals$stacks)),
-            is.null(dot_args$parent$removed_stack)
+            is.null(dot_args$parent$removed_stack),
+            input[["network-initialized"]]
           )
         },
         {
