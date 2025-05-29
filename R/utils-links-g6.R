@@ -973,6 +973,15 @@ restore_g6_network <- function(rv, vals, session) {
     session = session
   )
 
+  # Register add to stack/remove from stack behavior
+  lapply(
+    chr_ply(vals$network$nodes, `[[`, "id"),
+    register_node_stack_link,
+    rv = rv,
+    vals = vals,
+    session = session
+  )
+
   vals$refreshed <- "network"
 
   vals
