@@ -4,19 +4,15 @@
 \alias{show_stack_actions}
 \title{Show stack actions}
 \usage{
-show_stack_actions(selected, rv, parent, session)
+show_stack_actions(rv, session)
 }
 \arguments{
-\item{selected}{Set of selected nodes.}
-
 \item{rv}{Reactive values containing board elements. Read-only.}
-
-\item{parent}{Global reactive values.}
 
 \item{session}{Shiny session object.}
 }
 \description{
-A modal window triggered when multiple nodes are selected, for instance.
-So far we support adding a stack and removing multiple blocks from a stack.
+A modal window triggered when create stack is
+pressed on canvas right click
 }
 \keyword{internal}

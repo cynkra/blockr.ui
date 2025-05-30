@@ -1,6 +1,6 @@
 testServer(
   main_server,
-  args = list(board = new_board(class = c("grid_board", "dash_board"))),
+  args = list(board = new_board(class = c("dock_board", "dash_board"))),
   {
     expect_named(
       app_state,
@@ -11,12 +11,11 @@ testServer(
         "grid",
         "in_grid",
         "refreshed",
-        "nodes",
+        "network",
         "append_block",
         "added_block",
         "removed_block",
         "selected_block",
-        "edges",
         "cancelled_edge",
         "added_edge",
         "removed_edge",

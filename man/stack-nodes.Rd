@@ -2,14 +2,17 @@
 % Please edit documentation in R/utils-links.R
 \name{stack_nodes}
 \alias{stack_nodes}
+\alias{unstack_nodes}
 \title{Dynamically group nodes}
 \usage{
-stack_nodes(stack_id, color, vals, rv, parent, session)
+stack_nodes(stack_id = NULL, nodes = NULL, vals, rv, parent, session)
+
+unstack_nodes(vals, parent, session)
 }
 \arguments{
-\item{stack_id}{Stack unique id.}
+\item{stack_id}{Stack id to attach nodes to.}
 
-\item{color}{Stack color. Given by color picker input.}
+\item{nodes}{Vector of node ids to stack.}
 
 \item{vals}{Local scope (links module) reactive values.}
 
@@ -22,8 +25,7 @@ stack_nodes(stack_id, color, vals, rv, parent, session)
 \description{
 Given a set of selected nodes, add them to a unique group
 and apply unique color and labels.
-}
-\details{
-This function must be called after \link{trigger_create_stack}.
+
+Useful when removing a stack.
 }
 \keyword{internal}

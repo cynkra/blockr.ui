@@ -46,10 +46,7 @@ block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
           )
         ),
         expr_ui(ns(id), x),
-        block_ui(ns(id), x),
-        card_footer(
-          "TBD"
-        )
+        block_ui(ns(id), x)
       )
     )
   }

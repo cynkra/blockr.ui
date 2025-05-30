@@ -32,11 +32,9 @@ Imports:
     shiny (>= 1.5.0),
     bslib,
     scoutbaR,
-    visNetwork,
     shinyWidgets,
     blockr.core,
     shinyjs,
-    gridstackr,
     jsonlite,
     htmltools,
     dockViewR,
@@ -44,12 +42,10 @@ Imports:
     phosphoricons
 Remotes:
     BristolMyersSquibb/blockr.core,
-    cynkra/blockr.dplyr,
-    cynkra/blockr.io,
+    BristolMyersSquibb/blockr.dplyr,
+    BristolMyersSquibb/blockr.io,
     BristolMyersSquibb/blockr.ai,
-    cynkra/blockr.sdtm,
-    dreamRs/gridstackr,
-    rstudio/chromote,
+    BristolMyersSquibb/blockr.sdtm,
     cynkra/g6R
 Suggests: 
     shinytest2,

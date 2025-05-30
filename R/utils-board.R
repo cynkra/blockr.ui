@@ -165,7 +165,7 @@ board_body <- function(id, board_ui, grid_ui) {
       sidebar = board_properties(
         id = id,
         board_ui$blocks_ui,
-        grid_ui$add_to_grid,
+        grid_ui$add_to_dashboard,
         board_ui$toolbar_ui$manage_blocks$sidebar
       ),
       board_ui$toolbar_ui$manage_links,

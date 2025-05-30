@@ -60,8 +60,8 @@ environment variables:
     pickerInput. Default is 40.
 -   `STACKS_COLOR_PALETTE`: the color palette type. Default is
     `spectral`. We use `hcl.colors` to setup the palette.
--   `DASHBOARD_TYPE`: either `grid` to leverage `{gridstackr}` or `dock`
-    for `{dockVieweR}`. Default is `dock`.
+-   `DASHBOARD_TYPE`: Default is `dock` to leverage `{dockViewR}`. Other
+    implementation may come later.
     -   `DOCK_THEME`: when `DASHBOARD_TYPE` is `dock` you can customize
         the dock skin. Choose among
         `c("light", "abyss", "dark", "vs", "dracula", "replit")`.

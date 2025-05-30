@@ -12,7 +12,7 @@
 #' `add` and `rm`, where `add` is either `NULL` or a `stacks` object and `rm`
 #' is either `NULL` or a character vector of link IDs.
 #'
-#' @rdname add_rm_stack
+#' @rdname add_rm_g6_stack
 #' @export
 add_rm_stack_server <- function(id, board, update, ...) {
   moduleServer(
@@ -21,15 +21,27 @@ add_rm_stack_server <- function(id, board, update, ...) {
       dot_args <- list(...)
 
       # Add new stack from node selection
-      observeEvent(dot_args$parent$added_stack, {
-        update(
-          list(
-            stacks = list(
-              add = stacks(new_stack(blocks = dot_args$parent$added_stack))
+      observeEvent(
+        dot_args$parent$added_stack,
+        {
+          tmp_stack <- if (
+            length(dot_args$parent$added_stack) == 1 &&
+              nchar(dot_args$parent$added_stack) == 0
+          ) {
+            new_stack()
+          } else {
+            new_stack(blocks = dot_args$parent$added_stack)
+          }
+          update(
+            list(
+              stacks = list(
+                add = stacks(tmp_stack)
+              )
             )
           )
-        )
-      })
+          dot_args$parent$added_stack <- NULL
+        }
+      )
 
       # Remove stack from node selection
       observeEvent(dot_args$parent$removed_stack, {
@@ -40,25 +52,24 @@ add_rm_stack_server <- function(id, board, update, ...) {
             )
           )
         )
+        dot_args$parent$removed_stack <- NULL
       })
 
       # Callback from links module
       observeEvent(dot_args$parent$stack_removed_node, {
         # Update stacks callback
-        tmp_stack <- board_stacks(board$board)[[
-          dot_args$parent$stack_removed_node
-        ]]
-        ids <- dot_args$parent$nodes[
-          dot_args$parent$nodes$group == dot_args$parent$stack_removed_node,
-          "id"
+        stack_id <- dot_args$parent$stack_removed_node$stack_id
+        node_id <- dot_args$parent$stack_removed_node$node_id
+        tmp_stack <- board_stacks(board$board)[[stack_id]]
+        stack_blocks(tmp_stack) <- stack_blocks(tmp_stack)[
+          stack_blocks(tmp_stack) != node_id
         ]
-        stack_blocks(tmp_stack) <- ids[!is.na(ids)]
         update(
           list(
             stacks = list(
               mod = as_stacks(setNames(
                 list(tmp_stack),
-                dot_args$parent$stack_removed_node
+                stack_id
               ))
             )
           )
@@ -82,6 +93,7 @@ add_rm_stack_server <- function(id, board, update, ...) {
             )
           )
         )
+        dot_args$parent$stack_added_node <- NULL
       })
 
       NULL
@@ -90,7 +102,7 @@ add_rm_stack_server <- function(id, board, update, ...) {
 }
 
 #' @param board The initial `board` object
-#' @rdname add_rm_stack
+#' @rdname add_rm_g6_stack
 #' @export
 add_rm_stack_ui <- function(id, board) {
   tagList(

@@ -47,41 +47,11 @@ create_app_state.dock_board <- function(board) {
     in_grid = list(),
     refreshed = NULL,
     network = structure(list(), class = "network"),
-    #nodes = data.frame(),
     add_block = NULL,
     append_block = FALSE,
     added_block = NULL,
     removed_block = NULL,
     selected_block = NULL,
-    #edges = data.frame(),
-    cancelled_edge = NULL,
-    added_edge = NULL,
-    removed_edge = NULL,
-    added_stack = NULL,
-    stack_added_block = NULL,
-    stack_removed_block = NULL,
-    removed_stack = NULL
-  )
-}
-
-#' Create app state grid board method
-#'
-#' @rdname main
-#' @export
-create_app_state.grid_board <- function(board) {
-  reactiveValues(
-    mode = "network",
-    cold_start = TRUE,
-    preview = FALSE,
-    grid = data.frame(),
-    in_grid = list(),
-    refreshed = NULL,
-    nodes = data.frame(),
-    append_block = FALSE,
-    added_block = NULL,
-    removed_block = NULL,
-    selected_block = NULL,
-    edges = data.frame(),
     cancelled_edge = NULL,
     added_edge = NULL,
     removed_edge = NULL,

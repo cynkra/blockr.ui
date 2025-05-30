@@ -5,13 +5,13 @@
 dashboard_ui.dock_board <- function(id, board, ...) {
   ns <- NS(id)
   list(
-    add_to_grid = bslib::input_switch(
-      ns("add_to_grid"),
+    add_to_dashboard = bslib::input_switch(
+      ns("add_to_dashboard"),
       "Use in dashboard?"
     ),
     options = tagList(
       numericInput(
-        ns("grid_zoom"),
+        ns("dashboard_zoom"),
         "Dock zoom level",
         min = 0.5,
         max = 1.5,
@@ -20,8 +20,8 @@ dashboard_ui.dock_board <- function(id, board, ...) {
       )
     ),
     content = div(
-      id = ns("grid_zoom_target"),
-      style = "zoom: 0.5;",
+      id = ns("dashboard_zoom_target"),
+      style = "zoom: 1;",
       dockViewOutput(ns("dock"), height = "100vh")
     )
   )
@@ -74,13 +74,13 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   observeEvent(
     {
       req(length(board$blocks) > 0)
-      input$add_to_grid
+      input$add_to_dashboard
     },
     {
       update_dashboard_state(
         board$board,
         parent$selected_block,
-        input$add_to_grid,
+        input$add_to_dashboard,
         vals
       )
     }
@@ -99,7 +99,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       c(parent$selected_block, parent$in_grid)
     },
     {
-      update_block_grid_input(
+      update_block_dashboard_input(
         board$board,
         parent$selected_block,
         parent$in_grid[[parent$selected_block]],
@@ -134,8 +134,8 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   outputOptions(output, "dock", suspendWhenHidden = FALSE)
 
   # Handle zoom on grid element
-  observeEvent(input$grid_zoom, {
-    handle_grid_zoom(session)
+  observeEvent(input$dashboard_zoom, {
+    handle_dashboard_zoom(session)
   })
 
   # Update rv cache to real time change in the grid only

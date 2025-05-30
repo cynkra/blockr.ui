@@ -4,7 +4,6 @@
 \alias{main_ui}
 \alias{create_app_state}
 \alias{create_app_state.dock_board}
-\alias{create_app_state.grid_board}
 \alias{main_server}
 \title{Main ui for blockr2}
 \usage{
@@ -13,8 +12,6 @@ main_ui(id, board)
 create_app_state(board)
 
 \method{create_app_state}{dock_board}(board)
-
-\method{create_app_state}{grid_board}(board)
 
 main_server(id, board)
 }
