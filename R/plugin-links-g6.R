@@ -192,7 +192,10 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
           req(
             length(board_stack_ids(board$board)) > 0,
             # As soon as one board stack isn't in vals$stacks
-            any(!(board_stack_ids(board$board) %in% vals$stacks)),
+            any(
+              !(paste("combo", board_stack_ids(board$board), sep = "-") %in%
+                vals$stacks) #nolint
+            ),
             is.null(dot_args$parent$removed_stack),
             input[["network-initialized"]]
           )
@@ -214,8 +217,6 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
         unstack_g6_nodes(vals, dot_args$parent, session)
       })
 
-      output$state <- renderPrint(board_stacks(board$board))
-
       NULL
     }
   )
@@ -226,7 +227,6 @@ add_rm_g6_link_server <- function(id, board, update, ...) {
 #' @export
 add_rm_g6_link_ui <- function(id, board) {
   tagList(
-    g6_output(NS(id, "network"), height = "400px"),
-    verbatimTextOutput(NS(id, "state"))
+    g6_output(NS(id, "network"), height = "400px")
   )
 }

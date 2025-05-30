@@ -187,7 +187,7 @@ default_g6_plugins <- function(graph, ..., ns) {
             } else if (value === 'remove_edge') {
               // Needed to destroy the link since edge id can't be edited
               // so the link ID is stored in the data attributes.
-              Shiny.setInputValue('%s', graph.getEdgeData(current.id).data.linkId);
+              Shiny.setInputValue('%s', current.id);
               graph.removeEdgeData([current.id]);
               graph.draw();
             } else if (value === 'append_node') {
@@ -515,10 +515,8 @@ create_g6_edge <- function(new, vals, rv, session) {
     )
   )
 
-  # Ensure we get the link id to be able to
-  # remove links laters ...
-  new_edge$data$linkId <- vals$added_edge$id
-
+  # Replace edge id by link id
+  new_edge$id <- vals$added_edge$id
   # If edge is created via create_node. If create via
   # DND, we don't need to draw it as it is already done via JS
   if (!length(new$id)) {
@@ -526,21 +524,13 @@ create_g6_edge <- function(new, vals, rv, session) {
     g6_proxy(ns("network")) |>
       g6_add_edges(list(new_edge))
   } else {
-    # Update edge id by the link ID since edge was created from JS
+    # Remove old edge since edge was created from JS with wrong id
     # This will be useful when we want to delete the edge from the JS
     # side and then destroy the link from R. Also add it the correct
     # type to support data marker animation
     g6_proxy(ns("network")) |>
-      g6_update_edges(
-        list(
-          list(
-            type = new_edge$type,
-            label = new_edge$label,
-            id = new$id,
-            data = list(linkId = new_edge$data$linkId)
-          )
-        )
-      )
+      g6_remove_edges(new$id) |>
+      g6_add_edges(list(new_edge))
   }
 
   vals
@@ -635,7 +625,7 @@ register_node_stack_link <- function(id, rv, vals, session) {
         if (id %in% stacks_blocks) return(NULL)
         vals$stack_added_node <- list(
           node_id = id,
-          stack_id = has_stack
+          stack_id = strsplit(node_state$combo, "combo-")[[1]][2]
         )
       } else {
         if (!(id %in% stacks_blocks)) return(NULL)
@@ -691,8 +681,7 @@ apply_g6_validation <- function(id, vals, rv, session) {
 
     # Reset connected edges
     if (nrow(connected_edges) > 0) {
-      ids <- paste(connected_edges$from, connected_edges$to, sep = "-")
-      new_edges <- lapply(ids, \(id) {
+      new_edges <- lapply(edges$id, \(id) {
         list(
           id = id,
           type = "fly-marker-cubic",
@@ -758,8 +747,7 @@ apply_g6_validation <- function(id, vals, rv, session) {
 
     # Style connected edges
     if (nrow(connected_edges) > 0) {
-      ids <- paste(connected_edges$from, connected_edges$to, sep = "-")
-      new_edges <- lapply(ids, \(id) {
+      new_edges <- lapply(edges$id, \(id) {
         list(
           id = id,
           type = "cubic",
@@ -874,7 +862,8 @@ stack_g6_nodes <- function(
   if (is.null(stack_id)) {
     stack_id <- tail(board_stack_ids(rv$board), n = 1)
   }
-  vals$stacks <- c(vals$stacks, stack_id)
+  # avoid duplicated id with edges
+  stack_id <- sprintf("combo-%s", stack_id)
 
   nodes_to_stack <- nodes
   if (is.null(nodes)) {
@@ -895,6 +884,8 @@ stack_g6_nodes <- function(
       stack_color <- colors[length(vals$stacks) * 5]
     }
   }
+
+  vals$stacks <- c(vals$stacks, stack_id)
 
   # Update graph
   g6_proxy(ns("network")) |>
@@ -964,6 +955,8 @@ restore_g6_network <- function(rv, vals, session) {
     g6_set_data(unclass(vals$network)) |>
     g6_fit_center()
 
+  # TBD maybe restore the state of vals$stacks?
+
   # Re apply node validation
   lapply(
     chr_ply(vals$network$nodes, `[[`, "id"),
@@ -987,32 +980,11 @@ restore_g6_network <- function(rv, vals, session) {
   vals
 }
 
-#' @keywords internal
-cold_start <- function(vals, rv, parent, session) {
-  ns <- session$ns
-  # Cold start
-  blocks <- board_blocks(rv$board)
-  links <- board_links(rv$board)
-  stacks <- board_stacks(rv$board)
-
-  # trigger create node
-  for (i in seq_along(blocks)) {
-    current <- blocks[[i]]
-    attr(current, "uid") <- board_block_ids(rv$board)[[i]]
-    create_g6_node(
-      new = current,
-      vals = parent,
-      rv = rv,
-      # Validation needs edge to exist before
-      # we apply it after.
-      validate = FALSE,
-      session
-    )
-  }
-
-  # trigger create edge
-  edges_data <- lapply(links, \(link) {
-    to_blk <- rv$blocks[[link$to]]$block
+#' @rdname cold-start
+#' @param links Board links.
+create_edges_data_from_links <- function(links) {
+  unname(lapply(seq_along(links), \(i) {
+    link <- links[[i]]
     list(
       id = paste0(link$from, link$to),
       type = "fly-marker-cubic",
@@ -1020,28 +992,132 @@ cold_start <- function(vals, rv, parent, session) {
       target = link$to,
       label = link$input
     )
+  }))
+}
+
+#' @rdname cold-start
+#' @param blocks Board blocks.
+#' @param stacks Board stacks.
+#' @keywords internal
+create_nodes_data_from_blocks <- function(blocks, stacks) {
+  blocks_in_stacks <- lapply(stacks, stack_blocks)
+
+  lapply(seq_along(blocks), \(i) {
+    current <- blocks[[i]]
+    tmp <- list(
+      id = names(blocks)[[i]],
+      label = paste(
+        attr(current, "class")[1],
+        "\n id:",
+        names(blocks)[[i]]
+      ),
+      style = list(
+        labelBackgroundFill = "#a0cafa"
+      )
+    )
+
+    # Find in which stack the node is
+    tmp$combo <- unlist(lapply(seq_along(blocks_in_stacks), \(i) {
+      stack <- blocks_in_stacks[[i]]
+      if (tmp$id %in% stack) {
+        sprintf("combo-%s", names(blocks_in_stacks)[[i]])
+      }
+    }))
+    tmp
   })
+}
 
+#' @rdname cold-start
+#' @param stacks Board stacks.
+#' @param colors Stacks colors. Internal.
+#' @keywords internal
+create_combos_data_from_stacks <- function(
+  stacks,
+  vals,
+  colors
+) {
+  lapply(seq_along(stacks), \(i) {
+    stack_id <- sprintf("combo-%s", names(stacks)[[i]])
+    if (length(vals$stacks) == 0) {
+      stack_color <- colors[1]
+    } else {
+      stack_color <- colors[length(vals$stacks) * 5]
+    }
+
+    vals$stacks <- c(vals$stacks, stack_id)
+
+    list(
+      id = stack_id,
+      label = stack_id,
+      style = list(
+        stroke = stack_color,
+        fill = stack_color,
+        fillOpacity = 0.2,
+        shadowColor = stack_color,
+        collapsedFill = stack_color,
+        collapsedStroke = stack_color,
+        iconFill = stack_color,
+        labelPlacement = "top"
+      )
+    )
+  })
+}
+
+#' Create network data from board
+#'
+#' That's different from \link{restore_g6_network}, as the
+#' latter restore a network from a JSON compatible structure.
+#' Here we need to re-create all the JSON from the board blocks,
+#' links and stacks.
+#'
+#' @keywords internal
+#' @param vals Module internal reactive values.
+#' @param rv Board reactive values. Read-only
+#' @param parent Global app reactive values.
+#' @param session Shiny session
+#' @rdname cold-start
+cold_start <- function(vals, rv, parent, session) {
+  ns <- session$ns
+  # Cold start
+  links <- board_links((rv$board))
+  blocks <- board_blocks(rv$board)
+  stacks <- board_stacks(rv$board)
+
+  edges_data <- create_edges_data_from_links(links)
+  combos_data <- create_combos_data_from_stacks(
+    stacks,
+    vals,
+    board_option("stacks_colors", rv$board)
+  )
+  nodes_data <- create_nodes_data_from_blocks(blocks, stacks)
+
+  graph_data <- list(
+    nodes = nodes_data,
+    edges = edges_data,
+    combos = combos_data
+  )
+
+  #graph_data <- jsonlite::toJSON(graph_data, pretty = TRUE)
+  # Render all data all at once for better performances
   g6_proxy(ns("network")) |>
-    g6_add_edges(unname(edges_data))
+    g6_set_data(graph_data) |>
+    g6_fit_center()
 
-  # Node validation -> needs edge to exist
+  # Re apply node validation
   lapply(
-    board_block_ids(rv$board),
+    names(blocks),
     register_g6_node_validation,
-    vals = vals,
     rv = rv,
+    vals = parent,
     session = session
   )
 
-  # Stack nodes
-  #for (id in board_stack_ids(rv$board)) {
-  #  stack_blocks <- lapply(stack_blocks(stacks[[id]]), \(blk) {
-  #    list(
-  #      id = blk,
-  #      combo = id
-  #    )
-  #  })
-  #  stack_g6_nodes(id, stack_blocks, vals, rv, parent, session)
-  #}
+  # Register add to stack/remove from stack behavior
+  lapply(
+    names(blocks),
+    register_node_stack_link,
+    rv = rv,
+    vals = parent,
+    session = session
+  )
 }
