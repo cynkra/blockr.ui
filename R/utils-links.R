@@ -207,7 +207,7 @@ default_g6_options <- function(graph, ...) {
         style = list(
           labelText = JS(
             "(d) => {
-          return `Stack: ${d.id}`
+          return `Stack: ${d.label}`
         }"
           )
         )
@@ -1183,7 +1183,7 @@ create_combos_data_from_stacks <- function(
 
     list(
       id = stack_id,
-      label = stack_id,
+      label = strsplit(stack_id, "combo-")[[1]][2],
       style = list(
         stroke = stack_color,
         fill = stack_color,
