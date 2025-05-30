@@ -2,12 +2,9 @@
 % Please edit documentation in R/utils-dashboard.R
 \name{init_dashboard_state}
 \alias{init_dashboard_state}
-\alias{init_dashboard_state.grid_board}
 \title{Init dashboard state generic}
 \usage{
 init_dashboard_state(board, blocks, vals)
-
-\method{init_dashboard_state}{grid_board}(board, blocks, vals)
 }
 \arguments{
 \item{board}{Board object.}

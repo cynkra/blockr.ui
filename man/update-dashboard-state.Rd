@@ -3,14 +3,11 @@
 \name{update_dashboard_state}
 \alias{update_dashboard_state}
 \alias{update_dashboard_state.dock_board}
-\alias{update_dashboard_state.grid_board}
 \title{Update block dashboard state generic}
 \usage{
 update_dashboard_state(board, selected, value, vals)
 
 \method{update_dashboard_state}{dock_board}(board, selected, value, vals)
-
-\method{update_dashboard_state}{grid_board}(board, selected, value, vals)
 }
 \arguments{
 \item{board}{Board object.}
@@ -23,8 +20,5 @@ update_dashboard_state(board, selected, value, vals)
 }
 \description{
 For a given selected block, toggle its dock presence
-based on the specified value.
-
-For a given selected block, toggle its grid presence
 based on the specified value.
 }

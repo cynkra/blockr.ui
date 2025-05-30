@@ -4,10 +4,10 @@
 \alias{create_node}
 \title{Create a new node it to the network}
 \usage{
-create_node(new, vals, rv, validate = TRUE, obs, session)
+create_node(new, vals, rv, validate = TRUE, session)
 }
 \arguments{
-\item{new}{New block to add.}
+\item{new}{New block to add. A block object.}
 
 \item{vals}{Global reactive values. To communicate between modules.}
 
@@ -16,13 +16,9 @@ create_node(new, vals, rv, validate = TRUE, obs, session)
 \item{validate}{Whether to register validation observers for the node.
 Default to TRUE.}
 
-\item{obs}{Observer list.}
-
 \item{session}{Shiny session object.}
 }
 \description{
-This is different from \link{add_node}, the later
-is just involved to add a row in a dataframe.
 The rv are updated and the graph
 proxy is also updated. We handle either adding new node
 or append new node to an existing one. The later case,

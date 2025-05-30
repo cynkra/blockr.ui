@@ -3,9 +3,11 @@
 \name{blockr_ser.dash_board}
 \alias{blockr_ser.dash_board}
 \alias{blockr_ser.dock}
+\alias{blockr_ser.network}
 \alias{blockr_ser.data.frame}
 \alias{blockr_deser.dash_board}
 \alias{blockr_deser.dock}
+\alias{blockr_deser.network}
 \alias{blockr_deser.data.frame}
 \title{Ser/deser board}
 \usage{
@@ -22,11 +24,15 @@
 
 \method{blockr_ser}{dock}(x, ...)
 
+\method{blockr_ser}{network}(x, ...)
+
 \method{blockr_ser}{data.frame}(x, ...)
 
 \method{blockr_deser}{dash_board}(x, data, ...)
 
 \method{blockr_deser}{dock}(x, data, ...)
+
+\method{blockr_deser}{network}(x, data, ...)
 
 \method{blockr_deser}{data.frame}(x, data, ...)
 }

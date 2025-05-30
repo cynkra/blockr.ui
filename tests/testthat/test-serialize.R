@@ -18,7 +18,7 @@ testServer(
     board = reactiveValues(
       blocks = list(),
       board = new_board(
-        class = c("grid_board", "dash_board")
+        class = c("dock_board", "dash_board")
       ),
       board_id = "board" #,
       #inputs = list(),
@@ -28,12 +28,10 @@ testServer(
     ),
     # dot_args
     parent = reactiveValues(
-      grid = data.frame(),
+      grid = structure(list(), class = "dock"),
       mode = "network",
       refreshed = NULL,
-      nodes = data.frame(),
-      selected_block = NULL,
-      edges = data.frame()
+      selected_block = NULL
     )
   ),
   {

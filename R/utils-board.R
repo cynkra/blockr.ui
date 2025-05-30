@@ -9,15 +9,18 @@
 #'
 #' @keywords internal
 blk_icon <- function(category) {
-  switch(
+  res <- switch(
     category,
     "data" = "table",
-    "file" = "file-import",
-    "parse" = "cogs",
+    "file" = "download-simple",
+    "parse" = "gear",
     "plot" = "chart-line",
-    "transform" = "wand-magic-sparkles",
+    "transform" = "magic-wand",
     "table" = "table"
   )
+  # FIXME: We can't use fontawesome in the scoutbaR
+  # due to compatibility issue with the g6R toolbar...
+  phosphoricons::ph_i(res)
 }
 
 #' Create block choices for scoutbaR widget
@@ -162,7 +165,7 @@ board_body <- function(id, board_ui, grid_ui) {
       sidebar = board_properties(
         id = id,
         board_ui$blocks_ui,
-        grid_ui$add_to_grid,
+        grid_ui$add_to_dashboard,
         board_ui$toolbar_ui$manage_blocks$sidebar
       ),
       board_ui$toolbar_ui$manage_links,
@@ -227,7 +230,9 @@ manage_sidebars <- function(board, update, parent, ...) {
   observeEvent(
     c(parent$mode, parent$selected_block),
     {
-      cond <- if (is.null(parent$selected_block)) {
+      cond <- if (
+        is.null(parent$selected_block) || length(parent$selected_block) > 1
+      ) {
         FALSE
       } else {
         (parent$mode == "network" && nchar(parent$selected_block) > 0)

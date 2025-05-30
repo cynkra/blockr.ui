@@ -17,7 +17,7 @@ ser_deser_ui(id, board)
 \item{...}{Extra arguments passed from parent scope}
 }
 \value{
-A \code{\link[shiny:reactiveVal]{shiny::reactiveVal()}} object that evaluates to \code{NULL} or a
+A \link[shiny]{reactiveVal} object that evaluates to \code{NULL} or a
 \code{board} obejct.
 }
 \description{

@@ -5,7 +5,6 @@
 \alias{restore_dashboard.dash_board}
 \alias{find_blocks_ids}
 \alias{find_blocks_ids.dock_board}
-\alias{find_blocks_ids.grid_board}
 \title{Restore dashboard state from board state}
 \usage{
 restore_dashboard(board, blocks, vals, parent, session)
@@ -15,8 +14,6 @@ restore_dashboard(board, blocks, vals, parent, session)
 find_blocks_ids(board, parent, session)
 
 \method{find_blocks_ids}{dock_board}(board, parent, session)
-
-\method{find_blocks_ids}{grid_board}(board, parent, session)
 }
 \arguments{
 \item{board}{Board object.}
@@ -36,6 +33,4 @@ Restore dashboard state from board state
 Find blocks ids generic
 
 Find blocks ids dock method
-
-Find blocks ids grid method
 }

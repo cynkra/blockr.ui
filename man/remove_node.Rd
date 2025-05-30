@@ -9,11 +9,11 @@ remove_node(selected, vals, session)
 \arguments{
 \item{selected}{UID (character string) of node to remove.}
 
-\item{vals}{Reactive values with dataframe representing nodes data.}
+\item{vals}{Global reactive values.}
 
 \item{session}{Shiny session object.}
 }
 \description{
-Update dataframe for visNetwork graph
+Remove node from g6 instance
 }
 \keyword{internal}

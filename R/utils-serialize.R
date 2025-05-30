@@ -26,7 +26,7 @@ blockr_ser.dash_board <- function(
     links = lapply(board_links(x), blockr_ser),
     stacks = lapply(board_stacks(x), blockr_ser),
     options = blockr_ser(board_options(x), options),
-    nodes = blockr_ser(network),
+    network = blockr_ser(network),
     selected_block = selected,
     grid = blockr_ser(grid),
     mode = mode,
@@ -37,6 +37,15 @@ blockr_ser.dash_board <- function(
 #' @rdname blockr_ser
 #' @export
 blockr_ser.dock <- function(x, ...) {
+  list(
+    object = class(x),
+    payload = unclass(x)
+  )
+}
+
+#' @rdname blockr_ser
+#' @export
+blockr_ser.network <- function(x, ...) {
   list(
     object = class(x),
     payload = unclass(x)
@@ -66,7 +75,7 @@ blockr_deser.dash_board <- function(x, data, ...) {
     ),
     # Other elements that are not part of the board
     # and need to be restored at the top level
-    nodes = blockr_deser(data[["nodes"]]),
+    network = blockr_deser(data[["network"]]),
     selected_block = data[["selected_block"]],
     grid = blockr_deser(data[["grid"]]),
     mode = data[["mode"]]
@@ -76,6 +85,12 @@ blockr_deser.dash_board <- function(x, data, ...) {
 #' @rdname blockr_ser
 #' @export
 blockr_deser.dock <- function(x, data, ...) {
+  data[["payload"]]
+}
+
+#' @rdname blockr_ser
+#' @export
+blockr_deser.network <- function(x, data, ...) {
   data[["payload"]]
 }
 
@@ -106,6 +121,12 @@ board_filename <- function(rv) {
   }
 }
 
+#' @keywords internal
+#' @note Needed since g6R does not like auto_unbox = TRUE ...
+to_json <- function(x, ...) {
+  jsonlite::toJSON(blockr_ser(x, ...), null = "null")
+}
+
 #' Save board to disk
 #'
 #' @param rv Internal reactiveValues for read-only usage.
@@ -131,7 +152,7 @@ write_board_to_disk <- function(rv, parent, session) {
       to_json(
         rv$board,
         blocks,
-        parent$nodes,
+        parent$network,
         parent$grid,
         parent$selected_block,
         parent$mode,
@@ -230,8 +251,8 @@ restore_board <- function(path, res, parent) {
   res(tmp_res$board)
   # Update parent node, grid, selected, mode
   # that were stored in the JSON but not part of the board object.
-  parent$nodes <- tmp_res$nodes
-  parent$grid <- tmp_res$grid
+  parent$network <- structure(tmp_res$network, class = "network")
+  parent$grid <- structure(tmp_res$grid, class = "dock")
   parent$selected_block <- tmp_res$selected_block
   parent$mode <- tmp_res$mode
 }

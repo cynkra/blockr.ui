@@ -1,3 +1,15 @@
+# blockr.ui 1.0.0
+
+## Breaking changes
+
+- Removed grid modules
+- Drop visNetwork support
+
+## New features
+
+- New graph engine relying on `{g6R}`.
+- New dashboard engine relying on `{dockViewR}`.
+
 # blockr.ui 0.5.0
 
 - New stack management system.

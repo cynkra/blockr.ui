@@ -2,7 +2,7 @@
 #'
 #' Run demo app
 #'
-#' @param ... Forwarded to [blockr.core::new_board()]
+#' @param ... Forwarded to \link[blockr.core]{new_board}.
 #'
 #' @export
 run_demo_app <- function(...) {
@@ -42,7 +42,7 @@ new_dash_board <- function(...) {
 }
 
 #' @keywords internal
-validate_dashboard_type <- function(type = c("grid", "dock")) {
+validate_dashboard_type <- function(type = c("dock")) {
   type <- match.arg(type)
 }
 
@@ -57,6 +57,7 @@ serve.dash_board <- function(x, id = "main", ...) {
 
   ui <- page_fillable(
     shinyjs::useShinyjs(),
+    custom_icons(),
     main_ui(id, x)
   )
 
