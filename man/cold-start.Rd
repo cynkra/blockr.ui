@@ -33,7 +33,7 @@ cold_start(vals, rv, parent, session)
 \item{session}{Shiny session}
 }
 \description{
-That's different from \link{restore_g6_network}, as the
+That's different from \link{restore_network}, as the
 latter restore a network from a JSON compatible structure.
 Here we need to re-create all the JSON from the board blocks,
 links and stacks.

@@ -798,7 +798,7 @@ apply_validation <- function(id, vals, rv, session) {
   ns <- session$ns
   # Restore blue color if valid
   edges <- as.data.frame(board_links(rv$board))
-  connected_edges <- edges[edges$from == id, ]
+  connected_edges <- edges[edges$from == id, "id"]
 
   if (is.null(message)) {
     # Reset node defaults
@@ -814,8 +814,8 @@ apply_validation <- function(id, vals, rv, session) {
     )
 
     # Reset connected edges
-    if (nrow(connected_edges) > 0) {
-      new_edges <- lapply(edges$id, \(id) {
+    if (length(connected_edges) > 0) {
+      new_edges <- lapply(connected_edges, \(id) {
         list(
           id = id,
           type = "fly-marker-cubic",
@@ -880,15 +880,16 @@ apply_validation <- function(id, vals, rv, session) {
     )
 
     # Style connected edges
-    if (nrow(connected_edges) > 0) {
-      new_edges <- lapply(edges$id, \(id) {
+    if (length(connected_edges) > 0) {
+      new_edges <- lapply(connected_edges, \(id) {
         list(
           id = id,
           type = "cubic",
           style = list(
             stroke = "#ee705c",
-            badgeText = "🛑",
-            badgeBackground = FALSE
+            badgeText = "ERROR",
+            badgeBackgroundFill = "#ee705c",
+            badgeBackground = TRUE
           ),
           animation = list(),
           states = list("inactive")
@@ -1200,7 +1201,7 @@ create_combos_data_from_stacks <- function(
 
 #' Create network data from board
 #'
-#' That's different from \link{restore_g6_network}, as the
+#' That's different from \link{restore_network}, as the
 #' latter restore a network from a JSON compatible structure.
 #' Here we need to re-create all the JSON from the board blocks,
 #' links and stacks.
