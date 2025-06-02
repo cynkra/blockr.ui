@@ -45,16 +45,6 @@ check_connections.rbind_block <- function(x, target, rv) {
   TRUE
 }
 
-#' @export
-check_connections.llm_plot_block <- function(x, target, rv) {
-  TRUE
-}
-
-#' @export
-check_connections.llm_transform_block <- function(x, target, rv) {
-  TRUE
-}
-
 #' Check whether the node can receive connection
 #'
 #' @param x Block object.
@@ -125,12 +115,6 @@ define_conlabel.rbind_block <- function(x, target, rv) {
   res <- if (!length(links)) 1 else length(links) + 1
   as.character(res)
 }
-
-#' @export
-define_conlabel.llm_plot_block <- define_conlabel.rbind_block
-
-#' @export
-define_conlabel.llm_transform_block <- define_conlabel.rbind_block
 
 #' Initialize a G6 ANTV Network Visualization
 #'
