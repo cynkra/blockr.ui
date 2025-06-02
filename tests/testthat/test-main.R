@@ -12,6 +12,7 @@ testServer(
         "in_grid",
         "refreshed",
         "network",
+        "add_block",
         "append_block",
         "added_block",
         "removed_block",

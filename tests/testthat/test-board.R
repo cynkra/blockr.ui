@@ -148,7 +148,7 @@ test_that("Board dock app works", {
   app$expect_values(input = inputs, export = TRUE)
 
   # Add block
-  app$click("main-board-manage_blocks-add_block")
+  app$click(selector = ".g6-toolbar-item[value=\"add-block\"")
   app$wait_for_idle()
   app$click(
     selector = ".scout__bar-wrapper button[aria-label=\"dataset_block\"]"

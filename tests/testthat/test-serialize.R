@@ -1,7 +1,7 @@
 library(blockr.core)
 library(blockr.dplyr)
 
-mock_add_block <- function(blk, rv, parent, obs, session) {
+mock_add_block <- function(blk, rv, parent, session) {
   board_blocks(rv$board) <- c(board_blocks(rv$board), as_blocks(blk))
   attr(blk, "uid") <- tail(board_block_ids(rv$board), n = 1)
   rv$blocks[[attr(blk, "uid")]] <- list(
@@ -9,7 +9,7 @@ mock_add_block <- function(blk, rv, parent, obs, session) {
     # Need server part for serialisation
     server = block_server(attr(blk, "uid"), blk)
   )
-  create_node(blk, parent, rv, FALSE, obs, session)
+  create_node(blk, parent, rv, FALSE, session)
 }
 
 testServer(
@@ -20,14 +20,11 @@ testServer(
       board = new_board(
         class = c("dock_board", "dash_board")
       ),
-      board_id = "board" #,
-      #inputs = list(),
-      #links = list(),
-      #msgs = reactiveVal(),
-      #stacks = list()
+      board_id = "board"
     ),
     # dot_args
     parent = reactiveValues(
+      network = structure(list(), class = "network"),
       grid = structure(list(), class = "dock"),
       mode = "network",
       refreshed = NULL,
@@ -35,7 +32,6 @@ testServer(
     )
   ),
   {
-    obs <- list()
     expect_null(vals$current_backup)
 
     # Add new block
@@ -43,7 +39,6 @@ testServer(
       new_dataset_block(dataset = "BOD"),
       board,
       dot_args$parent,
-      obs,
       session
     )
     dot_args$parent$selected_block <- board_block_ids(board$board)
@@ -56,7 +51,6 @@ testServer(
       new_dataset_block(dataset = "CO2"),
       board,
       dot_args$parent,
-      obs,
       session
     )
     dot_args$parent$selected_block <- board_block_ids(board$board)[2]
@@ -65,12 +59,10 @@ testServer(
     session$elapse(2000) # for debounce
     # We should have 2 snaps
     expect_identical(vals$current_backup, 2L)
-    expect_true(nrow(dot_args$parent$nodes) == 2)
 
     # Restore previous snapshot
     session$setInputs(undo = 0)
     expect_identical(vals$current_backup, 1)
-    expect_true(nrow(dot_args$parent$nodes) == 1)
     expect_identical(
       dot_args$parent$selected_block,
       board_block_ids(board$board)[1]
@@ -79,7 +71,6 @@ testServer(
     # Restore latest
     session$setInputs(redo = 0)
     expect_identical(vals$current_backup, 2)
-    expect_true(nrow(dot_args$parent$nodes) == 2)
     expect_identical(
       dot_args$parent$selected_block,
       board_block_ids(board$board)[2]
@@ -89,7 +80,6 @@ testServer(
     session$setInputs(
       restore = list(datapath = vals$backup_list[[1]])
     )
-    expect_true(nrow(dot_args$parent$nodes) == 1)
     expect_identical(
       dot_args$parent$selected_block,
       board_block_ids(board$board)[1]
