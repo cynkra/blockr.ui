@@ -1240,4 +1240,7 @@ cold_start <- function(vals, rv, parent, session) {
     vals = parent,
     session = session
   )
+
+  parent$refreshed <- "network"
+  parent
 }
