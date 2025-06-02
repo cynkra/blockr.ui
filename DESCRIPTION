@@ -47,6 +47,7 @@ Remotes:
     BristolMyersSquibb/blockr.ai,
     BristolMyersSquibb/blockr.sdtm,
     cynkra/g6R
+    cynkra/scoutbaR
 Suggests: 
     shinytest2,
     testthat (>= 3.0.0),
