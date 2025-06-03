@@ -6,7 +6,7 @@
 #' @param board Reactive values object
 #' @param ... Extra arguments passed from parent scope
 #'
-#' @return A [shiny::reactiveVal()] object that evaluates to `NULL` or a
+#' @return A \link[shiny]{reactiveVal} object that evaluates to `NULL` or a
 #' `board` obejct.
 #'
 #' @rdname ser_deser

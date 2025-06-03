@@ -14,7 +14,7 @@ mock_add_block <- function(blk, board_update, parent, session) {
   session$flushReact()
 }
 
-create_mock_board <- function(type = c("grid", "dock")) {
+create_mock_board <- function(type = c("dock")) {
   type <- match.arg(type)
   new_board(
     class = c(sprintf("%s_board", type), "dash_board"),
@@ -25,7 +25,7 @@ create_mock_board <- function(type = c("grid", "dock")) {
   )
 }
 
-create_mock_params <- function(type = c("grid", "dock")) {
+create_mock_params <- function(type = c("dock")) {
   type <- match.arg(type)
   board <- create_mock_board(type)
   list(
@@ -87,20 +87,20 @@ test_board_server <- function(type = c("grid", "dock")) {
       lapply(board_block_ids(rv$board), \(blk_id) {
         expect_false(dot_args$parent$in_grid[[blk_id]])
       })
-      session$setInputs(add_to_grid = TRUE)
+      session$setInputs(add_to_dashboard = TRUE)
       expect_true(dot_args$parent$in_grid[[dot_args$parent$selected_block]])
       session$setInputs(mode = 3)
       dot_args$parent$selected_block <- board_block_ids(rv$board)[[2]]
       session$flushReact()
-      session$setInputs(add_to_grid = TRUE)
+      session$setInputs(add_to_dashboard = TRUE)
       lapply(board_block_ids(rv$board), \(blk_id) {
         expect_true(dot_args$parent$in_grid[[blk_id]])
       })
 
-      session$setInputs(add_to_grid = FALSE)
+      session$setInputs(add_to_dashboard = FALSE)
       dot_args$parent$selected_block <- board_block_ids(rv$board)[[1]]
       session$flushReact()
-      session$setInputs(add_to_grid = FALSE)
+      session$setInputs(add_to_dashboard = FALSE)
       lapply(board_block_ids(rv$board), \(blk_id) {
         expect_false(dot_args$parent$in_grid[[blk_id]])
       })
@@ -108,13 +108,13 @@ test_board_server <- function(type = c("grid", "dock")) {
       output[[type]]
 
       # Remove block (see if vals$in_grid is updated)
-      session$setInputs(add_to_grid = TRUE)
+      session$setInputs(add_to_dashboard = TRUE)
       dot_args$parent$removed_block <- board_block_ids(rv$board)[[1]]
       session$flushReact()
       expect_named(dot_args$parent$in_grid, board_block_ids(rv$board))
 
       # Grid zoom
-      session$setInputs(grid_zoom = 1)
+      session$setInputs(dashboard_zoom = 1)
 
       # Lock grid
       session$setInputs(lock = TRUE)
@@ -126,43 +126,6 @@ test_board_server <- function(type = c("grid", "dock")) {
   )
 }
 
-# Test grid board
-test_board_server("grid")
-
-test_that("Board grid app works", {
-  skip_on_cran()
-  app <- AppDriver$new(
-    system.file(package = "blockr.ui", "examples/dashboard/grid"),
-    name = "dashboard-grid-app",
-    seed = 4323
-  )
-
-  inputs <- c(
-    "main-board-manage_blocks-scoutbar-configuration",
-    "main-board-manage_links-network_initialized",
-    "main-board-lock",
-    "main-board-properties",
-    "main-board-dashboard"
-  )
-
-  app$expect_values(input = inputs, export = TRUE)
-
-  # Add block
-  app$click("main-board-manage_blocks-add_block")
-  app$wait_for_idle()
-  app$click(
-    selector = ".scout__bar-wrapper button[aria-label=\"dataset_block\"]"
-  )
-  app$wait_for_idle()
-  app$expect_values(input = inputs, export = TRUE)
-  app$click("main-board-manage_blocks-remove_block")
-  app$wait_for_idle()
-  app$expect_values(input = inputs, export = TRUE)
-  app$stop()
-})
-
-###### DOCK ######
-# Test grid board
 test_board_server("dock")
 
 test_that("Board dock app works", {
@@ -185,7 +148,7 @@ test_that("Board dock app works", {
   app$expect_values(input = inputs, export = TRUE)
 
   # Add block
-  app$click("main-board-manage_blocks-add_block")
+  app$click(selector = ".g6-toolbar-item[value=\"add-block\"")
   app$wait_for_idle()
   app$click(
     selector = ".scout__bar-wrapper button[aria-label=\"dataset_block\"]"

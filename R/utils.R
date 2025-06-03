@@ -50,14 +50,34 @@ reval_if <- function(x) if (is.function(x)) x() else x
 #' @keywords internal
 process_app_state <- function(state) {
   stopifnot(is.list(state))
-  stopifnot("nodes" %in% names(state))
 
   setNames(
     lapply(names(state), \(nme) {
-      if (nme == "nodes") {
+      if (nme == "network") {
         # drop the x and y coords as this may not be reproducible
-        if (nrow(state[[nme]]) > 0) {
-          subset(state[[nme]], select = -c(x, y))
+        if (length(state[[nme]]$nodes) > 0 || length(state[[nme]]$combos)) {
+          if (length(state[[nme]]$nodes)) {
+            state[[nme]]$nodes <- lapply(
+              state[[nme]]$nodes,
+              \(node) {
+                node$x <- NULL
+                node$y <- NULL
+                node
+              }
+            )
+          }
+
+          if (length(state[[nme]]$combos)) {
+            state[[nme]]$combos <- lapply(
+              state[[nme]]$combos,
+              \(combo) {
+                combo$x <- NULL
+                combo$y <- NULL
+                combo
+              }
+            )
+          }
+          state[[nme]]
         } else {
           state[[nme]]
         }

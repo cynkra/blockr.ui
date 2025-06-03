@@ -1,219 +1,3 @@
-#' Add a node
-#'
-#' Update dataframe for visNetwork graph
-#'
-#' @param new New block to add.
-#' @param vals Global reactive values. To communicate between modules
-#' @keywords internal
-add_node <- function(new, vals) {
-  stopifnot(
-    is_block(new),
-    is.data.frame(vals$nodes)
-  )
-
-  node_data <- data.frame(
-    id = block_uid(new),
-    label = paste(
-      attr(new, "class")[1],
-      "\n id:",
-      block_uid(new)
-    ),
-    title = NA,
-    shape = "dot",
-    shapeProperties.borderDashes = NA,
-    color.background = "#dbebff",
-    color.border = "#dbebff",
-    color.highlight.background = "#dbebff",
-    color.highlight.border = "#dbebff",
-    borderWidth = 4,
-    group = NA,
-    icon.code = NA,
-    x = NA,
-    y = NA
-  )
-
-  vals$nodes <- if (nrow(vals$nodes) == 0) {
-    node_data
-  } else {
-    rbind(
-      vals$nodes,
-      node_data
-    )
-  }
-  vals
-}
-
-#' Add a edge
-#'
-#' Update dataframe for visNetwork graph
-#'
-#' @param id Edge id. If create_link is FALSE, id cannot be not NULL.
-#' @param from Node id.
-#' @param to Node it.
-#' @param label Edge label. This is useful to map the existing connected
-#' nodes to the input slots of the receiving node (for instance a join block).
-#' @param vals Global vals reactive values. Read-write access.
-#' @param create_link Create a link in the board?
-#' @keywords internal
-add_edge <- function(id = NULL, from, to, label, vals, create_link = TRUE) {
-  stopifnot(
-    is.character(from),
-    is.character(to),
-    is.data.frame(vals$edges)
-  )
-  if (
-    isTRUE(create_link) && !is.null(id) || isFALSE(create_link) && is.null(id)
-  ) {
-    stop(
-      "When create_link is TRUE, id must be NULL.
-      When create_link is FALSE, id can't be NULL."
-    )
-  }
-
-  edge_data <- data.frame(
-    from = from,
-    to = to,
-    label = label,
-    arrows.to.src = NA,
-    arrows.to.imageWidth = NA,
-    arrows.to.imageHeight = NA,
-    arrows.to.enabled = TRUE,
-    arrows.to.type = "arrow",
-    width = 2,
-    color = "#9db5cc",
-    dashes = FALSE
-  )
-
-  if (!is.null(id)) {
-    edge_data <- cbind(id = id, edge_data)
-  }
-
-  # Create link
-  if (create_link) {
-    vals$added_edge <- as_links(
-      new_link(
-        from = edge_data$from,
-        to = edge_data$to,
-        input = edge_data$label
-      )
-    )
-    # Add link id for edge id to be able to remove it later ...
-    edge_data$id <- vals$added_edge$id
-  }
-
-  if (nrow(vals$edges) == 0) {
-    vals$edges <- edge_data
-  } else {
-    vals$edges <- rbind(
-      vals$edges,
-      edge_data
-    )
-  }
-
-  vals
-}
-
-#' Remove a node
-#'
-#' Update dataframe for visNetwork graph
-#'
-#' @param selected UID (character string) of node to remove.
-#' @param vals Reactive values with dataframe representing nodes data.
-#' @param session Shiny session object.
-#' @keywords internal
-remove_node <- function(selected, vals, session) {
-  stopifnot(
-    is.data.frame(vals$nodes),
-    nrow(vals$nodes) > 0,
-    is.character(selected),
-    nchar(selected) > 0
-  )
-
-  ns <- session$ns
-
-  to_remove <- which(vals$nodes$id == selected)
-  if (length(to_remove) == 0) {
-    stop(sprintf("Can't find node with id %s in the data", selected))
-  }
-
-  visNetworkProxy(ns("network"), session = session) |>
-    visRemoveNodes(selected)
-
-  # Unselect all nodes
-  session$sendCustomMessage(
-    "reset-node-selection",
-    list(id = sprintf("#%s", ns("network")))
-  )
-  vals$selected_block <- NULL
-
-  # Cleanup any associated stack
-  # If this node was the last member of an existing stack
-
-  vals$nodes <- vals$nodes[-to_remove, ]
-  vals
-}
-
-#' Remove a node and associated edges
-#'
-#' Combine \link{remove_node} with \link{remove_edge}.
-#'
-#' @param selected UID (character string) of node to remove.
-#' @param vals Reactive values with dataframe representing nodes data.
-#' @param session Shiny session object.
-#' @keywords internal
-cleanup_node <- function(selected, vals, session) {
-  remove_node(selected, vals, session)
-  # Need to cleanup any edge associated with this node
-  if (nrow(vals$edges) > 0) {
-    # loop over all edges where the target node is part
-    edges_to_remove <- c(
-      vals$edges[
-        vals$edges$from == selected,
-        "id"
-      ],
-      vals$edges[
-        vals$edges$to == selected,
-        "id"
-      ]
-    )
-    for (edge in edges_to_remove) {
-      remove_edge(edge, vals, session)
-    }
-  }
-  vals
-}
-
-#' Remove an edge
-#'
-#' Update dataframe for visNetwork graph
-#'
-#' @param selected UID (character string) of edge to remove.
-#' @param vals Reactive values containing dataframe representing edges data.
-#' @param session Shiny session object.
-#' @keywords internal
-remove_edge <- function(selected, vals, session) {
-  stopifnot(
-    is.data.frame(vals$edges),
-    nrow(vals$edges) > 0,
-    is.character(selected),
-    nchar(selected) > 0
-  )
-  to_remove <- grep(selected, vals$edges$id)
-  if (length(to_remove) == 0) {
-    stop(sprintf("Can't find edge with id %s in the data", selected))
-  }
-
-  ns <- session$ns
-
-  vals$removed_edge <- vals$edges[to_remove, "id"]
-  vals$edges <- vals$edges[-to_remove, ]
-
-  visNetworkProxy(ns("network"), session = session) |>
-    visRemoveEdges(vals$removed_edge)
-
-  vals
-}
-
 #' List node connections
 #'
 #' @param x block.
@@ -258,16 +42,6 @@ check_connections.block <- function(x, target, rv) {
 
 #' @export
 check_connections.rbind_block <- function(x, target, rv) {
-  TRUE
-}
-
-#' @export
-check_connections.llm_plot_block <- function(x, target, rv) {
-  TRUE
-}
-
-#' @export
-check_connections.llm_transform_block <- function(x, target, rv) {
   TRUE
 }
 
@@ -342,58 +116,310 @@ define_conlabel.rbind_block <- function(x, target, rv) {
   as.character(res)
 }
 
-#' @export
-define_conlabel.llm_plot_block <- define_conlabel.rbind_block
-
-#' @export
-define_conlabel.llm_transform_block <- define_conlabel.rbind_block
-
-#' Create an edge and add it to the network
+#' Initialize a G6 ANTV Network Visualization
 #'
-#' This is different from \link{add_edge}, the later
-#' is just involved to add a row in a dataframe.
-#' There is a validation layer prior to knowing whether
-#' we can add the edge. Then rv are updated and the graph
-#' proxy is also updated.
+#' Creates a G6 ANTV network visualization with pre-configured options for nodes, edges,
+#' layout, behaviors, and plugins.
 #'
-#' @param new Edge data. A list like
-#' \code{list(from = "from_node_ID", to = "to_node_ID")}.
-#' @param vals Global reactive values. Read-write.
-#' @param rv Board reactive values. Read-only.
-#' @param session Shiny session object.
+#' @param nodes A data frame or list containing node information. Each node should
+#'   typically have at least an `id` field, and optionally other attributes like `label`.
+#'   Default is `NULL`.
+#' @param edges A data frame or list containing edge information. Each edge typically
+#'   needs `source` and `target` fields to define connections. Default is `NULL`.
+#' @param ns Session namespace.
+#' @details
+#' This function initializes a G6 network visualization with several pre-configured features:
+#'
+#' \itemize{
+#'   \item Node styling with background labels
+#'   \item Combo (group) support with circular styling
+#'   \item Curved edge paths with directional arrows and dashed styling
+#'   \item Dagre layout algorithm optimized for directed graphs
+#'   \item Interactive behaviors including zoom, drag, selection, and edge creation
+#'   \item Plugins for minimap, tooltips, fullscreen mode, context menu, and toolbar
+#' }
+#'
+#' @return A G6 network visualization object that can be further customized or directly
+#'   rendered in R Markdown, Shiny, or other R environments.
 #' @keywords internal
-create_edge <- function(new, vals, rv, session) {
-  ns <- session$ns
-  stopifnot(is.list(new))
+initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
+  g6(
+    nodes = nodes,
+    edges = edges
+  ) |>
+    default_g6_options() |>
+    g6_layout(
+      layout = list(
+        type = "force"
+      )
+    ) |>
+    default_g6_behaviors(ns = ns) |>
+    default_g6_plugins(ns = ns)
+}
 
-  if (!validate_edge_creation(new$to, rv)) {
-    if (vals$append_block) {
-      remove_node(new$to, vals, session)
-      vals$cancelled_edge <- new$to
-    }
-    stop()
+#' Default g6 network options
+#' @param graph g6 network instance.
+#' @param ... Extra option parameters.
+#' @param ns Module namespace.
+#' @keywords internal
+#' @rdname default-g6
+default_g6_options <- function(graph, ...) {
+  if (!inherits(graph, "g6")) {
+    stop("default_g6_options must be called on a g6 instance")
   }
 
-  to_blk <- rv$blocks[[new$to]]$block
+  graph |>
+    g6_options(
+      ...,
+      animation = FALSE,
+      node = list(
+        style = list(
+          labelBackground = TRUE,
+          labelBackgroundRadius = 4,
+          labelFontFamily = "Arial",
+          labelPadding = c(0, 4),
+          labelText = JS(
+            "(d) => {
+          return d.label
+        }"
+          )
+        )
+      ),
+      combo = list(
+        animation = FALSE,
+        type = "circle-combo-with-extra-button",
+        style = list(
+          labelText = JS(
+            "(d) => {
+          return `Stack: ${d.label}`
+        }"
+          )
+        )
+      ),
+      edge = list(
+        style = list(
+          endArrow = TRUE,
+          lineDash = c(5, 5),
+          labelText = JS(
+            "(d) => {
+          return d.label
+        }"
+          )
+        )
+      )
+    )
+}
 
-  # Create the connection
-  add_edge(
-    from = new$from,
-    to = new$to,
-    # The connection is be made with the latest available input slot
-    label = define_conlabel(to_blk, new$to, rv),
-    vals = vals
-  )
+#' @rdname default-g6
+#' @keywords internal
+default_g6_behaviors <- function(graph, ..., ns) {
+  if (!inherits(graph, "g6")) {
+    stop("default_g6_options must be called on a g6 instance")
+  }
 
-  visNetworkProxy(ns("network")) |>
-    visUpdateEdges(vals$edges)
-  vals
+  graph |>
+    g6_behaviors(
+      ...,
+      "zoom-canvas",
+      "drag-canvas",
+      # So we can add node to stack from the UI by drag and drop
+      drag_element(dropEffect = "link"),
+      click_select(multiple = TRUE),
+      brush_select(),
+      # avoid conflict with internal function
+      g6R::create_edge(
+        onFinish = JS(
+          sprintf(
+            "(edge) => {
+              const graph = HTMLWidgets.find('#%s').getWidget();
+              const targetType = graph.getElementType(edge.target);
+              // Avoid to create edges in combos. If so, we remove it
+              if (targetType !== 'node') {
+                graph.removeEdgeData([edge.id]);
+              } else {
+                Shiny.setInputValue('%s', edge);
+                // Then we reset the behaviors so there is no conflict
+                graph.updateBehavior({
+                  key: 'create-edge', // Specify the behavior to update
+                  enable: false,
+                });
+                // Re-enable drag element bahaviors
+                graph.updateBehavior({ key: 'drag-element', enable: true });
+                graph.updateBehavior({ key: 'drag-element-force', enable: true });
+              }
+            }",
+            ns("network"),
+            ns("added_edge")
+          )
+        )
+      )
+    )
+}
+
+#' @rdname default-g6
+#' @keywords internal
+default_g6_plugins <- function(graph, ..., ns) {
+  if (!inherits(graph, "g6")) {
+    stop("default_g6_options must be called on a g6 instance")
+  }
+
+  graph |>
+    g6_plugins(
+      ...,
+      #"minimap",
+      "tooltip",
+      grid_line(),
+      fullscreen(),
+      # Conditional menu for edge and nodes
+      context_menu(
+        enable = JS(
+          "(e) => { 
+          let cond = e.targetType === 'edge' || 
+            e.targetType === 'node' || 
+            e.targetType === 'canvas' || 
+            e.targetType === 'combo';
+          return cond;
+          }"
+        ),
+        # nolint start
+        onClick = JS(
+          sprintf(
+            "(value, target, current) => {
+            const graphId = `${target.closest('.g6').id}`;
+            const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
+            if ((value !== 'create_stack' && value !== 'add_block') && current.id === undefined) return;
+            if (value === 'create_edge') {
+              graph.updateBehavior({
+                key: 'create-edge', // Specify the behavior to update
+                enable: true,
+              });
+              // Select node
+              graph.setElementState(current.id, 'selected');
+              // Disable drag node as it is incompatible with edge creation
+              graph.updateBehavior({ key: 'drag-element', enable: false });
+              graph.updateBehavior({ key: 'drag-element-force', enable: false });
+            } else if (value === 'remove_node') {
+              // Send message to R so we can modify the
+              // graph from R and not from JS
+              Shiny.setInputValue('%s', current.id)
+            } else if (value === 'remove_edge') {
+              // Needed to destroy the link since edge id can't be edited
+              // so the link ID is stored in the data attributes.
+              Shiny.setInputValue('%s', current.id);
+              graph.removeEdgeData([current.id]);
+              graph.draw();
+            } else if (value === 'append_node') {
+              Shiny.setInputValue('%s', true, {priority: 'event'})
+            } else if (value === 'create_stack') {
+              Shiny.setInputValue('%s', true, {priority: 'event'})
+            } else if (value === 'remove_stack') {
+              Shiny.setInputValue('%s', current.id)
+            } else if (value === 'add_block') {
+              Shiny.setInputValue('%s', true, {priority: 'event'})
+            }
+          }",
+            ns("removed_node"),
+            ns("removed_edge"),
+            ns("append_node"),
+            ns("create_stack"),
+            ns("remove_stack"),
+            ns("add_block")
+          )
+        ),
+        # nolint end
+        getItems = JS(
+          "(e) => {
+          if (e.targetType === 'node') {
+            return [
+              { name: 'Create edge', value: 'create_edge' },
+              { name: 'Append node', value: 'append_node' },
+              { name: 'Remove node', value: 'remove_node' }
+            ];
+          } else if (e.targetType === 'edge') {
+            return [
+              { name: 'Remove edge', value: 'remove_edge' }
+            ];
+          } else if (e.targetType === 'canvas') {
+            return [
+              { name: 'Create stack', value: 'create_stack' },
+              { name: 'New block', value: 'add_block' }
+            ];
+          } else if (e.targetType === 'combo') {
+            return [
+              { name: 'Remove stack', value: 'remove_stack' }
+            ];
+          }
+        }"
+        )
+      ),
+      g6R::toolbar(
+        style = list(
+          backgroundColor = "#f5f5f5",
+          padding = "8px",
+          boxShadow = "0 2px 8px rgba(0, 0, 0, 0.15)",
+          borderRadius = "8px",
+          border = "1px solid #e8e8e8",
+          opacity = "0.9",
+          marginTop = "12px",
+          marginLeft = "12px"
+        ),
+        position = "left",
+        getItems = JS(
+          "( ) => [   
+            { id : 'zoom-in' , value : 'zoom-in' } ,  
+            { id : 'zoom-out' , value : 'zoom-out' } ,   
+            { id : 'auto-fit' , value : 'auto-fit' } ,
+            { id: 'delete', value: 'delete' }, 
+            { id: 'request-fullscreen', value: 'request-fullscreen' },
+            { id: 'exit-fullscreen', value: 'exit-fullscreen' },
+            { id: 'add-block', value : 'add-block'}
+          ]"
+        ),
+        onClick = JS(
+          sprintf(
+            "( value, target, current ) => {   
+              // Handle button click events
+            const graph = HTMLWidgets.find(`#${target.closest('.g6').id}`).getWidget();
+            const fullScreen = graph.getPluginInstance('fullscreen');
+            const zoomLevel = graph.getZoom();
+              if ( value === 'zoom-in' ) {   
+                graph.zoomTo (graph.getZoom() + 0.1);
+              } else if ( value === 'zoom-out' ) {     
+                graph.zoomTo (graph.getZoom() - 0.1);
+              } else if ( value === 'auto-fit' ) {     
+                graph.fitView ( ) ;
+              } else if (value === 'delete') {
+                const selectedNodes = graph.getElementDataByState('node', 'selected').map(
+                  (node) => {
+                  return node.id
+                  }
+                );
+                // Send message R so we can modify the network from R
+                // and not JS.
+                Shiny.setInputValue('%s', selectedNodes);
+              } else if (value === 'request-fullscreen') {
+                if (fullScreen !== undefined) {
+                  fullScreen.request();
+                }
+              } else if (value === 'exit-fullscreen') {
+                if (fullScreen !== undefined) {
+                  fullScreen.exit();
+                }
+              } else if (value === 'add-block') {
+                Shiny.setInputValue('%s', true, {priority: 'event'});
+              }
+            }
+          ",
+            ns("removed_node"),
+            ns("add_block")
+          )
+        )
+      )
+    )
 }
 
 #' Create a new node it to the network
 #'
-#' This is different from \link{add_node}, the later
-#' is just involved to add a row in a dataframe.
 #' The rv are updated and the graph
 #' proxy is also updated. We handle either adding new node
 #' or append new node to an existing one. The later case,
@@ -401,41 +427,56 @@ create_edge <- function(new, vals, rv, session) {
 #' required in practice as a node can theoretically feed
 #' as many children nodes as required.
 #'
-#' @param new New block to add.
+#' @param new New block to add. A block object.
 #' @param vals Global reactive values. To communicate between modules.
 #' @param rv Board reactive values. Read-only.
 #' @param validate Whether to register validation observers for the node.
 #' Default to TRUE.
-#' @param obs Observer list.
 #' @param session Shiny session object.
 #' @keywords internal
-create_node <- function(new, vals, rv, validate = TRUE, obs, session) {
+create_node <- function(new, vals, rv, validate = TRUE, session) {
+  stopifnot(
+    is_block(new)
+  )
   input <- session$input
   ns <- session$ns
 
-  # Update node vals for the network rendering
-  add_node(new, vals)
-  # Handle add_block_to where we also setup the connections
+  new_node <- list(
+    id = block_uid(new),
+    label = paste(
+      attr(new, "class")[1],
+      "\n id:",
+      block_uid(new)
+    ),
+    style = list(
+      labelBackgroundFill = "#a0cafa"
+    )
+  )
+
+  # Select new, unselect old
+  if (is.null(input[["network-selected_node"]])) {
+    to_select <- setNames(list("selected"), block_uid(new))
+  } else {
+    to_select <- setNames(
+      list("selected", ""),
+      c(block_uid(new), input[["network-selected_node"]])
+    )
+  }
+
+  g6_proxy(ns("network")) |>
+    g6_add_nodes(list(new_node)) |>
+    g6_set_nodes(to_select)
+
   if (isTRUE(vals$append_block)) {
     create_edge(
       new = list(
-        from = input$network_selected,
-        to = block_uid(new)
+        source = input[["network-selected_node"]],
+        target = block_uid(new)
       ),
       vals,
       rv,
       session
     )
-
-    from_node <- vals$nodes[vals$nodes$id == input$network_selected, ]
-    if (!is.na(from_node[["group"]])) {
-      add_node_to_stack(
-        block_uid(new),
-        from_node[["group"]],
-        from_node[["color"]],
-        vals
-      )
-    }
   }
 
   # Handle node update. Change of color due to block validity change ...
@@ -450,19 +491,169 @@ create_node <- function(new, vals, rv, validate = TRUE, obs, session) {
     )
   }
 
-  # Register right click menu
-  register_node_menu_obs(
-    block_uid(new),
-    vals,
-    obs,
-    session
-  )
+  # Register add to stack/remove from stack behavior
+  register_node_stack_link(block_uid(new), rv, vals, session)
 
-  visNetworkProxy(ns("network")) |>
-    visUpdateNodes(vals$nodes) |>
-    visSelectNodes(id = utils::tail(vals$nodes$id, n = 1))
+  g6_proxy(ns("network")) |>
+    g6_fit_center()
+
   vals
 }
+
+#' Remove a node
+#'
+#' Remove node from g6 instance
+#'
+#' @param selected UID (character string) of node to remove.
+#' @param vals Global reactive values.
+#' @param session Shiny session object.
+#' @keywords internal
+remove_node <- function(selected, vals, session) {
+  stopifnot(
+    is.character(selected),
+    nchar(selected) > 0
+  )
+
+  ns <- session$ns
+
+  # clear node selection + remove
+  g6_proxy(ns("network")) |>
+    g6_set_nodes(setNames(list(""), selected)) |>
+    g6_remove_nodes(ids = selected)
+
+  vals
+}
+
+
+#' Remove an edge
+#'
+#' Update dataframe for visNetwork graph
+#'
+#' @param selected UID (character string) of edge to remove.
+#' @param vals Reactive values containing dataframe representing edges data.
+#' @param session Shiny session object.
+#' @keywords internal
+remove_edge <- function(selected, vals, session) {
+  stopifnot(
+    is.character(selected),
+    nchar(selected) > 0
+  )
+
+  ns <- session$ns
+
+  vals$removed_edge <- selected
+
+  g6_proxy(ns("network")) |>
+    g6_remove_edges(ids = vals$removed_edge)
+
+  vals
+}
+
+#' Remove a node and associated edges
+#'
+#' Combine \link{remove_node} with \link{remove_edge}.
+#'
+#' @param selected UID (character string) of node to remove.
+#' @param vals Reactive values with dataframe representing nodes data.
+#' @param rv Board reactive values. Read-only.
+#' @param session Shiny session object.
+#' @keywords internal
+cleanup_node <- function(selected, vals, rv, session) {
+  remove_node(selected, vals, session)
+  # Need to cleanup any edge associated with this node
+  edges <- as.data.frame(board_links(rv$board))
+  if (nrow(edges) > 0) {
+    # loop over all edges where the target node is part
+    edges_to_remove <- c(
+      edges[
+        edges$from == selected,
+        "id"
+      ],
+      edges[
+        edges$to == selected,
+        "id"
+      ]
+    )
+    for (edge in edges_to_remove) {
+      remove_edge(edge, vals, session)
+    }
+  }
+  vals
+}
+
+
+#' Create an edge and add it to the network
+#'
+#' There is a validation layer prior to knowing whether
+#' we can add the edge. Then rv are updated and the graph
+#' proxy is also updated.
+#'
+#' @param new Edge data. A list like
+#' \code{list(source = "from_node_ID", target = "to_node_ID")}.
+#' @param vals Global reactive values. Read-write.
+#' @param rv Board reactive values. Read-only.
+#' @param session Shiny session object.
+#' @keywords internal
+create_edge <- function(new, vals, rv, session) {
+  ns <- session$ns
+  stopifnot(is.list(new))
+
+  if (!validate_edge_creation(new$target, rv)) {
+    # remove edge when it was created from DND
+    g6_proxy(ns("network")) |>
+      g6_remove_edges(ids = new$id)
+
+    # Cleanup node when it was created from Append block
+    if (vals$append_block) {
+      remove_node(new$target, vals, session)
+      # send callback to add/rm block plugin
+      vals$cancelled_edge <- new$target
+      # Re-select source node
+      g6_proxy(ns("network")) |>
+        g6_set_nodes(setNames(list("selected"), new$source))
+    }
+    stop()
+  }
+
+  to_blk <- rv$blocks[[new$target]]$block
+
+  new_edge <- list(
+    type = "fly-marker-cubic",
+    source = new$source,
+    target = new$target,
+    label = define_conlabel(to_blk, new$target, rv)
+  )
+
+  # For links
+  vals$added_edge <- as_links(
+    new_link(
+      from = new_edge$source,
+      to = new_edge$target,
+      input = new_edge$label
+    )
+  )
+
+  # Replace edge id by link id
+  new_edge$id <- vals$added_edge$id
+  # If edge is created via create_node. If create via
+  # DND, we don't need to draw it as it is already done via JS
+  if (!length(new$id)) {
+    # Create the connection
+    g6_proxy(ns("network")) |>
+      g6_add_edges(list(new_edge))
+  } else {
+    # Remove old edge since edge was created from JS with wrong id
+    # This will be useful when we want to delete the edge from the JS
+    # side and then destroy the link from R. Also add it the correct
+    # type to support data marker animation
+    g6_proxy(ns("network")) |>
+      g6_remove_edges(new$id) |>
+      g6_add_edges(list(new_edge))
+  }
+
+  vals
+}
+
 
 #' Register block validation observer
 #'
@@ -484,18 +675,99 @@ register_node_validation <- function(id, rv, vals, session) {
     {
       req(
         length(board_block_ids(rv$board)) > 0,
-        nrow(vals$nodes) == length(board_block_ids(rv$board)),
+        # Don't trigger if node is removed
         id %in% board_block_ids(rv$board)
       )
       # For Nicolas: why does board$msgs() triggers infinitely?
       rv$msgs()[[id]]
     },
     {
-      apply_validation(rv$msgs()[[id]], id, vals, session)
+      apply_validation(id, vals, rv, session)
     },
     ignoreNULL = FALSE
   )
 }
+
+#' Register block stack bind/unbind
+#'
+#' For each block we register an observer that
+#' captures only the messages related to this block validation
+#' status.
+#'
+#' @param id Block id for which to register the validation.
+#' @param rv Board reactive values. Read-only.
+#' @param vals Global reactive values. Read-write.
+#' @param session Shiny session object.
+#' @keywords internal
+register_node_stack_link <- function(id, rv, vals, session) {
+  ns <- session$ns
+  input <- session$input
+
+  # Order state retrieval for target node
+  observeEvent(
+    {
+      req(
+        input[["network-initialized"]],
+        # Don't trigger if node is removed
+        id %in% board_block_ids(rv$board)
+      )
+      input[["network-state"]]
+    },
+    {
+      g6_proxy(ns("network")) |> g6_get_nodes(id)
+    }
+  )
+
+  # Perform actions on state change
+  observeEvent(
+    {
+      input[[sprintf("network-%s-state", id)]]$combo
+    },
+    {
+      req(length(board_stacks(rv$board)) > 0)
+      # Ensure the state is up to date
+      # before triggering something
+      req(
+        length(board_stacks(rv$board)) ==
+          length(input[["network-state"]]$combos)
+      )
+      stacks_blocks <- unlist(
+        lapply(board_stacks(rv$board), stack_blocks),
+        use.names = FALSE
+      )
+      node_state <- input[[sprintf("network-%s-state", id)]]
+      has_stack <- node_state$combo
+
+      # Send feedback to stack module to add the node to existing stack
+      if (length(has_stack)) {
+        if (id %in% stacks_blocks) return(NULL)
+        vals$stack_added_node <- list(
+          node_id = id,
+          stack_id = strsplit(node_state$combo, "combo-")[[1]][2]
+        )
+      } else {
+        if (!(id %in% stacks_blocks)) return(NULL)
+        stack_id <- unlist(lapply(
+          names(board_stacks(rv$board)),
+          \(nme) {
+            stack <- board_stacks(rv$board)[[nme]]
+            if (id %in% stack_blocks(stack)) nme
+          }
+        ))
+        if (length(stack_id)) {
+          vals$stack_removed_node <- list(
+            node_id = id,
+            # Fin stack name: can we do better?
+            stack_id = stack_id
+          )
+        }
+      }
+    },
+    ignoreNULL = FALSE,
+    ignoreInit = TRUE
+  )
+}
+
 
 #' Apply block validation to network elements
 #'
@@ -503,32 +775,44 @@ register_node_validation <- function(id, rv, vals, session) {
 #' this function only updates the node color
 #' based on the valid status.
 #'
-#' @param message Message.
 #' @rdname node-validation
 #' @keywords internal
-apply_validation <- function(message, id, vals, session) {
+apply_validation <- function(id, vals, rv, session) {
+  message <- rv$msgs()[[id]]
   ns <- session$ns
   # Restore blue color if valid
-  selected_color <- vals$nodes[vals$nodes$id == id, "color.border"]
-  connected_edges <- vals$edges[vals$edges$to == id, ]
+  edges <- as.data.frame(board_links(rv$board))
+  connected_edges <- edges[edges$from == id, "id"]
 
   if (is.null(message)) {
-    if (selected_color != "#ff0018") return(NULL)
-    if (nrow(connected_edges) > 0) {
-      vals$edges[vals$edges$to == id, "color"] <- "#9db5cc"
-      vals$edges[vals$edges$to == id, "dashes"] <- FALSE
-      vals$edges[vals$edges$to == id, "arrows.to.type"] <- "arrow"
+    # Reset node defaults
+    node_config <- list(
+      list(
+        id = id,
+        style = list(
+          fill = "#1783FF",
+          labelBackgroundFill = "#a0cafa",
+          badges = list()
+        )
+      )
+    )
 
-      visNetworkProxy(ns("network")) |>
-        visUpdateEdges(vals$edges)
+    # Reset connected edges
+    if (length(connected_edges) > 0) {
+      new_edges <- lapply(connected_edges, \(id) {
+        list(
+          id = id,
+          type = "fly-marker-cubic",
+          style = list(
+            stroke = "#000",
+            badgeText = NULL
+          ),
+          states = list()
+        )
+      })
+      g6_proxy(ns("network")) |>
+        g6_update_edges(new_edges)
     }
-    vals$nodes[vals$nodes$id == id, "color.border"] <- "#dbebff"
-    vals$nodes[vals$nodes$id == id, "color.highlight.border"] <- "#dbebff"
-    vals$nodes[vals$nodes$id == id, "shapeProperties.borderDashes"] <- FALSE
-    vals$nodes[
-      vals$nodes$id == id,
-      "title"
-    ] <- "State errors: 0 <br> Data errors: 0 <br> Eval errors: 0"
   }
 
   # Color invalid nodes in red
@@ -537,788 +821,112 @@ apply_validation <- function(message, id, vals, session) {
       length(message$data$error) ||
       length(message$eval$error)
   ) {
-    if (selected_color == "#ff0018") return(NULL)
-    # Any linked edge would also get styled
-    if (nrow(connected_edges) > 0) {
-      vals$edges[vals$edges$to == id, "color"] <- "#ff0018"
-      vals$edges[vals$edges$to == id, "dashes"] <- TRUE
-      vals$edges[vals$edges$to == id, "arrows.to.type"] <- "image"
-      vals$edges[
-        vals$edges$to == id,
-        "arrows.to.src"
-      ] <- "www/images/cross-sign.svg"
-      vals$edges[
-        vals$edges$to == id,
-        "arrows.to.imageWidth"
-      ] <- 15
-      vals$edges[
-        vals$edges$to == id,
-        "arrows.to.imageHeight"
-      ] <- 15
-
-      visNetworkProxy(ns("network")) |>
-        visUpdateEdges(vals$edges)
-    }
-    vals$nodes[vals$nodes$id == id, "color.border"] <- "#ff0018"
-    vals$nodes[vals$nodes$id == id, "color.highlight.border"] <- "#ff0018"
-    vals$nodes[vals$nodes$id == id, "shapeProperties.borderDashes"] <- TRUE
-    vals$nodes[vals$nodes$id == id, "title"] <- sprintf(
-      "State errors: %s <br> Data errors: %s <br> Eval errors: %s",
-      if (length(message$state$error)) message$state$error else "0.",
-      if (length(message$data$error)) message$data$error else "0.",
-      if (length(message$eval$error)) message$eval$error else "0."
-    )
-  }
-
-  visNetworkProxy(ns("network")) |>
-    visUpdateNodes(vals$nodes)
-}
-
-#' Build configuration parameter list
-#'
-#' Used by all network utilities for default options
-#'
-#' @param func Function applied.
-#' @param defaults List of default parameters.
-#' @param ... Extra parameters not in defaults accepted by func.
-#' @keywords internal
-default_network <- function(func, defaults, ...) {
-  stopifnot(is.list(defaults))
-  pars <- list(...)
-  if (length(pars) == 1) pars <- unlist(pars)
-
-  incorrect_parm <- which(
-    !(names(pars) %in% names(formals(func))[-1])
-  )
-
-  if (length(incorrect_parm)) {
-    stop(
-      paste0(
-        "Params {",
-        paste(names(pars)[incorrect_parm], collapse = ", "),
-        "} are not part of ",
-        deparse(substitute(func)),
-        " API parameters."
-      )
-    )
-  }
-
-  duplicated <- which(names(pars) %in% names(defaults))
-
-  if (length(duplicated)) {
-    stop(
-      paste0(
-        "Params {",
-        paste(names(pars)[duplicated], collapse = ", "),
-        "} are duplicated"
-      )
-    )
-  }
-
-  c(
-    defaults,
-    pars
-  )
-}
-
-#' Default network interactions
-#'
-#' What interaction to support
-#'
-#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visInteraction}.
-#' @keywords internal
-default_network_interactions <- function(...) {
-  default_network(
-    visInteraction,
-    list(
-      hover = FALSE,
-      multiselect = TRUE,
-      # avoid to select edge when selecting node ...
-      # since we have a select edge callback
-      selectConnectedEdges = FALSE
-    ),
-    ...
-  )
-}
-
-#' Default network options
-#'
-#' What options to support
-#'
-#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visOptions}.
-#' @keywords internal
-default_network_options <- function(...) {
-  default_network(
-    visOptions,
-    list(
-      # To get currently selected node
-      nodesIdSelection = TRUE,
-      manipulation = list(
-        enabled = TRUE,
-        initiallyActive = TRUE,
-        addNode = FALSE,
-        deleteNode = FALSE,
-        deleteEdge = FALSE,
-        editEdge = FALSE
-      ),
-      collapse = TRUE
-    ),
-    ...
-  )
-}
-
-#' Default edges options
-#'
-#' What options to support
-#'
-#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visEdges}.
-#' @keywords internal
-default_edges_options <- function(...) {
-  default_network(
-    visEdges,
-    list(
-      length = 300,
-      smooth = FALSE
-    ),
-    ...
-  )
-}
-
-#' Default physics options
-#'
-#' What options to support
-#'
-#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visPhysics}.
-#' @keywords internal
-default_network_physics <- function(...) {
-  default_network(
-    visPhysics,
-    list(
-      solver = "forceAtlas2Based",
-      forceAtlas2Based = list(
-        gravitationalConstant = -500,
-        damping = 1,
-        avoidOverlap = 1
-      )
-    ),
-    ...
-  )
-}
-
-#' Default events options
-#'
-#' What options to support
-#'
-#' @param ... Extra parameters not in defaults accepted by \link[visNetwork]{visEvents}.
-#' @keywords internal
-default_network_events <- function(ns, ...) {
-  default_network(
-    visEvents,
-    list(
-      # within the event 'this' refers to the network instance
-      select = sprintf(
-        "function(e) {
-          // do trigger only when brushing to multiselect nodes
-          if (e.nodes.length >= 1 && e.event.type !== 'tap') {
-            console.log(e);
-            Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
-          }
-        }",
-        ns("selected_nodes")
-      ),
-      stabilized = sprintf(
-        "function(e) {
-          Shiny.setInputValue('%s', true, {priority: 'event'});
-        }",
-        ns("stabilized")
-      ),
-      oncontext = sprintf(
-        "function(e) {
-          e.event.preventDefault(); // avoid showing web inspector ...
-          Shiny.setInputValue('%s', e.nodes, {priority: 'event'});
-        }",
-        ns("node_right_clicked")
-      ),
-      selectEdge = sprintf(
-        "function(e) {
-          Shiny.setInputValue('%s', e.edges[0], {priority: 'event'});
-        }",
-        ns("selected_edge")
-      ),
-      controlNodeDragEnd = sprintf(
-        "function(e) {
-          Shiny.setInputValue('%s', e.controlEdge, {priority: 'event'});
-          let target = $(`.${e.event.target.offsetParent.className}`)
-            .closest('.visNetwork')
-            .attr('id');
-          // Re-enable add edge mode
-          setTimeout(() => {
-            window.HTMLWidgets.find(`#${target}`).network.addEdgeMode();
-          }, 500);
-        ;}",
-        ns("new_edge")
-      ) #,
-      #hoverNode = sprintf(
-      #  "function(e) {
-      #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
-      #;}",
-      #  ns("hovered_node")
-      #)#,
-      #blurNode = sprintf(
-      #  "function(e) {
-      #  Shiny.setInputValue('%s', e.node, {priority: 'event'});
-      #;}",
-      #  ns("hovered_node")
-      #)
-    ),
-    ...
-  )
-}
-
-#' Create network widget
-#'
-#' Network is populated via a proxy. This function initialises an empty
-#' network with the right setup.
-#'
-#' @param init_nodes Initial set of nodes.
-#' @param init_edges Initial set of edges.
-#' @param ns Namespace.
-#' @param height Network height.
-#' @param width Network width.
-#' @param interactions See \link{default_network_interactions}.
-#' @param options See \link{default_network_options}.
-#' @param edges See \link{default_edges_options}.
-#' @param physics See \link{default_network_physics}.
-#' @param events See \link{default_network_events}.
-#'
-#' @return A visNetwork object.
-#' @keywords internal
-create_network_widget <- function(
-  init_nodes = data.frame(),
-  init_edges = data.frame(),
-  ns,
-  height = "100vh",
-  width = "100%",
-  interactions = default_network_interactions(),
-  options = default_network_options(),
-  edges = default_edges_options(),
-  physics = default_network_physics(),
-  events = default_network_events(ns)
-) {
-  vis_network <- visNetwork(
-    nodes = init_nodes,
-    edges = init_edges,
-    height = height,
-    width = width
-  )
-
-  vis_network <- do.call(
-    visInteraction,
-    c(graph = quote(vis_network), interactions)
-  )
-
-  vis_network <- do.call(visOptions, c(graph = quote(vis_network), options))
-  vis_network <- do.call(visEdges, c(graph = quote(vis_network), edges))
-  vis_network <- do.call(visPhysics, c(graph = quote(vis_network), physics))
-  vis_network <- do.call(visEvents, c(graph = quote(vis_network), events))
-
-  vis_network
-}
-
-#' Restore network from saved snapshot
-#'
-#' Network is updated via a proxy.
-#'
-#' @param rv Board internal reactive values. Read-only
-#' @param vals Global vals reactive values. Read-write access.
-#' @param obs List of module observers.
-#' @param session Shiny session object
-#'
-#' @return A reactiveValues object.
-#' @keywords internal
-restore_network <- function(rv, vals, obs, session) {
-  ns <- session$ns
-  # Cleanup old setup
-  if (length(session$input$network_nodes)) {
-    visNetworkProxy(ns("network")) |>
-      visRemoveNodes(names(session$input$network_nodes))
-  }
-
-  if (nrow(vals$edges) > 0) {
-    vals$edges <- data.frame()
-  }
-
-  # Create nodes if the board has blocks but
-  # the network does not have any nodes yet
-  # This happens when we call the app with predefined
-  # set of blocks. This does not happen when restoring from
-  # a json as nodes are also captured.
-  if (nrow(vals$nodes) == 0 && length(board_blocks(rv$board))) {
-    for (i in seq_along(board_blocks(rv$board))) {
-      current <- board_blocks(rv$board)[[i]]
-      attr(current, "uid") <- board_block_ids(
-        rv$board
-      )[[i]]
-      # We register validation right after
-      create_node(
-        current,
-        vals,
-        rv,
-        validate = FALSE,
-        obs = obs,
-        session
+    state_badge <- list()
+    if (length(message$state$error)) {
+      state_badge <- list(
+        text = sprintf("State errors: '%s'", length(message$state$error)),
+        placement = "right-top",
+        backgroundFill = "#ee705c"
       )
     }
-  } else {
-    # Register callback for node menu
-    lapply(
-      vals$nodes$id,
-      register_node_menu_obs,
-      parent = vals,
-      obs = obs,
-      session = session
-    )
-  }
 
-  # Restore nodes
-  visNetworkProxy(ns("network")) |>
-    visUpdateNodes(vals$nodes)
+    data_badge <- list()
+    if (length(message$data$error)) {
+      data_badge <- list(
+        text = sprintf("Data errors: '%s'", length(message$date$error)),
+        placement = "right",
+        backgroundFill = "#edb528"
+      )
+    }
 
-  if (!is.null(vals$selected_block)) {
-    visNetworkProxy(ns("network")) |>
-      visSelectNodes(id = vals$selected_block)
-  }
+    eval_badge <- list()
+    if (length(message$eval$error)) {
+      eval_badge <- list(
+        text = sprintf("Eval errors: '%s'", length(message$eval$error)),
+        placement = "right-bottom",
+        backgroundFill = "#85847e"
+      )
+    }
 
-  # For each link re-creates the edges
-  links <- board_links(rv$board)
-  lapply(names(links), \(nme) {
-    link <- as.data.frame(links[[nme]])
-    add_edge(
-      id = nme,
-      link$from,
-      link$to,
-      link$input,
-      vals,
-      create_link = FALSE
-    )
-  })
-  visNetworkProxy(ns("network")) |>
-    visUpdateEdges(vals$edges)
-
-  # Re apply node validation
-  lapply(
-    vals$nodes$id,
-    register_node_validation,
-    vals = vals,
-    rv = rv,
-    session = session
-  )
-
-  vals$refreshed <- "network"
-
-  vals
-}
-
-#' Create and show node menu
-#'
-#' Node menu contains shortcut to some actions
-#' like adding a node to a grid...
-#'
-#' @param value Initial state of the grid switch. Depends
-#' on the value set in the grid vals module.
-#' @param stacks Stack ids.
-#' @param has_stack Whether the current block belongs to a stack.
-#' @param session Shiny session object
-#'
-#' @keywords internal
-show_node_menu <- function(value, stacks, has_stack, session) {
-  ns <- session$ns
-  input <- session$input
-  session$sendCustomMessage(
-    "show-node-menu",
-    list(
-      id = ns(input$node_right_clicked),
-      ns = ns(""),
-      value = value,
-      stacks = as.list(stacks),
-      has_stack = has_stack,
-      coords = input$mouse_location
-    )
-  )
-}
-
-#' Register observers related to the node menu
-#'
-#' Observer to maintain the state between the 2 switches +
-#' an observer to handle serialisation/restoration, to remove
-#' nodes and to append to a given node.
-#'
-#' @param block_id Block id.
-#' @param parent Global scope reactive values.
-#' @param obs Plugin observers list.
-#' @param session Shiny session object.
-#'
-#' @keywords internal
-register_node_menu_obs <- function(block_id, parent, obs, session) {
-  input <- session$input
-
-  if (is.null(obs[[sprintf("%s-add_to_grid", block_id)]])) {
-    # Send callback to grid module to maintain the grid switch state
-    obs[[sprintf("%s-add_to_grid", block_id)]] <- observeEvent(
-      input[[sprintf("%s-add_to_grid", block_id)]],
-      {
-        parent$in_grid[[block_id]] <- input[[
-          sprintf("%s-add_to_grid", block_id)
-        ]]
-      }
-    )
-
-    # Receive callback from grid to maintain the block option
-    # card switch
-    obs[[sprintf("update-%s-add_to_grid", block_id)]] <- observeEvent(
-      parent$in_grid[[block_id]],
-      {
-        update_switch(
-          sprintf("%s-add_to_grid", block_id),
-          value = parent$in_grid[[block_id]]
+    node_config <- list(
+      list(
+        id = id,
+        style = list(
+          fill = "#ee705c",
+          labelBackgroundFill = "#FFB6C1",
+          badges = list(
+            state_badge,
+            data_badge,
+            eval_badge
+          )
         )
-      }
+      )
     )
 
-    # Update the in_grid switch inputs to handle serialisation
-    # restoration
-    obs[[sprintf("restore-%s-add_to_grid", block_id)]] <- observeEvent(
-      req(parent$refreshed == "grid"),
-      {
-        update_switch(
-          sprintf("%s-add_to_grid", block_id),
-          value = parent$in_grid[[block_id]]
+    # Style connected edges
+    if (length(connected_edges) > 0) {
+      new_edges <- lapply(connected_edges, \(id) {
+        list(
+          id = id,
+          type = "cubic",
+          style = list(
+            stroke = "#ee705c",
+            badgeText = "ERROR",
+            badgeBackgroundFill = "#ee705c",
+            badgeBackground = TRUE
+          ),
+          animation = list(),
+          states = list("inactive")
         )
-      }
-    )
-
-    # Remove node and block
-    obs[[sprintf("%s-remove_block", block_id)]] <- observeEvent(
-      input[[sprintf("%s-remove_block", block_id)]],
-      {
-        parent$removed_block <- block_id
-      }
-    )
-
-    # Append block
-    obs[[sprintf("%s-append_block", block_id)]] <- observeEvent(
-      input[[sprintf("%s-append_block", block_id)]],
-      {
-        if (isFALSE(parent$append_block)) parent$append_block <- TRUE
-      }
-    )
-
-    # Remove from stack
-    obs[[sprintf("%s-remove_from_stack", block_id)]] <- observeEvent(
-      input[[sprintf("%s-remove_from_stack", block_id)]],
-      {
-        remove_node_from_stack(block_id, parent, standalone = TRUE, session)
-      }
-    )
-
-    # Add to stack
-    obs[[sprintf("%s-add_to_stack", block_id)]] <- observeEvent(
-      input[[sprintf("%s-add_to_stack", block_id)]],
-      {
-        # TBD: user should be able to choose any stack within a menu
-        add_node_to_stack(
-          block_id,
-          input[[sprintf("%s-add_to_stack_selected", block_id)]],
-          parent$nodes[
-            !is.na(parent$nodes$group) &
-              parent$nodes$group ==
-                input[[sprintf("%s-add_to_stack_selected", block_id)]],
-            "color.background"
-          ][1],
-          parent,
-          standalone = TRUE,
-          session
-        )
-      }
-    )
-  }
-}
-
-#' Dynamically group nodes
-#'
-#' Given a set of selected nodes, add them to a unique group
-#' and apply unique color and labels.
-#'
-#' This function must be called after \link{trigger_create_stack}.
-#'
-#' @param stack_id Stack unique id.
-#' @param color Stack color. Given by color picker input.
-#' @param vals Local scope (links module) reactive values.
-#' @param rv Board reactive values.
-#' @param parent Global scope (entire app) reactive values.
-#' @param session Shiny session object.
-#'
-#' @keywords internal
-stack_nodes <- function(stack_id, color, vals, rv, parent, session) {
-  ns <- session$ns
-  input <- session$input
-
-  # Handle when color is NULL when initializing a board with predefined stacks
-  color <- input$stack_color
-  if (is.null(input$stack_color)) {
-    colors <- board_option("stacks_colors", rv$board)
-    if (length(vals$stacks) == 0) {
-      color <- colors[1]
-    } else {
-      color <- colors[length(vals$stacks) * 5]
+      })
+      g6_proxy(ns("network")) |>
+        g6_update_edges(new_edges)
     }
   }
 
-  vals$stacks[[stack_id]] <- stack_id
-
-  for (block in board_stacks(rv$board)[[stack_id]]) {
-    add_node_to_stack(block, stack_id, color, parent, session = session)
-  }
-
-  # Unselect all nodes
-  session$sendCustomMessage(
-    "reset-node-selection",
-    list(id = sprintf("#%s", ns("network")))
-  )
-  parent$selected_block <- NULL
-
-  parent
-}
-
-#' Dynamically ungroup nodes
-#'
-#' Given a set of selected nodes,
-#' ungroup them by removing the associated stack.
-#'
-#' This function must be called after \link{trigger_remove_stack}.
-#'
-#' @param vals Local scope (links module) reactive values.
-#' @param rv Board reactive values.
-#' @param parent Global scope (entire app) reactive values.
-#' @param session Shiny session object.
-#'
-#' @keywords internal
-unstack_nodes <- function(vals, rv, parent, session) {
-  ns <- session$ns
-  input <- session$input
-
-  stack_id <- parent$removed_stack
-  nodes_to_reset <- parent$nodes[
-    !is.na(parent$nodes$group) & parent$nodes$group == stack_id,
-  ]
-
-  for (row in seq_len(nrow(nodes_to_reset))) {
-    tmp <- nodes_to_reset[row, ]
-    remove_node_from_stack(tmp$id, parent, session = session)
-  }
-
-  vals$stacks[[stack_id]] <- NULL
-
-  # Unselect all nodes
-  session$sendCustomMessage(
-    "reset-node-selection",
-    list(id = sprintf("#%s", ns("network")))
-  )
-  parent$selected_block <- NULL
-  parent$removed_stack <- NULL
-
-  parent
-}
-
-#' Add node to a group
-#'
-#' Given a node, update its data to add it to a group (color, group, ...)
-#'
-#' @param id Node id.
-#' @param stack_id Stack id.
-#' @param color Stack color.
-#' @param parent Global reactive values to update data.
-#' @param standalone Whether this function is called directly or from
-#' \link{stack_nodes}.
-#' @param session Shiny session object.
-#'
-#' @keywords internal
-add_node_to_stack <- function(
-  id,
-  stack_id,
-  color,
-  parent,
-  standalone = FALSE,
-  session
-) {
-  parent$nodes[parent$nodes$id == id, "color.background"] <- color
-  parent$nodes[parent$nodes$id == id, "color.border"] <- color
-  parent$nodes[
-    parent$nodes$id == id,
-    "color.highlight.background"
-  ] <- color
-  parent$nodes[
-    parent$nodes$id == id,
-    "color.highlight.border"
-  ] <- color
-  parent$nodes[parent$nodes$id == id, "label"] <- paste(
-    parent$nodes[parent$nodes$id == id, "label"],
-    sprintf("\n Stack: %s", stack_id)
-  )
-  parent$nodes[parent$nodes$id == id, "group"] <- stack_id
-
-  if (standalone)
-    parent$stack_added_node <- list(
-      node_id = id,
-      stack_id = stack_id
-    )
-
-  # There is a conflict between group and visGetNodes():
-  # https://github.com/datastorm-open/visNetwork/issues/429
-  visNetworkProxy(session$ns("network")) |>
-    visUpdateNodes(parent$nodes)
-
-  parent
-}
-
-#' Remove node from group
-#'
-#' Given a node, update its data to remove it from a group (color, group, ...)
-#'
-#' @param id Node id.
-#' @param parent Global reactive values to update data.
-#' @param standalone Whether this function is called directly or from
-#' \link{unstack_nodes}.
-#' @param session Shiny session object.
-#'
-#' @keywords internal
-remove_node_from_stack <- function(id, parent, standalone = FALSE, session) {
-  # Reset to factory
-  stack_id <- parent$nodes[parent$nodes$id == id, "group"]
-  if (is.na(stack_id)) {
-    showNotification(
-      sprintf("Error: block %s does not belong to any stack.", id),
-      type = "error"
-    )
-    return(NULL)
-  }
-
-  parent$nodes[parent$nodes$id == id, "group"] <- NA
-  # TBD: this is also used in the validation color
-  # Maybe we can create a helper for this ...
-  parent$nodes[parent$nodes$id == id, "color.border"] <- "#dbebff"
-  parent$nodes[parent$nodes$id == id, "color.background"] <- "#dbebff"
-  parent$nodes[parent$nodes$id == id, "color.highlight.border"] <- "#dbebff"
-  parent$nodes[parent$nodes$id == id, "color.highlight.background"] <- "#dbebff"
-  parent$nodes[parent$nodes$id == id, "label"] <- gsub(
-    "\n Stack.*",
-    "",
-    parent$nodes[parent$nodes$id == id, "label"]
-  )
-
-  if (standalone) parent$stack_removed_node <- stack_id
-
-  # There is a conflict between group and visGetNodes():
-  # https://github.com/datastorm-open/visNetwork/issues/429
-  visNetworkProxy(session$ns("network")) |>
-    visUpdateNodes(parent$nodes)
-
-  parent
-}
-
-can_remove_stack <- function(selected, parent) {
-  stack_id <- parent$nodes[parent$nodes$id == selected, "group"]
-  if (is.na(stack_id)) FALSE else TRUE
-}
-
-can_create_stack <- function(selected, parent) {
-  has_stack <- parent$nodes[parent$nodes$id %in% selected, "group"]
-  if (any(!is.na(has_stack))) FALSE else TRUE
-}
-
-#' Signal for stack removal
-#'
-#' Given a selected node, find whether a stack can be removed.
-#' If successful, then the parent$removed_stack will be captured
-#' in the stacks plugin.
-#'
-#' @param selected Selected node id.
-#' @param parent Global reactive values to update data.
-#'
-#' @keywords internal
-trigger_remove_stack <- function(selected, parent) {
-  if (!can_remove_stack(selected, parent)) {
-    showNotification(
-      duration = NA,
-      sprintf(
-        "Error: (One of or some of the) selected blocks 
-        (ids(s): %s) does/do not not belong to any stack.",
-        selected
-      ),
-      type = "error"
-    )
-    return(NULL)
-  }
-  parent$removed_stack <- parent$nodes[
-    parent$nodes$id == selected,
-    "group"
-  ]
-  parent
-}
-
-#' Signal for stack creation
-#'
-#' Given a selected node, find whether a stack can be created.
-#' If succesful, the stack is created from the stacks plugin.
-#'
-#' @param selected Selected node id.
-#' @param parent Global reactive values to update data.
-#'
-#' @keywords internal
-trigger_create_stack <- function(selected, parent) {
-  if (!can_create_stack(selected, parent)) {
-    showNotification(
-      duration = NA,
-      sprintf(
-        "Error: (One of or some of the) selected blocks (ids(s): %s)
-        is/are already bound to a stack.",
-        paste(selected, collapse = ", ")
-      ),
-      type = "error"
-    )
-    return(NULL)
-  }
-  parent$added_stack <- selected
-  parent
+  g6_proxy(ns("network")) |>
+    g6_update_nodes(node_config)
 }
 
 #' Show stack actions
 #'
-#' A modal window triggered when multiple nodes are selected, for instance.
-#' So far we support adding a stack and removing multiple blocks from a stack.
+#' A modal window triggered when create stack is
+#' pressed on canvas right click
 #'
-#' @param selected Set of selected nodes.
 #' @param rv Reactive values containing board elements. Read-only.
-#' @param parent Global reactive values.
 #' @param session Shiny session object.
 #'
 #' @keywords internal
-show_stack_actions <- function(selected, rv, parent, session) {
+show_stack_actions <- function(rv, session) {
   ns <- session$ns
+
+  blk_ids <- board_block_ids(rv$board)
+  stacks_nodes <- unlist(
+    lapply(board_stacks(rv$board), stack_blocks),
+    use.names = FALSE
+  )
+  blk_ids <- blk_ids[!(blk_ids %in% stacks_nodes)]
 
   showModal(
     modalDialog(
-      title = "Node multi action",
+      title = "New stack",
       size = "m",
       div(
         class = "d-grid gap-2 mx-auto",
         role = "group",
         div(
           class = "d-flex gap-4 align-items-center justify-content-around",
-          actionButton(
-            ns("new_stack"),
-            "New stack",
-            icon = icon("object-group")
+          selectInput(
+            ns("new_stack_nodes"),
+            "Select nodes (leaving NULL creates an empty stack)",
+            choices = setNames(
+              blk_ids,
+              chr_ply(blk_ids, \(id) {
+                paste(attr(board_blocks(rv$board)[[id]], "name"), id)
+              })
+            ),
+            selected = blk_ids[1],
+            multiple = TRUE
           ),
           shinyWidgets::colorPickr(
             inputId = ns("stack_color"),
@@ -1330,18 +938,309 @@ show_stack_actions <- function(selected, rv, parent, session) {
             position = "right-end",
             useAsButton = TRUE
           )
-        ),
-        actionButton(
-          ns("remove_stack"),
-          "Remove stack",
-          icon = icon("object-ungroup")
-        ),
-        actionButton(
-          ns("remove_blocks"),
-          "Remove selected",
-          icon = icon("trash")
         )
+      ),
+      footer = tagList(
+        actionButton(
+          ns("new_stack"),
+          "Confirm",
+          icon = icon("object-group")
+        ),
+        modalButton("Dismiss")
       )
     )
   )
+}
+
+
+#' Dynamically group nodes
+#'
+#' Given a set of selected nodes, add them to a unique group
+#' and apply unique color and labels.
+#'
+#' @param stack_id Stack id to attach nodes to.
+#' @param nodes Vector of node ids to stack.
+#' @param vals Local scope (links module) reactive values.
+#' @param rv Board reactive values.
+#' @param parent Global scope (entire app) reactive values.
+#' @param session Shiny session object.
+#'
+#' @keywords internal
+#' @rdname stack-nodes
+stack_nodes <- function(
+  stack_id = NULL,
+  nodes = NULL,
+  vals,
+  rv,
+  parent,
+  session
+) {
+  ns <- session$ns
+  input <- session$input
+
+  if (is.null(stack_id)) {
+    stack_id <- tail(board_stack_ids(rv$board), n = 1)
+  }
+  # avoid duplicated id with edges
+  stack_id <- sprintf("combo-%s", stack_id)
+
+  nodes_to_stack <- nodes
+  if (is.null(nodes)) {
+    nodes_to_stack <- lapply(input$new_stack_nodes, \(node) {
+      list(
+        id = node,
+        combo = stack_id
+      )
+    })
+  }
+
+  stack_color <- input$stack_color
+  if (is.null(stack_color)) {
+    colors <- board_option("stacks_colors", rv$board)
+    if (length(vals$stacks) == 0) {
+      stack_color <- colors[1]
+    } else {
+      stack_color <- colors[length(vals$stacks) * 5]
+    }
+  }
+
+  vals$stacks <- c(vals$stacks, stack_id)
+
+  # Update graph
+  g6_proxy(ns("network")) |>
+    g6_add_combos(
+      list(
+        list(
+          id = stack_id,
+          label = strsplit(stack_id, "combo-")[[1]][2],
+          style = list(
+            stroke = stack_color,
+            fill = stack_color,
+            fillOpacity = 0.2,
+            shadowColor = stack_color,
+            collapsedFill = stack_color,
+            collapsedStroke = stack_color,
+            iconFill = stack_color,
+            labelPlacement = "top"
+          )
+        )
+      )
+    ) |>
+    g6_update_nodes(nodes_to_stack) |>
+    g6_fit_center()
+
+  parent
+}
+
+#' Unstack g6 nodes
+#'
+#' Useful when removing a stack.
+#'
+#' @keywords internal
+#' @rdname stack-nodes
+unstack_nodes <- function(vals, parent, session) {
+  ns <- session$ns
+  input <- session$input
+
+  # Send callback to stacks plugin
+  stack_id <- input$remove_stack
+  parent$removed_stack <- strsplit(stack_id, "combo-")[[1]][2]
+
+  # Update local reactiveValues
+  vals$stacks <- vals$stacks[-which(vals$stacks == stack_id)]
+
+  # Send message to network
+  # (combos are automatically removed from node state so
+  # no need to update nodes)
+  g6_proxy(ns("network")) |>
+    g6_remove_combos(stack_id)
+}
+
+#' Restore network from saved snapshot
+#'
+#' Network is updated via a proxy.
+#'
+#' @param rv Board internal reactive values. Read-only
+#' @param vals Global vals reactive values. Read-write access.
+#' @param session Shiny session object
+#'
+#' @return A reactiveValues object.
+#' @keywords internal
+restore_network <- function(rv, vals, session) {
+  ns <- session$ns
+
+  # Replace all graph data and re-render
+  # This does not replace plugins and behaviors ...
+  g6_proxy(ns("network")) |>
+    g6_set_data(unclass(vals$network)) |>
+    g6_fit_center()
+
+  # TBD maybe restore the state of vals$stacks?
+
+  # Re apply node validation
+  lapply(
+    chr_ply(vals$network$nodes, `[[`, "id"),
+    register_node_validation,
+    rv = rv,
+    vals = vals,
+    session = session
+  )
+
+  # Register add to stack/remove from stack behavior
+  lapply(
+    chr_ply(vals$network$nodes, `[[`, "id"),
+    register_node_stack_link,
+    rv = rv,
+    vals = vals,
+    session = session
+  )
+
+  vals$refreshed <- "network"
+
+  vals
+}
+
+#' @rdname cold-start
+#' @param links Board links.
+create_edges_data_from_links <- function(links) {
+  unname(lapply(seq_along(links), \(i) {
+    link <- links[[i]]
+    list(
+      id = paste0(link$from, link$to),
+      type = "fly-marker-cubic",
+      source = link$from,
+      target = link$to,
+      label = link$input
+    )
+  }))
+}
+
+#' @rdname cold-start
+#' @param blocks Board blocks.
+#' @param stacks Board stacks.
+#' @keywords internal
+create_nodes_data_from_blocks <- function(blocks, stacks) {
+  blocks_in_stacks <- lapply(stacks, stack_blocks)
+
+  lapply(seq_along(blocks), \(i) {
+    current <- blocks[[i]]
+    tmp <- list(
+      id = names(blocks)[[i]],
+      label = paste(
+        attr(current, "class")[1],
+        "\n id:",
+        names(blocks)[[i]]
+      ),
+      style = list(
+        labelBackgroundFill = "#a0cafa"
+      )
+    )
+
+    # Find in which stack the node is
+    tmp$combo <- unlist(lapply(seq_along(blocks_in_stacks), \(i) {
+      stack <- blocks_in_stacks[[i]]
+      if (tmp$id %in% stack) {
+        sprintf("combo-%s", names(blocks_in_stacks)[[i]])
+      }
+    }))
+    tmp
+  })
+}
+
+#' @rdname cold-start
+#' @param stacks Board stacks.
+#' @param colors Stacks colors. Internal.
+#' @keywords internal
+create_combos_data_from_stacks <- function(
+  stacks,
+  vals,
+  colors
+) {
+  lapply(seq_along(stacks), \(i) {
+    stack_id <- sprintf("combo-%s", names(stacks)[[i]])
+    if (length(vals$stacks) == 0) {
+      stack_color <- colors[1]
+    } else {
+      stack_color <- colors[length(vals$stacks) * 5]
+    }
+
+    vals$stacks <- c(vals$stacks, stack_id)
+
+    list(
+      id = stack_id,
+      label = strsplit(stack_id, "combo-")[[1]][2],
+      style = list(
+        stroke = stack_color,
+        fill = stack_color,
+        fillOpacity = 0.2,
+        shadowColor = stack_color,
+        collapsedFill = stack_color,
+        collapsedStroke = stack_color,
+        iconFill = stack_color,
+        labelPlacement = "top"
+      )
+    )
+  })
+}
+
+#' Create network data from board
+#'
+#' That's different from \link{restore_network}, as the
+#' latter restore a network from a JSON compatible structure.
+#' Here we need to re-create all the JSON from the board blocks,
+#' links and stacks.
+#'
+#' @keywords internal
+#' @param vals Module internal reactive values.
+#' @param rv Board reactive values. Read-only
+#' @param parent Global app reactive values.
+#' @param session Shiny session
+#' @rdname cold-start
+cold_start <- function(vals, rv, parent, session) {
+  ns <- session$ns
+  # Cold start
+  links <- board_links((rv$board))
+  blocks <- board_blocks(rv$board)
+  stacks <- board_stacks(rv$board)
+
+  edges_data <- create_edges_data_from_links(links)
+  combos_data <- create_combos_data_from_stacks(
+    stacks,
+    vals,
+    board_option("stacks_colors", rv$board)
+  )
+  nodes_data <- create_nodes_data_from_blocks(blocks, stacks)
+
+  graph_data <- list(
+    nodes = nodes_data,
+    edges = edges_data,
+    combos = combos_data
+  )
+
+  #graph_data <- jsonlite::toJSON(graph_data, pretty = TRUE)
+  # Render all data all at once for better performances
+  g6_proxy(ns("network")) |>
+    g6_set_data(graph_data) |>
+    g6_fit_center()
+
+  # Re apply node validation
+  lapply(
+    names(blocks),
+    register_node_validation,
+    rv = rv,
+    vals = parent,
+    session = session
+  )
+
+  # Register add to stack/remove from stack behavior
+  lapply(
+    names(blocks),
+    register_node_stack_link,
+    rv = rv,
+    vals = parent,
+    session = session
+  )
+
+  parent$refreshed <- "network"
+  parent
 }

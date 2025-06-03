@@ -1,6 +1,6 @@
 Package: blockr.ui
 Title: A 'shiny' powered user interface for 'blockr.core'
-Version: 0.5.0
+Version: 1.0.0
 Authors@R: 
     c(
       person(
@@ -32,23 +32,22 @@ Imports:
     shiny (>= 1.5.0),
     bslib,
     scoutbaR,
-    visNetwork,
     shinyWidgets,
     blockr.core,
     shinyjs,
-    gridstackr,
     jsonlite,
     htmltools,
-    dockViewR
+    dockViewR,
+    g6R,
+    phosphoricons
 Remotes:
-    cynkra/blockr.core,
-    cynkra/blockr.dplyr,
-    cynkra/blockr.io,
-    cynkra/blockr.ai,
-    cynkra/blockr.sdtm,
-    dreamRs/gridstackr,
-    rstudio/chromote,
-    cynkra/dockViewR
+    BristolMyersSquibb/blockr.core,
+    BristolMyersSquibb/blockr.dplyr,
+    BristolMyersSquibb/blockr.io,
+    BristolMyersSquibb/blockr.ai,
+    BristolMyersSquibb/blockr.sdtm,
+    cynkra/g6R,
+    cynkra/scoutbaR
 Suggests: 
     shinytest2,
     testthat (>= 3.0.0),

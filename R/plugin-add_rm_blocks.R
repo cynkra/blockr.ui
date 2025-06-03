@@ -29,7 +29,7 @@ add_rm_block_server <- function(id, board, update, ...) {
 
       # Trigger add block
       observeEvent(
-        input$add_block,
+        req(dot_args$parent$add_block),
         {
           update_scoutbar(
             session,
@@ -46,7 +46,10 @@ add_rm_block_server <- function(id, board, update, ...) {
       observeEvent(
         input[["scoutbar-open"]],
         {
-          if (!input[["scoutbar-open"]]) dot_args$parent$append_block <- FALSE
+          if (!input[["scoutbar-open"]]) {
+            dot_args$parent$append_block <- FALSE
+            dot_args$parent$add_block <- FALSE
+          }
         }
       )
 
@@ -119,11 +122,6 @@ add_rm_block_ui <- function(id, board) {
         placeholder = "Search for a block",
         actions = blk_choices(),
         showRecentSearch = TRUE
-      ),
-      actionButton(
-        NS(id, "add_block"),
-        "New block",
-        icon = icon("circle-plus"),
       )
     ),
     sidebar = div(

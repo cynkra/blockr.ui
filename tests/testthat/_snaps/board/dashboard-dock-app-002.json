@@ -19,9 +19,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-table",
-                    "role": "presentation",
-                    "aria-label": "table icon"
+                    "class": "ph-light ph-table ph-lg"
                   },
                   "_owner": null
                 }
@@ -39,9 +37,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-table",
-                    "role": "presentation",
-                    "aria-label": "table icon"
+                    "class": "ph-light ph-table ph-lg"
                   },
                   "_owner": null
                 }
@@ -59,9 +55,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-table",
-                    "role": "presentation",
-                    "aria-label": "table icon"
+                    "class": "ph-light ph-table ph-lg"
                   },
                   "_owner": null
                 }
@@ -79,9 +73,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-table",
-                    "role": "presentation",
-                    "aria-label": "table icon"
+                    "class": "ph-light ph-table ph-lg"
                   },
                   "_owner": null
                 }
@@ -99,9 +91,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-table",
-                    "role": "presentation",
-                    "aria-label": "table icon"
+                    "class": "ph-light ph-table ph-lg"
                   },
                   "_owner": null
                 }
@@ -119,9 +109,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-table",
-                    "role": "presentation",
-                    "aria-label": "table icon"
+                    "class": "ph-light ph-table ph-lg"
                   },
                   "_owner": null
                 }
@@ -145,9 +133,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-file-import",
-                    "role": "presentation",
-                    "aria-label": "file-import icon"
+                    "class": "ph-light ph-download-simple ph-lg"
                   },
                   "_owner": null
                 }
@@ -165,9 +151,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-file-import",
-                    "role": "presentation",
-                    "aria-label": "file-import icon"
+                    "class": "ph-light ph-download-simple ph-lg"
                   },
                   "_owner": null
                 }
@@ -191,9 +175,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-cogs",
-                    "role": "presentation",
-                    "aria-label": "cogs icon"
+                    "class": "ph-light ph-gear ph-lg"
                   },
                   "_owner": null
                 }
@@ -217,9 +199,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-chart-line",
-                    "role": "presentation",
-                    "aria-label": "chart-line icon"
+                    "class": "ph-light ph-chart-line ph-lg"
                   },
                   "_owner": null
                 }
@@ -237,9 +217,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-chart-line",
-                    "role": "presentation",
-                    "aria-label": "chart-line icon"
+                    "class": "ph-light ph-chart-line ph-lg"
                   },
                   "_owner": null
                 }
@@ -263,9 +241,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -283,9 +259,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -303,9 +277,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -323,9 +295,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -343,9 +313,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -363,9 +331,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -383,9 +349,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -403,9 +367,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -423,9 +385,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -443,9 +403,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -463,9 +421,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -483,9 +439,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -503,9 +457,7 @@
                   "key": null,
                   "ref": null,
                   "props": {
-                    "class": "fas fa-wand-magic-sparkles",
-                    "role": "presentation",
-                    "aria-label": "wand-magic-sparkles icon"
+                    "class": "ph-light ph-magic-wand ph-lg"
                   },
                   "_owner": null
                 }
@@ -520,7 +472,6 @@
       "showRecentSearch": true,
       "revealScoutbar": true
     },
-    "main-board-manage_links-network_initialized": true,
     "main-board-properties": true
   },
   "export": {
@@ -535,44 +486,35 @@
         "bywdmhugjutgwsd": false
       },
       "refreshed": null,
-      "nodes": {
-        "id": [
-          "bywdmhugjutgwsd"
+      "network": {
+        "nodes": [
+          {
+            "id": "bywdmhugjutgwsd",
+            "label": "dataset_block \n id: bywdmhugjutgwsd",
+            "style": {
+              "labelBackgroundFill": "#a0cafa",
+              "zIndex": 0,
+              "fill": "#1783FF",
+              "badges": [
+
+              ]
+            },
+            "data": {
+
+            },
+            "states": [
+              "selected"
+            ]
+          }
         ],
-        "label": [
-          "dataset_block \n id: bywdmhugjutgwsd"
+        "edges": [
+
         ],
-        "title": [
-          "State errors: 0 <br> Data errors: 0 <br> Eval errors: 0"
-        ],
-        "shape": [
-          "dot"
-        ],
-        "shapeProperties.borderDashes": [
-          false
-        ],
-        "color.background": [
-          "#dbebff"
-        ],
-        "color.border": [
-          "#dbebff"
-        ],
-        "color.highlight.background": [
-          "#dbebff"
-        ],
-        "color.highlight.border": [
-          "#dbebff"
-        ],
-        "borderWidth": [
-          4
-        ],
-        "group": [
-          null
-        ],
-        "icon.code": [
-          null
+        "combos": [
+
         ]
       },
+      "add_block": false,
       "append_block": false,
       "added_block": {
         "expr_server": [
@@ -600,9 +542,6 @@
       },
       "removed_block": null,
       "selected_block": "bywdmhugjutgwsd",
-      "edges": {
-
-      },
       "cancelled_edge": null,
       "added_edge": null,
       "removed_edge": null,

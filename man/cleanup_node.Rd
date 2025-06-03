@@ -4,12 +4,14 @@
 \alias{cleanup_node}
 \title{Remove a node and associated edges}
 \usage{
-cleanup_node(selected, vals, session)
+cleanup_node(selected, vals, rv, session)
 }
 \arguments{
 \item{selected}{UID (character string) of node to remove.}
 
 \item{vals}{Reactive values with dataframe representing nodes data.}
+
+\item{rv}{Board reactive values. Read-only.}
 
 \item{session}{Shiny session object.}
 }
