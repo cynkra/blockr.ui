@@ -1106,7 +1106,7 @@ create_edges_data_from_links <- function(links) {
   unname(lapply(seq_along(links), \(i) {
     link <- links[[i]]
     list(
-      id = paste0(link$from, link$to),
+      id = names(links)[[i]],
       type = "fly-marker-cubic",
       source = link$from,
       target = link$to,
@@ -1199,7 +1199,7 @@ create_combos_data_from_stacks <- function(
 cold_start <- function(vals, rv, parent, session) {
   ns <- session$ns
   # Cold start
-  links <- board_links((rv$board))
+  links <- board_links(rv$board)
   blocks <- board_blocks(rv$board)
   stacks <- board_stacks(rv$board)
 
