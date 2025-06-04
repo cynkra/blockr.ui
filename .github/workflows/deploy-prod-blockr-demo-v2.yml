@@ -23,5 +23,5 @@ jobs:
         with:
           scaly-account-id: eab47d5b-47df-4130-a392-c1d7a1c8f9b0
           scaly-app-name: blockr-demo-v2
-          source-directory: './' # change to root of application code
+          source-directory: './inst/examples/dashboard/dock' # change to root of application code
           scaly-env-id: '828317012066'
