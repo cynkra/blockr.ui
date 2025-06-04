@@ -1,0 +1,38 @@
+# .github/actions/deploy-scaly-app/action.yml
+
+name: 'Deploy Scaly App'
+description: 'Package and deploy an app to Scaly'
+inputs:
+  scaly-account-id:
+    description: 'Your Scaly account id where your app is defined'
+    required: true
+  scaly-app-name:
+    description: 'The name of your scaly app'
+    required: true
+  source-directory:
+    description: 'Root path where the scaly app is located'
+    required: true
+    default: './inst/examples/dashboard/dock'
+  scaly-env:
+    description: 'Scaly Environment'
+    required: false
+    default: ''
+  scaly-env-id:
+    description: 'Scaly Environment ID'
+    required: false
+    default: 'xxxxxxxxxxxx'
+runs:
+  using: 'composite'
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: ca-central-1
+        role-to-assume: arn:aws:iam::${{ inputs.scaly-env-id }}:role/scaly/account/${{inputs.scaly-account-id}}/scaly-eab47d5b-deployment
+    - name: Zip and Upload Scaly App
+      shell: bash
+      working-directory: ${{ inputs.source-directory }}
+      run: |
+        zip -r "${{ runner.temp }}/app.zip" .
+        aws s3 cp "${{ runner.temp }}/app.zip" "s3://scaly-files${{ inputs.scaly-env }}/deploy/${{ inputs.scaly-account-id }}/${{ inputs.scaly-app-name }}/${{ inputs.scaly-app-name }}-${GITHUB_REF_NAME}-${GITHUB_SHA}.zip"
+  

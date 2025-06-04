@@ -1,0 +1,27 @@
+# .github/workflows/deploy-prod-blockr-demo-v2.yml
+
+name: deploy-prod-blockr-demo-v2
+# Refer to https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#on
+# to customize what events should trigger an application deployment
+on:
+  push:
+    branches:
+      - 'scaly-deploy'
+      - 'main'
+jobs:
+  deploy:
+    permissions:
+      id-token: write
+      contents: read
+    name: Zip and Upload Scaly App
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Zip and Deploy to Scaly
+        uses: ./.github/actions/deploy-scaly-app
+        with:
+          scaly-account-id: eab47d5b-47df-4130-a392-c1d7a1c8f9b0
+          scaly-app-name: blockr-demo-v2
+          source-directory: './' # change to root of application code
+          scaly-env-id: '828317012066'

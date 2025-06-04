@@ -12,7 +12,7 @@
 ^docs$
 ^pkgdown$
 _\.new\.png$
-^inst/examples/demo/\.posit$
+^inst/examples/.*./\.posit$
 ^srcjs$
 ^node_modules$
 ^package\.json$
