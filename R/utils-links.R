@@ -15,7 +15,7 @@ list_empty_connections.data_block <- function(x, target, rv) {
 
 #' @export
 list_empty_connections.block <- function(x, target, rv) {
-  lgl_ply(rv$inputs[[target]], \(slot) is.null(slot()))
+  lgl_ply(rv$inputs[[target]], \(inp) is.null(inp()))
 }
 
 #' Check node connection
@@ -42,6 +42,11 @@ check_connections.block <- function(x, target, rv) {
 
 #' @export
 check_connections.rbind_block <- function(x, target, rv) {
+  TRUE
+}
+
+#' @export
+check_connections.llm_block <- function(x, target, rv) {
   TRUE
 }
 
@@ -111,6 +116,16 @@ define_conlabel.block <- function(x, target, rv) {
 
 #' @export
 define_conlabel.rbind_block <- function(x, target, rv) {
+  links <- names(rv$inputs[[target]]$...args)
+  res <- if (!length(links)) 1 else length(links) + 1
+  as.character(res)
+}
+
+#' @export
+define_conlabel.llm_block <- function(x, target, rv) {
+  if (is.null(rv$inputs[[target]]$data())) {
+    return("data")
+  }
   links <- names(rv$inputs[[target]]$...args)
   res <- if (!length(links)) 1 else length(links) + 1
   as.character(res)
