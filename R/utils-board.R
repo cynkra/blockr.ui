@@ -9,9 +9,8 @@
 #'
 #' @keywords internal
 blk_icon <- function(category) {
-
   if (!length(category)) {
-    res <- "house"
+    res <- "alien"
   } else {
     res <- switch(
       category,
