@@ -799,19 +799,19 @@ apply_validation <- function(id, vals, rv, session) {
   edges <- as.data.frame(board_links(rv$board))
   connected_edges <- edges[edges$from == id, "id"]
 
-  if (is.null(message)) {
-    # Reset node defaults
-    node_config <- list(
-      list(
-        id = id,
-        style = list(
-          fill = "#1783FF",
-          labelBackgroundFill = "#a0cafa",
-          badges = list()
-        )
+  # Reset node defaults
+  node_config <- list(
+    list(
+      id = id,
+      style = list(
+        fill = "#1783FF",
+        labelBackgroundFill = "#a0cafa",
+        badges = list()
       )
     )
+  )
 
+  if (is.null(message)) {
     # Reset connected edges
     if (length(connected_edges) > 0) {
       new_edges <- lapply(connected_edges, \(id) {
@@ -848,7 +848,7 @@ apply_validation <- function(id, vals, rv, session) {
     data_badge <- list()
     if (length(message$data$error)) {
       data_badge <- list(
-        text = sprintf("Data errors: '%s'", length(message$date$error)),
+        text = sprintf("Data errors: '%s'", length(message$data$error)),
         placement = "right",
         backgroundFill = "#edb528"
       )
