@@ -112,11 +112,14 @@ blockr_deser.data.frame <- function(x, data, ...) {
 #' @rdname save-board
 board_filename <- function(rv) {
   function() {
-    paste0(
-      rv$board_id,
-      "_",
-      format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),
-      ".json"
+    file.path(
+      get_board_option_value("snapshot_location"),
+      paste0(
+        rv$board_id,
+        "_",
+        format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),
+        ".json"
+      )
     )
   }
 }
@@ -235,6 +238,7 @@ snapshot_board <- function(vals, rv, parent, session) {
   file_name <- board_filename(rv)()
   write_board_to_disk(rv, parent, session)(file_name)
   vals$backup_list <- list.files(
+    path = get_board_option_value("snapshot_location"),
     pattern = paste0("^", rv$board_id, ".*\\.json$")
   )
   vals$current_backup <- length(vals$backup_list)

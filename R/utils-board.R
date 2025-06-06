@@ -195,7 +195,6 @@ board_header <- function(id, board_ui, grid_ui) {
     class = "d-flex align-items-center justify-content-around gap-5",
     board_burger(board_ui, grid_ui),
     board_actions(
-      board_ui$toolbar_ui$manage_blocks$toolbar,
       board_ui$toolbar_ui$generate_code,
       board_ui$toolbar_ui$preserve_board$buttons,
       actionButton(
@@ -420,7 +419,106 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
   my_dash <- dashboard_ui(id, x)
 
   tagList(
+    scoutbar(
+      sprintf("%s-scoutbar", id),
+      placeholder = "Search for a block",
+      actions = blk_choices(),
+      showRecentSearch = TRUE
+    ),
     board_header(id, my_board_ui, my_dash),
     board_body(id, my_board_ui, my_dash)
   )
+}
+
+#' Scoutbar management callback
+#'
+#' @keywords internal
+#' @rdname handlers-utils
+manage_scoutbar <- function(board, update, parent, ...) {
+  session <- get("session", parent.frame(1))
+  input <- session$input
+  ns <- session$ns
+
+  # Trigger add block
+  observeEvent(
+    req(parent$open_scoutbar),
+    {
+      update_scoutbar(
+        session,
+        "scoutbar",
+        revealScoutbar = TRUE
+      )
+    }
+  )
+
+  # Reset dot_args$parent$append_block is user
+  # accidentally close the scoutbar without selecting
+  # a block, so that the scoutbar can open again on the
+  # next input$append_block or from the links plugin.
+  observeEvent(
+    input[["scoutbar-open"]],
+    {
+      if (!input[["scoutbar-open"]]) {
+        parent$append_block <- FALSE
+        parent$open_scoutbar <- FALSE
+      }
+    }
+  )
+
+  # Open the scoutbar when append block
+  observeEvent(req(parent$append_block), {
+    update_scoutbar(
+      session,
+      "scoutbar",
+      revealScoutbar = TRUE
+    )
+  })
+
+  # Update scoutbar action with snapshots taken in the serialise module
+  observeEvent(
+    {
+      req(session$input[["scoutbar-configuration"]])
+      parent$backup_list
+    },
+    {
+      new_actions <- c(
+        session$input[["scoutbar-configuration"]]$actions,
+        lapply(
+          file.path(
+            get_board_option_value("snapshot_location"),
+            parent$backup_list
+          ),
+          \(file) {
+            infos <- file.info(file)
+            scout_action(
+              id = file,
+              label = strsplit(
+                file,
+                get_board_option_value("snapshot_location"),
+                ""
+              )[[1]][2],
+              description = sprintf(
+                "Created by %s. Date: %s. Size: %s KB",
+                infos[["uname"]],
+                round(infos[["mtime"]], units = "secs"),
+                round(infos[["size"]] / 1000, 1)
+              ),
+              icon = phosphoricons::ph_i("file")
+            )
+          }
+        )
+      )
+      # We need to avoid to overwrite the existing actions ...
+      update_scoutbar(
+        session,
+        "scoutbar",
+        actions = new_actions
+      )
+    }
+  )
+
+  # Sync value for other modules
+  observeEvent(input$scoutbar, {
+    parent$scoutbar_value <- input$scoutbar
+  })
 }

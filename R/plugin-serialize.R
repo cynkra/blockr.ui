@@ -18,10 +18,7 @@ ser_deser_server <- function(id, board, ...) {
       res <- reactiveVal()
       vals <- reactiveValues(
         auto_snapshot = FALSE,
-        current_backup = NULL,
-        backup_list = list.files(
-          pattern = paste0("^", isolate(board$board_id), ".*\\.json$")
-        )
+        current_backup = NULL
       )
 
       dot_args <- list(...)
@@ -33,35 +30,38 @@ ser_deser_server <- function(id, board, ...) {
         write_board_to_disk(board, dot_args$parent, session)
       )
 
-      # Cleanup old files on start
-      observeEvent(
-        vals$backup_list,
-        {
-          if (length(vals$backup_list)) {
-            lapply(vals$backup_list, file.remove)
-          }
-          vals$backup_list <- list()
-        },
-        once = TRUE
-      )
+      # Init backup list
+      observeEvent(TRUE, {
+        dot_args$parent$backup_list <- list.files(
+          path = isolate(get_board_option_value("snapshot_location")),
+          pattern = paste0("^", isolate(board$board_id), ".*\\.json$")
+        )
+      })
+
+      # Trigger open scoutbar
+      observeEvent(input$browse_snapshots, {
+        dot_args$parent$open_scoutbar <- TRUE
+      })
+
+      # TBD -> add board option for auto_snapshot
 
       # Debounce so that we don't record too
       # many intermediate states as json. This also leaves
       # enough time for the network to stabilize properly
       # and have the correct node coordinates.
       snapshot_trigger <- reactive({
-        list(
-          board_links(board$board),
-          dot_args$parent$grid,
-          get_blocks_state(board) # Capture any block state change (input change, ...)
-        )
+        #list(
+        #  board_links(board$board),
+        #  dot_args$parent$grid,
+        #  get_blocks_state(board) # Capture any block state change (input change, ...)
+        #)
       }) |>
         debounce(2000)
 
       # Auto save
       observeEvent(
         {
-          snapshot_trigger()
+          c(snapshot_trigger(), input$save)
         },
         {
           snapshot_board(vals, board, dot_args$parent, session)
@@ -69,7 +69,7 @@ ser_deser_server <- function(id, board, ...) {
       )
 
       observeEvent(
-        c(vals$current_backup, vals$backup_list),
+        c(vals$current_backup, dot_args$parent$backup_list),
         {
           toggle_undo_redo(vals)
         },
@@ -90,7 +90,7 @@ ser_deser_server <- function(id, board, ...) {
         {
           vals$auto_snapshot <- TRUE
           restore_board(
-            vals$backup_list[[vals$current_backup]],
+            dot_args$parent$backup_list[[vals$current_backup]],
             res,
             dot_args$parent
           )
@@ -101,6 +101,28 @@ ser_deser_server <- function(id, board, ...) {
       # Restore workspace from json file
       observeEvent(input$restore, {
         restore_board(input$restore$datapath, res, dot_args$parent)
+      })
+
+      # Restore from scoutbar choice
+      observeEvent(dot_args$parent$scoutbar_value, {
+        vals$auto_snapshot <- TRUE
+        tryCatch(
+          {
+            restore_board(dot_args$parent$scoutbar_value, res, dot_args$parent)
+          },
+          error = function(e) {
+            showNotification(
+              "Error restoring snapshot. It is possible that you try to restore an old state
+              that is not compatible with the current version",
+              tags$details(
+                tags$summary("Details"),
+                tags$small(e$message)
+              ),
+              duration = NA,
+              type = "error"
+            )
+          }
+        )
       })
 
       res
@@ -117,21 +139,31 @@ ser_deser_server <- function(id, board, ...) {
 ser_deser_ui <- function(id, board) {
   list(
     buttons = tagList(
-      shinyjs::disabled(
-        actionButton(
-          NS(id, "undo"),
-          label = "Undo",
-          icon = icon("rotate-left"),
-          class = "btn-danger"
-        )
+      actionButton(
+        NS(id, "save"),
+        label = "Save",
+        icon = icon("floppy-disk")
       ),
-      shinyjs::disabled(
-        actionButton(
-          NS(id, "redo"),
-          label = "Redo",
-          icon = icon("rotate-right")
-        )
-      )
+      actionButton(
+        NS(id, "browse_snapshots"),
+        label = "Restore from",
+        icon = icon("file")
+      ) #,
+      #shinyjs::disabled(
+      #  actionButton(
+      #    NS(id, "undo"),
+      #    label = "Undo",
+      #    icon = icon("rotate-left"),
+      #    class = "btn-danger"
+      #  )
+      #),
+      #shinyjs::disabled(
+      #  actionButton(
+      #    NS(id, "redo"),
+      #    label = "Redo",
+      #    icon = icon("rotate-right")
+      #  )
+      #)
     ),
     restore = tagList(
       downloadButton(
