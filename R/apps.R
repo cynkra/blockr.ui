@@ -35,6 +35,11 @@ new_dash_board <- function(...) {
     snapshot_location <- Sys.getenv("SNAPSHOT_LOCATION")
   }
 
+  auto_snapshot <- FALSE
+  if (nchar(Sys.getenv("AUTO_SNAPSHOT")) > 0) {
+    auto_snapshot <- as.logical(Sys.getenv("AUTO_SNAPSHOT"))
+  }
+
   new_board(
     ...,
     class = c(sprintf("%s_board", dashboard_type), "dash_board"),
@@ -42,7 +47,10 @@ new_dash_board <- function(...) {
       dark_mode = "light",
       stacks_colors = hcl.colors(n_stacks, palette = stacks_color_palette),
       dashboard_type = dashboard_type,
-      snapshot_location = snapshot_location
+      snapshot = list(
+        location = snapshot_location,
+        auto = auto_snapshot
+      )
     )
   )
 }

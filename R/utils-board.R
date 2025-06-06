@@ -490,17 +490,14 @@ manage_scoutbar <- function(board, update, parent, ...) {
         scout_page(
           label = "Restore a snapshot",
           .list = lapply(
-            file.path(
-              get_board_option_value("snapshot_location"),
-              parent$backup_list
-            ),
-            \(file) {
-              infos <- file.info(file)
+            list_snapshot_files(board$board_id),
+            \(path) {
+              infos <- file.info(path)
               scout_action(
-                id = sprintf("%s@restore_board", file),
+                id = sprintf("%s@restore_board", path),
                 label = strsplit(
-                  file,
-                  get_board_option_value("snapshot_location"),
+                  path,
+                  path.expand(get_board_option_value("snapshot")$location),
                   ""
                 )[[1]][2],
                 description = sprintf(

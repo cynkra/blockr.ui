@@ -32,10 +32,7 @@ ser_deser_server <- function(id, board, ...) {
 
       # Init backup list
       observeEvent(TRUE, {
-        dot_args$parent$backup_list <- list.files(
-          path = isolate(get_board_option_value("snapshot_location")),
-          pattern = paste0("^", isolate(board$board_id), ".*\\.json$")
-        )
+        dot_args$parent$backup_list <- list_snapshot_files(board$board_id)
       })
 
       # Trigger open scoutbar
@@ -45,58 +42,65 @@ ser_deser_server <- function(id, board, ...) {
 
       # TBD -> add board option for auto_snapshot
 
-      # Debounce so that we don't record too
-      # many intermediate states as json. This also leaves
-      # enough time for the network to stabilize properly
-      # and have the correct node coordinates.
-      snapshot_trigger <- reactive({
-        #list(
-        #  board_links(board$board),
-        #  dot_args$parent$grid,
-        #  get_blocks_state(board) # Capture any block state change (input change, ...)
-        #)
-      }) |>
-        debounce(2000)
-
-      # Auto save
-      observeEvent(
-        {
-          c(snapshot_trigger(), input$save)
-        },
-        {
-          snapshot_board(vals, board, dot_args$parent, session)
-        }
-      )
-
-      observeEvent(
-        c(vals$current_backup, dot_args$parent$backup_list),
-        {
-          toggle_undo_redo(vals)
-        },
-        ignoreNULL = TRUE
-      )
-
-      observeEvent(input$undo, {
-        vals$current_backup <- vals$current_backup - 1
-      })
-
-      observeEvent(input$redo, {
-        vals$current_backup <- vals$current_backup + 1
-      })
-
-      # Move from one snapshot to another
-      observeEvent(
-        c(input$undo, input$redo),
-        {
-          vals$auto_snapshot <- TRUE
-          restore_board(
-            dot_args$parent$backup_list[[vals$current_backup]],
-            res,
-            dot_args$parent
+      if (isTRUE(isolate(get_board_option_value("snapshot")$auto))) {
+        # Debounce so that we don't record too
+        # many intermediate states as json. This also leaves
+        # enough time for the network to stabilize properly
+        # and have the correct node coordinates.
+        snapshot_trigger <- reactive({
+          list(
+            board_links(board$board),
+            dot_args$parent$grid,
+            get_blocks_state(board) # Capture any block state change (input change, ...)
           )
-        },
-        ignoreInit = TRUE
-      )
+        }) |>
+          debounce(2000)
+
+        # Auto save
+        observeEvent(
+          {
+            snapshot_trigger()
+          },
+          {
+            snapshot_board(vals, board, dot_args$parent, session)
+          }
+        )
+
+        observeEvent(
+          c(vals$current_backup, dot_args$parent$backup_list),
+          {
+            toggle_undo_redo(vals)
+          },
+          ignoreNULL = TRUE
+        )
+
+        observeEvent(input$undo, {
+          vals$current_backup <- vals$current_backup - 1
+        })
+
+        observeEvent(input$redo, {
+          vals$current_backup <- vals$current_backup + 1
+        })
+
+        # Move from one snapshot to another
+        observeEvent(
+          c(input$undo, input$redo),
+          {
+            vals$auto_snapshot <- TRUE
+            restore_board(
+              dot_args$parent$backup_list[[vals$current_backup]],
+              res,
+              dot_args$parent
+            )
+          },
+          ignoreInit = TRUE
+        )
+      }
+
+      # Manual save
+      observeEvent(input$save, {
+        snapshot_board(vals, board, dot_args$parent, session)
+      })
 
       # Restore workspace from json file
       observeEvent(input$restore, {
@@ -110,7 +114,6 @@ ser_deser_server <- function(id, board, ...) {
           req(dot_args$parent$scoutbar$action == "restore_board")
         },
         {
-          vals$auto_snapshot <- TRUE
           tryCatch(
             {
               restore_board(
@@ -158,22 +161,21 @@ ser_deser_ui <- function(id, board) {
         NS(id, "browse_snapshots"),
         label = "Restore from",
         icon = icon("file")
-      ) #,
-      #shinyjs::disabled(
-      #  actionButton(
-      #    NS(id, "undo"),
-      #    label = "Undo",
-      #    icon = icon("rotate-left"),
-      #    class = "btn-danger"
-      #  )
-      #),
-      #shinyjs::disabled(
-      #  actionButton(
-      #    NS(id, "redo"),
-      #    label = "Redo",
-      #    icon = icon("rotate-right")
-      #  )
-      #)
+      ),
+      if (isTRUE(board_option("snapshot", board)$auto)) {
+        tagList(
+          actionButton(
+            NS(id, "undo"),
+            label = "Undo",
+            icon = icon("rotate-left")
+          ),
+          actionButton(
+            NS(id, "redo"),
+            label = "Redo",
+            icon = icon("rotate-right")
+          )
+        )
+      }
     ),
     restore = tagList(
       downloadButton(

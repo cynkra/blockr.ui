@@ -216,6 +216,15 @@ check_ser_deser_val <- function(val) {
   val
 }
 
+#' @keywords internal
+list_snapshot_files <- function(board_id) {
+  list.files(
+    path = get_board_option_value("snapshot")$location,
+    pattern = paste0("^", board_id, ".*\\.json$"),
+    full.names = TRUE
+  )
+}
+
 #' Capture board snapshot
 #'
 #' This is used to autosnapshot the board.
@@ -237,10 +246,7 @@ snapshot_board <- function(vals, rv, parent, session) {
 
   file_name <- board_filename(rv)()
   write_board_to_disk(rv, parent, session)(file_name)
-  vals$backup_list <- list.files(
-    path = get_board_option_value("snapshot_location"),
-    pattern = paste0("^", rv$board_id, ".*\\.json$")
-  )
+  vals$backup_list <- list_snapshot_files(rv$board_id)
   vals$current_backup <- length(vals$backup_list)
 }
 
