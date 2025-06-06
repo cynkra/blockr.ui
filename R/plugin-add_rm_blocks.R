@@ -29,14 +29,20 @@ add_rm_block_server <- function(id, board, update, ...) {
 
       # Adding a block, we update the rv$added so the graph is updated
       # in the links plugin
-      observeEvent(dot_args$parent$scoutbar_value, {
-        new_blk <- as_blocks(create_block(dot_args$parent$scoutbar_value))
-        update(
-          list(blocks = list(add = new_blk))
-        )
-        dot_args$parent$added_block <- new_blk[[1]]
-        attr(dot_args$parent$added_block, "uid") <- names(new_blk)
-      })
+      observeEvent(
+        {
+          dot_args$parent$scoutbar
+          req(dot_args$parent$scoutbar$action == "add_block")
+        },
+        {
+          new_blk <- as_blocks(create_block(dot_args$parent$scoutbar$value))
+          update(
+            list(blocks = list(add = new_blk))
+          )
+          dot_args$parent$added_block <- new_blk[[1]]
+          attr(dot_args$parent$added_block, "uid") <- names(new_blk)
+        }
+      )
 
       # Remove block and node
       observeEvent(

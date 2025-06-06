@@ -104,26 +104,36 @@ ser_deser_server <- function(id, board, ...) {
       })
 
       # Restore from scoutbar choice
-      observeEvent(dot_args$parent$scoutbar_value, {
-        vals$auto_snapshot <- TRUE
-        tryCatch(
-          {
-            restore_board(dot_args$parent$scoutbar_value, res, dot_args$parent)
-          },
-          error = function(e) {
-            showNotification(
-              "Error restoring snapshot. It is possible that you try to restore an old state
+      observeEvent(
+        {
+          dot_args$parent$scoutbar
+          req(dot_args$parent$scoutbar$action == "restore_board")
+        },
+        {
+          vals$auto_snapshot <- TRUE
+          tryCatch(
+            {
+              restore_board(
+                dot_args$parent$scoutbar$value,
+                res,
+                dot_args$parent
+              )
+            },
+            error = function(e) {
+              showNotification(
+                "Error restoring snapshot. It is possible that you try to restore an old state
               that is not compatible with the current version",
-              tags$details(
-                tags$summary("Details"),
-                tags$small(e$message)
-              ),
-              duration = NA,
-              type = "error"
-            )
-          }
-        )
-      })
+                tags$details(
+                  tags$summary("Details"),
+                  tags$small(e$message)
+                ),
+                duration = NA,
+                type = "error"
+              )
+            }
+          )
+        }
+      )
 
       res
     }

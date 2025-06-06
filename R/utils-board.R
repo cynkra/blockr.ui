@@ -48,7 +48,7 @@ blk_choices <- function() {
           lapply(available_blocks(), \(choice) {
             if (attr(choice, "category") == cat) {
               scout_action(
-                id = attr(choice, "classes")[1],
+                id = sprintf("%s@add_block", attr(choice, "classes")[1]),
                 label = attr(choice, "name"),
                 description = attr(choice, "description"),
                 icon = blk_icon(cat)
@@ -421,8 +421,7 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
   tagList(
     scoutbar(
       sprintf("%s-scoutbar", id),
-      placeholder = "Search for a block",
-      actions = blk_choices(),
+      placeholder = "What do you want to do?",
       showRecentSearch = TRUE
     ),
     board_header(id, my_board_ui, my_dash),
@@ -477,35 +476,43 @@ manage_scoutbar <- function(board, update, parent, ...) {
   # Update scoutbar action with snapshots taken in the serialise module
   observeEvent(
     {
-      req(session$input[["scoutbar-configuration"]])
       parent$backup_list
     },
     {
-      new_actions <- c(
-        session$input[["scoutbar-configuration"]]$actions,
-        lapply(
-          file.path(
-            get_board_option_value("snapshot_location"),
-            parent$backup_list
-          ),
-          \(file) {
-            infos <- file.info(file)
-            scout_action(
-              id = file,
-              label = strsplit(
-                file,
-                get_board_option_value("snapshot_location"),
-                ""
-              )[[1]][2],
-              description = sprintf(
-                "Created by %s. Date: %s. Size: %s KB",
-                infos[["uname"]],
-                round(infos[["mtime"]], units = "secs"),
-                round(infos[["size"]] / 1000, 1)
-              ),
-              icon = phosphoricons::ph_i("file")
-            )
-          }
+      # TBD: this isn't optimal. scoutbaR should
+      # be able to allow to append/remove/modify actions
+      # instead of having to re-create the whole list.
+      new_actions <- list(
+        scout_page(
+          label = "Add a block",
+          .list = blk_choices()
+        ),
+        scout_page(
+          label = "Restore a snapshot",
+          .list = lapply(
+            file.path(
+              get_board_option_value("snapshot_location"),
+              parent$backup_list
+            ),
+            \(file) {
+              infos <- file.info(file)
+              scout_action(
+                id = sprintf("%s@restore_board", file),
+                label = strsplit(
+                  file,
+                  get_board_option_value("snapshot_location"),
+                  ""
+                )[[1]][2],
+                description = sprintf(
+                  "Created by %s. Date: %s. Size: %s KB",
+                  infos[["uname"]],
+                  round(infos[["mtime"]], units = "secs"),
+                  round(infos[["size"]] / 1000, 1)
+                ),
+                icon = phosphoricons::ph_i("file")
+              )
+            }
+          )
         )
       )
       # We need to avoid to overwrite the existing actions ...
@@ -519,6 +526,10 @@ manage_scoutbar <- function(board, update, parent, ...) {
 
   # Sync value for other modules
   observeEvent(input$scoutbar, {
-    parent$scoutbar_value <- input$scoutbar
+    tmp <- strsplit(input$scoutbar, "@")[[1]]
+    parent$scoutbar <- list(
+      action = tmp[2],
+      value = tmp[1]
+    )
   })
 }
