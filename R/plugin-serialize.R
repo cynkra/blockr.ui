@@ -69,7 +69,7 @@ ser_deser_server <- function(id, board, ...) {
         observeEvent(
           c(vals$current_backup, dot_args$parent$backup_list),
           {
-            toggle_undo_redo(vals)
+            toggle_undo_redo(vals, parent)
           },
           ignoreNULL = TRUE
         )
@@ -114,26 +114,10 @@ ser_deser_server <- function(id, board, ...) {
           req(dot_args$parent$scoutbar$action == "restore_board")
         },
         {
-          tryCatch(
-            {
-              restore_board(
-                dot_args$parent$scoutbar$value,
-                res,
-                dot_args$parent
-              )
-            },
-            error = function(e) {
-              showNotification(
-                "Error restoring snapshot. It is possible that you try to restore an old state
-              that is not compatible with the current version",
-                tags$details(
-                  tags$summary("Details"),
-                  tags$small(e$message)
-                ),
-                duration = NA,
-                type = "error"
-              )
-            }
+          restore_board(
+            dot_args$parent$scoutbar$value,
+            res,
+            dot_args$parent
           )
         }
       )

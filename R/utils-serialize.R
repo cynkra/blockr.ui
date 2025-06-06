@@ -113,7 +113,7 @@ blockr_deser.data.frame <- function(x, data, ...) {
 board_filename <- function(rv) {
   function() {
     file.path(
-      get_board_option_value("snapshot_location"),
+      get_board_option_value("snapshot")$location,
       paste0(
         rv$board_id,
         "_",
@@ -235,19 +235,34 @@ list_snapshot_files <- function(board_id) {
 #' @param session Shiny session object.
 #' @keywords internal
 snapshot_board <- function(vals, rv, parent, session) {
-  # Prevents undo/redo from triggering new snapshot
-  # after the previous or next state are restored.
-  # The vals$auto_snapshot is release so that any other
-  # change can retrigger a new snapshot round
-  if (vals$auto_snapshot) {
-    vals$auto_snapshot <- FALSE
-    return(NULL)
-  }
+  tryCatch(
+    {
+      # Prevents undo/redo from triggering new snapshot
+      # after the previous or next state are restored.
+      # The vals$auto_snapshot is release so that any other
+      # change can retrigger a new snapshot round
+      if (vals$auto_snapshot) {
+        vals$auto_snapshot <- FALSE
+        return(NULL)
+      }
 
-  file_name <- board_filename(rv)()
-  write_board_to_disk(rv, parent, session)(file_name)
-  vals$backup_list <- list_snapshot_files(rv$board_id)
-  vals$current_backup <- length(vals$backup_list)
+      file_name <- board_filename(rv)()
+      write_board_to_disk(rv, parent, session)(file_name)
+      parent$backup_list <- list_snapshot_files(rv$board_id)
+      vals$current_backup <- length(parent$backup_list)
+    },
+    error = function(e) {
+      showNotification(
+        "Error saving board state.",
+        tags$details(
+          tags$summary("Details"),
+          tags$small(e$message)
+        ),
+        duration = NA,
+        type = "error"
+      )
+    }
+  )
 }
 
 #' Restore board from snapshot
@@ -257,14 +272,30 @@ snapshot_board <- function(vals, rv, parent, session) {
 #' @param parent Parent reactiveValues to communicate to other modules.
 #' @keywords internal
 restore_board <- function(path, res, parent) {
-  tmp_res <- from_json(path)
-  res(tmp_res$board)
-  # Update parent node, grid, selected, mode
-  # that were stored in the JSON but not part of the board object.
-  parent$network <- structure(tmp_res$network, class = "network")
-  parent$grid <- structure(tmp_res$grid, class = "dock")
-  parent$selected_block <- tmp_res$selected_block
-  parent$mode <- tmp_res$mode
+  tryCatch(
+    {
+      tmp_res <- from_json(path)
+      res(tmp_res$board)
+      # Update parent node, grid, selected, mode
+      # that were stored in the JSON but not part of the board object.
+      parent$network <- structure(tmp_res$network, class = "network")
+      parent$grid <- structure(tmp_res$grid, class = "dock")
+      parent$selected_block <- tmp_res$selected_block
+      parent$mode <- tmp_res$mode
+    },
+    error = function(e) {
+      showNotification(
+        "Error restoring snapshot. It is possible that you try to restore an old state
+              that is not compatible with the current version",
+        tags$details(
+          tags$summary("Details"),
+          tags$small(e$message)
+        ),
+        duration = NA,
+        type = "error"
+      )
+    }
+  )
 }
 
 #' Toggle undo/redo
@@ -272,18 +303,19 @@ restore_board <- function(path, res, parent) {
 #' Toggle state of undo/redo buttons.
 #'
 #' @param vals Local module reactive Values.
+#' @param parent Global reactive Values.
 #' @keywords internal
-toggle_undo_redo <- function(vals) {
-  undo_cond <- if (!length(vals$backup_list)) {
+toggle_undo_redo <- function(vals, parent) {
+  undo_cond <- if (!length(parent$backup_list)) {
     FALSE
   } else {
     vals$current_backup > 1
   }
 
-  redo_cond <- if (!length(vals$backup_list)) {
+  redo_cond <- if (!length(parent$backup_list)) {
     FALSE
   } else {
-    vals$current_backup < length(vals$backup_list)
+    vals$current_backup < length(parent$backup_list)
   }
 
   shinyjs::toggleState(

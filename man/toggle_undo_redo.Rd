@@ -4,10 +4,12 @@
 \alias{toggle_undo_redo}
 \title{Toggle undo/redo}
 \usage{
-toggle_undo_redo(vals)
+toggle_undo_redo(vals, parent)
 }
 \arguments{
 \item{vals}{Local module reactive Values.}
+
+\item{parent}{Global reactive Values.}
 }
 \description{
 Toggle state of undo/redo buttons.

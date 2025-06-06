@@ -460,6 +460,7 @@ manage_scoutbar <- function(board, update, parent, ...) {
       if (!input[["scoutbar-open"]]) {
         parent$append_block <- FALSE
         parent$open_scoutbar <- FALSE
+        parent$scoutbar <- list()
       }
     }
   )
