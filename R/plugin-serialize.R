@@ -102,6 +102,15 @@ ser_deser_server <- function(id, board, ...) {
         snapshot_board(vals, board, dot_args$parent, session)
       })
 
+      # Probably useful to save something if the user disconnects
+      # by accident or the app crashes ...
+      session$onSessionEnded(function() {
+        # we need isolate to avoid reactive context error.
+        isolate({
+          snapshot_board(vals, board, dot_args$parent, session)
+        })
+      })
+
       # Restore workspace from json file
       observeEvent(input$restore, {
         restore_board(input$restore$datapath, res, dot_args$parent)
