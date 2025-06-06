@@ -237,6 +237,10 @@ list_snapshot_files <- function(board_id) {
 snapshot_board <- function(vals, rv, parent, session) {
   tryCatch(
     {
+      # Don't save board if no blocks are present.
+      if (length(board_block_ids(rv$board)) == 0) {
+        stop()
+      }
       # Prevents undo/redo from triggering new snapshot
       # after the previous or next state are restored.
       # The vals$auto_snapshot is release so that any other
@@ -252,15 +256,17 @@ snapshot_board <- function(vals, rv, parent, session) {
       vals$current_backup <- length(parent$backup_list)
     },
     error = function(e) {
-      showNotification(
-        "Error saving board state.",
-        tags$details(
-          tags$summary("Details"),
-          tags$small(e$message)
-        ),
-        duration = NA,
-        type = "error"
-      )
+      if (shiny::isRunning()) {
+        showNotification(
+          "Error saving board state.",
+          tags$details(
+            tags$summary("Details"),
+            tags$small(e$message)
+          ),
+          duration = NA,
+          type = "error"
+        )
+      }
     }
   )
 }

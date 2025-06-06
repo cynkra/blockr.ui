@@ -152,8 +152,8 @@ ser_deser_ui <- function(id, board) {
       ),
       actionButton(
         NS(id, "browse_snapshots"),
-        label = "Restore from",
-        icon = icon("file")
+        label = "Restore",
+        icon = icon("file-import")
       ),
       if (isTRUE(board_option("snapshot", board)$auto)) {
         tagList(
@@ -178,9 +178,9 @@ ser_deser_ui <- function(id, board) {
       ),
       fileInput(
         NS(id, "restore"),
-        label = "",
         buttonLabel = "Import",
-        placeholder = "Select file to restore"
+        label = "",
+        placeholder = "Select file from any location"
       )
     )
   )
