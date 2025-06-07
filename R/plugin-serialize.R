@@ -35,11 +35,6 @@ ser_deser_server <- function(id, board, ...) {
         dot_args$parent$backup_list <- list_snapshot_files(board$board_id)
       })
 
-      # Trigger open scoutbar
-      observeEvent(input$browse_snapshots, {
-        dot_args$parent$open_scoutbar <- TRUE
-      })
-
       # TBD -> add board option for auto_snapshot
 
       if (isTRUE(isolate(get_board_option_value("snapshot")$auto))) {
@@ -98,7 +93,7 @@ ser_deser_server <- function(id, board, ...) {
       }
 
       # Manual save
-      observeEvent(input$save, {
+      observeEvent(req(dot_args$parent$save_board), {
         snapshot_board(vals, board, dot_args$parent, session)
       })
 
@@ -145,16 +140,6 @@ ser_deser_server <- function(id, board, ...) {
 ser_deser_ui <- function(id, board) {
   list(
     buttons = tagList(
-      actionButton(
-        NS(id, "save"),
-        label = "Save",
-        icon = icon("floppy-disk")
-      ),
-      actionButton(
-        NS(id, "browse_snapshots"),
-        label = "Restore",
-        icon = icon("file-import")
-      ),
       if (isTRUE(board_option("snapshot", board)$auto)) {
         tagList(
           actionButton(

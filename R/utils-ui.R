@@ -111,6 +111,14 @@ custom_icons <- function() {
     tags$i(
       `data-fa-symbol` = "add-block",
       class = "fa-solid fa-circle-plus fa-fw"
+    ),
+    tags$i(
+      `data-fa-symbol` = "save-board",
+      class = "fa-solid fa-floppy-disk fa-fw"
+    ),
+    tags$i(
+      `data-fa-symbol` = "browse-snapshots",
+      class = "fa-solid fa-file-import fa-fw"
     )
   )
 }

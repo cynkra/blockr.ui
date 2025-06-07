@@ -58,6 +58,16 @@ add_rm_link_server <- function(id, board, update, ...) {
         dot_args$parent$open_scoutbar <- input$add_block
       })
 
+      # Trigger save board
+      observeEvent(input$save_board, {
+        dot_args$parent$save_board <- input$save_board
+      })
+
+      # Trigger browse snapshots/open scoutbar
+      observeEvent(input$browse_snapshots, {
+        dot_args$parent$open_scoutbar <- TRUE
+      })
+
       # Add node to network board$nodes so the graph is updated
       observeEvent(dot_args$parent$added_block, {
         tryCatch(
