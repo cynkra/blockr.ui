@@ -48,7 +48,7 @@ blk_choices <- function() {
           lapply(available_blocks(), \(choice) {
             if (attr(choice, "category") == cat) {
               scout_action(
-                id = attr(choice, "classes")[1],
+                id = sprintf("%s@add_block", attr(choice, "classes")[1]),
                 label = attr(choice, "name"),
                 description = attr(choice, "description"),
                 icon = blk_icon(cat)
@@ -195,7 +195,6 @@ board_header <- function(id, board_ui, grid_ui) {
     class = "d-flex align-items-center justify-content-around gap-5",
     board_burger(board_ui, grid_ui),
     board_actions(
-      board_ui$toolbar_ui$manage_blocks$toolbar,
       board_ui$toolbar_ui$generate_code,
       board_ui$toolbar_ui$preserve_board$buttons,
       actionButton(
@@ -420,7 +419,115 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
   my_dash <- dashboard_ui(id, x)
 
   tagList(
+    scoutbar(
+      sprintf("%s-scoutbar", id),
+      placeholder = "What do you want to do?",
+      showRecentSearch = TRUE
+    ),
     board_header(id, my_board_ui, my_dash),
     board_body(id, my_board_ui, my_dash)
   )
+}
+
+#' Scoutbar management callback
+#'
+#' @keywords internal
+#' @rdname handlers-utils
+manage_scoutbar <- function(board, update, parent, ...) {
+  session <- get("session", parent.frame(1))
+  input <- session$input
+  ns <- session$ns
+
+  # Trigger add block
+  observeEvent(
+    req(parent$open_scoutbar),
+    {
+      update_scoutbar(
+        session,
+        "scoutbar",
+        revealScoutbar = TRUE
+      )
+    }
+  )
+
+  # Reset dot_args$parent$append_block is user
+  # accidentally close the scoutbar without selecting
+  # a block, so that the scoutbar can open again on the
+  # next input$append_block or from the links plugin.
+  observeEvent(
+    input[["scoutbar-open"]],
+    {
+      if (!input[["scoutbar-open"]]) {
+        parent$append_block <- FALSE
+        parent$open_scoutbar <- FALSE
+        parent$scoutbar <- list()
+      }
+    }
+  )
+
+  # Open the scoutbar when append block
+  observeEvent(req(parent$append_block), {
+    update_scoutbar(
+      session,
+      "scoutbar",
+      revealScoutbar = TRUE
+    )
+  })
+
+  # Update scoutbar action with snapshots taken in the serialise module
+  observeEvent(
+    {
+      parent$backup_list
+    },
+    {
+      # TBD: this isn't optimal. scoutbaR should
+      # be able to allow to append/remove/modify actions
+      # instead of having to re-create the whole list.
+      new_actions <- list(
+        scout_page(
+          label = "Add a block",
+          .list = blk_choices()
+        ),
+        scout_page(
+          label = "Restore a snapshot",
+          .list = lapply(
+            list_snapshot_files(board$board_id),
+            \(path) {
+              infos <- file.info(path)
+              scout_action(
+                id = sprintf("%s@restore_board", path),
+                label = strsplit(
+                  path,
+                  path.expand(get_board_option_value("snapshot")$location),
+                  ""
+                )[[1]][2],
+                description = sprintf(
+                  "Created by %s. Date: %s. Size: %s KB",
+                  infos[["uname"]],
+                  round(infos[["mtime"]], units = "secs"),
+                  round(infos[["size"]] / 1000, 1)
+                ),
+                icon = phosphoricons::ph_i("file")
+              )
+            }
+          )
+        )
+      )
+      # We need to avoid to overwrite the existing actions ...
+      update_scoutbar(
+        session,
+        "scoutbar",
+        actions = new_actions
+      )
+    }
+  )
+
+  # Sync value for other modules
+  observeEvent(input$scoutbar, {
+    tmp <- strsplit(input$scoutbar, "@")[[1]]
+    parent$scoutbar <- list(
+      action = tmp[2],
+      value = tmp[1]
+    )
+  })
 }

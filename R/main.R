@@ -47,18 +47,28 @@ create_app_state.dock_board <- function(board) {
     in_grid = list(),
     refreshed = NULL,
     network = structure(list(), class = "network"),
-    add_block = NULL,
+    # Blocks/nodes
     append_block = FALSE,
     added_block = NULL,
     removed_block = NULL,
     selected_block = NULL,
+    # Edges
     cancelled_edge = NULL,
     added_edge = NULL,
     removed_edge = NULL,
+    # Stacks
     added_stack = NULL,
     stack_added_block = NULL,
     stack_removed_block = NULL,
-    removed_stack = NULL
+    removed_stack = NULL,
+    # scoutbar
+    open_scoutbar = FALSE,
+    scoutbar_value = NULL,
+    scoutbar_blocks = list(),
+    scoutbar_snapshots = list(),
+    # For snapshots
+    save_board = FALSE,
+    backup_list = list()
   )
 }
 
@@ -110,7 +120,8 @@ main_server <- function(id, board) {
           block_visibility = manage_block_visibility,
           # Callback to signal other modules that the restore is done.
           # This allows to restore each part in the correct order.
-          on_board_restore = board_restore
+          on_board_restore = board_restore,
+          manage_scoutbar = manage_scoutbar
         ),
         parent = app_state
       )

@@ -18,10 +18,7 @@ ser_deser_server <- function(id, board, ...) {
       res <- reactiveVal()
       vals <- reactiveValues(
         auto_snapshot = FALSE,
-        current_backup = NULL,
-        backup_list = list.files(
-          pattern = paste0("^", isolate(board$board_id), ".*\\.json$")
-        )
+        current_backup = NULL
       )
 
       dot_args <- list(...)
@@ -33,75 +30,101 @@ ser_deser_server <- function(id, board, ...) {
         write_board_to_disk(board, dot_args$parent, session)
       )
 
-      # Cleanup old files on start
-      observeEvent(
-        vals$backup_list,
-        {
-          if (length(vals$backup_list)) {
-            lapply(vals$backup_list, file.remove)
-          }
-          vals$backup_list <- list()
-        },
-        once = TRUE
-      )
-
-      # Debounce so that we don't record too
-      # many intermediate states as json. This also leaves
-      # enough time for the network to stabilize properly
-      # and have the correct node coordinates.
-      snapshot_trigger <- reactive({
-        list(
-          board_links(board$board),
-          dot_args$parent$grid,
-          get_blocks_state(board) # Capture any block state change (input change, ...)
-        )
-      }) |>
-        debounce(2000)
-
-      # Auto save
-      observeEvent(
-        {
-          snapshot_trigger()
-        },
-        {
-          snapshot_board(vals, board, dot_args$parent, session)
-        }
-      )
-
-      observeEvent(
-        c(vals$current_backup, vals$backup_list),
-        {
-          toggle_undo_redo(vals)
-        },
-        ignoreNULL = TRUE
-      )
-
-      observeEvent(input$undo, {
-        vals$current_backup <- vals$current_backup - 1
+      # Init backup list
+      observeEvent(TRUE, {
+        dot_args$parent$backup_list <- list_snapshot_files(board$board_id)
       })
 
-      observeEvent(input$redo, {
-        vals$current_backup <- vals$current_backup + 1
-      })
+      # TBD -> add board option for auto_snapshot
 
-      # Move from one snapshot to another
-      observeEvent(
-        c(input$undo, input$redo),
-        {
-          vals$auto_snapshot <- TRUE
-          restore_board(
-            vals$backup_list[[vals$current_backup]],
-            res,
-            dot_args$parent
+      if (isTRUE(isolate(get_board_option_value("snapshot")$auto))) {
+        # Debounce so that we don't record too
+        # many intermediate states as json. This also leaves
+        # enough time for the network to stabilize properly
+        # and have the correct node coordinates.
+        snapshot_trigger <- reactive({
+          list(
+            board_links(board$board),
+            dot_args$parent$grid,
+            get_blocks_state(board) # Capture any block state change (input change, ...)
           )
-        },
-        ignoreInit = TRUE
-      )
+        }) |>
+          debounce(2000)
+
+        # Auto save
+        observeEvent(
+          {
+            snapshot_trigger()
+          },
+          {
+            snapshot_board(vals, board, dot_args$parent, session)
+          }
+        )
+
+        observeEvent(
+          c(vals$current_backup, dot_args$parent$backup_list),
+          {
+            toggle_undo_redo(vals, parent)
+          },
+          ignoreNULL = TRUE
+        )
+
+        observeEvent(input$undo, {
+          vals$current_backup <- vals$current_backup - 1
+        })
+
+        observeEvent(input$redo, {
+          vals$current_backup <- vals$current_backup + 1
+        })
+
+        # Move from one snapshot to another
+        observeEvent(
+          c(input$undo, input$redo),
+          {
+            vals$auto_snapshot <- TRUE
+            restore_board(
+              dot_args$parent$backup_list[[vals$current_backup]],
+              res,
+              dot_args$parent
+            )
+          },
+          ignoreInit = TRUE
+        )
+      }
+
+      # Manual save
+      observeEvent(req(dot_args$parent$save_board), {
+        snapshot_board(vals, board, dot_args$parent, session)
+      })
+
+      # Probably useful to save something if the user disconnects
+      # by accident or the app crashes ...
+      session$onSessionEnded(function() {
+        # we need isolate to avoid reactive context error.
+        isolate({
+          snapshot_board(vals, board, dot_args$parent, session)
+        })
+      })
 
       # Restore workspace from json file
       observeEvent(input$restore, {
         restore_board(input$restore$datapath, res, dot_args$parent)
       })
+
+      # Restore from scoutbar choice
+      observeEvent(
+        {
+          dot_args$parent$scoutbar
+          req(dot_args$parent$scoutbar$action == "restore_board")
+        },
+        {
+          restore_board(
+            dot_args$parent$scoutbar$value,
+            res,
+            dot_args$parent
+          )
+        }
+      )
 
       res
     }
@@ -117,21 +140,20 @@ ser_deser_server <- function(id, board, ...) {
 ser_deser_ui <- function(id, board) {
   list(
     buttons = tagList(
-      shinyjs::disabled(
-        actionButton(
-          NS(id, "undo"),
-          label = "Undo",
-          icon = icon("rotate-left"),
-          class = "btn-danger"
+      if (isTRUE(board_option("snapshot", board)$auto)) {
+        tagList(
+          actionButton(
+            NS(id, "undo"),
+            label = "Undo",
+            icon = icon("rotate-left")
+          ),
+          actionButton(
+            NS(id, "redo"),
+            label = "Redo",
+            icon = icon("rotate-right")
+          )
         )
-      ),
-      shinyjs::disabled(
-        actionButton(
-          NS(id, "redo"),
-          label = "Redo",
-          icon = icon("rotate-right")
-        )
-      )
+      }
     ),
     restore = tagList(
       downloadButton(
@@ -141,9 +163,9 @@ ser_deser_ui <- function(id, board) {
       ),
       fileInput(
         NS(id, "restore"),
-        label = "",
         buttonLabel = "Import",
-        placeholder = "Select file to restore"
+        label = "",
+        placeholder = "Select file from any location"
       )
     )
   )

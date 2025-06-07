@@ -5,6 +5,7 @@
 \alias{manage_block_visibility}
 \alias{manage_app_mode}
 \alias{board_restore}
+\alias{manage_scoutbar}
 \title{Manage board sidebars}
 \usage{
 manage_sidebars(board, update, parent, ...)
@@ -14,6 +15,8 @@ manage_block_visibility(board, update, parent, ...)
 manage_app_mode(board, update, parent, ...)
 
 board_restore(board, update, parent, ...)
+
+manage_scoutbar(board, update, parent, ...)
 }
 \arguments{
 \item{board}{Board reactiveValues. Read-only.}
@@ -32,5 +35,7 @@ Manage blocks visibility
 Manage app mode
 
 Board restoration callback
+
+Scoutbar management callback
 }
 \keyword{internal}

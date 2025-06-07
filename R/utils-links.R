@@ -387,7 +387,9 @@ default_g6_plugins <- function(graph, ..., ns) {
             { id: 'delete', value: 'delete' }, 
             { id: 'request-fullscreen', value: 'request-fullscreen' },
             { id: 'exit-fullscreen', value: 'exit-fullscreen' },
-            { id: 'add-block', value : 'add-block'}
+            { id: 'add-block', value : 'add-block'},
+            { id: 'save-board', value : 'save-board'},
+            { id: 'browse-snapshots', value : 'browse-snapshots'}
           ]"
         ),
         onClick = JS(
@@ -422,11 +424,17 @@ default_g6_plugins <- function(graph, ..., ns) {
                 }
               } else if (value === 'add-block') {
                 Shiny.setInputValue('%s', true, {priority: 'event'});
+              } else if (value === 'save-board') {
+                Shiny.setInputValue('%s', true, {priority: 'event'})
+              } else if (value === 'browse-snapshots') {
+                Shiny.setInputValue('%s', true, {priority: 'event'})
               }
             }
           ",
             ns("removed_node"),
-            ns("add_block")
+            ns("add_block"),
+            ns("save_board"),
+            ns("browse_snapshots")
           )
         )
       )
