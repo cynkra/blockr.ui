@@ -15,7 +15,6 @@ main_ui <- function(id, board) {
       c(
         "preserve_board",
         "manage_blocks",
-        "manage_links",
         "manage_stacks",
         "generate_code",
         "notify_user"
@@ -113,15 +112,11 @@ main_server <- function(id, board) {
         ),
         callbacks = list(
           grid = dashboard_server,
-          app_mod = manage_app_mode,
-          manage_sidebars = manage_sidebars,
-          # Only one block can be visible at a time in the sidebar,
-          # as only one block can be selected at a time in the network
-          block_visibility = manage_block_visibility,
           # Callback to signal other modules that the restore is done.
           # This allows to restore each part in the correct order.
           on_board_restore = board_restore,
-          manage_scoutbar = manage_scoutbar
+          manage_scoutbar = manage_scoutbar,
+          layout = build_layout
         ),
         parent = app_state
       )

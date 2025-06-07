@@ -98,8 +98,9 @@ add_rm_link_server <- function(id, board, update, ...) {
 
       # Append block
       observeEvent(input$append_node, {
-        if (isFALSE(dot_args$parent$append_block))
+        if (isFALSE(dot_args$parent$append_block)) {
           dot_args$parent$append_block <- TRUE
+        }
       })
 
       # Implement Edge creation by DND
@@ -239,6 +240,6 @@ add_rm_link_server <- function(id, board, update, ...) {
 #' @export
 add_rm_link_ui <- function(id, board) {
   tagList(
-    g6_output(NS(id, "network"), height = "400px")
+    g6_output(NS(id, "network"), height = "800px")
   )
 }

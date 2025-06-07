@@ -1,13 +1,13 @@
 #' Block custom UI
 #'
 #' @param id Block module id.
-#' @param x Block object.
-#' @param blocks (Additional) blocks (or IDs) for which to generate the UI.
+#' @param x Board object.
+#' @param block Block to generate the UI for.
 #' @param ... Generic consistency.
 #'
 #' @export
 #' @rdname block_ui
-block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
+block_ui.dash_board <- function(id, x, block = NULL, ...) {
   block_card <- function(x, id, ns) {
     id <- paste0("block_", id)
 
@@ -51,24 +51,11 @@ block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
     )
   }
 
+  id <- names(block)
   stopifnot(is.character(id) && length(id) == 1L)
-
-  if (is.null(blocks)) {
-    blocks <- board_blocks(x)
-  } else if (is.character(blocks)) {
-    blocks <- board_blocks(x)[blocks]
-  }
-
-  stopifnot(is_blocks(blocks))
-
-  tagList(
-    map(
-      block_card,
-      blocks,
-      names(blocks),
-      MoreArgs = list(ns = NS(id))
-    )
-  )
+  block <- block[[1]]
+  stopifnot(is_block(block))
+  block_card(block, id, ns = NS(id))
 }
 
 #' @rdname block_ui
@@ -83,8 +70,11 @@ remove_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
       paste0("#", id, "_blocks > div"),
       multiple = TRUE,
       immediate = TRUE,
-      session = if (!is.null(pars$session)) pars$session else
+      session = if (!is.null(pars$session)) {
+        pars$session
+      } else {
         getDefaultReactiveDomain()
+      }
     )
   } else {
     stopifnot(is.character(blocks))
@@ -92,8 +82,11 @@ remove_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
       removeUI(
         sprintf("#%s-%s", id, paste0("block_", block)),
         immediate = TRUE,
-        session = if (!is.null(pars$session)) pars$session else
+        session = if (!is.null(pars$session)) {
+          pars$session
+        } else {
           getDefaultReactiveDomain()
+        }
       )
     }
   }

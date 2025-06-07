@@ -61,51 +61,6 @@ blk_choices <- function() {
   })
 }
 
-#' Grid sidebar
-#'
-#' Default grid sidebar.
-#'
-#' @param ... Sidebar content.
-#' @param id Sidebar id.
-#' @param width Sidebar width.
-#' @param title Sidebar title
-#' @rdname board-sidebar
-#' @keywords internal
-board_grid <- function(..., id, width = "75%", title = "Dashboard") {
-  sidebar(
-    id = NS(id, "dashboard"),
-    title = title,
-    position = "right",
-    width = width,
-    open = FALSE,
-    padding = c("0px", "10px"),
-    ...
-  )
-}
-
-#' Block properties sidebar
-#'
-#' Default block sidebar.
-#'
-#' @rdname board-sidebar
-#' @keywords internal
-board_properties <- function(
-  ...,
-  id,
-  width = "40%",
-  title = "Block properties"
-) {
-  sidebar(
-    id = NS(id, "properties"),
-    title = title,
-    open = FALSE,
-    width = width,
-    position = "right",
-    padding = c("0px", "10px"),
-    ...
-  )
-}
-
 #' Board action bar
 #'
 #' Default action bar.
@@ -131,7 +86,7 @@ board_actions <- function(...) {
 #'
 #' @rdname board-layout
 #' @keywords internal
-board_burger <- function(board_ui, grid_ui) {
+board_burger <- function(board_ui) {
   dropdown_button(
     icon = icon("bars"),
     tags$li(
@@ -146,37 +101,6 @@ board_burger <- function(board_ui, grid_ui) {
         class = "dropdown-header",
         "Grid options"
       )
-    ),
-    grid_ui$options
-  )
-}
-
-#' Board body
-#'
-#' Body layout
-#'
-#' @rdname board-layout
-#' @keywords internal
-board_body <- function(id, board_ui, grid_ui) {
-  layout_sidebar(
-    border = FALSE,
-    class = "p-0",
-    sidebar = board_grid(
-      id = id,
-      # GRID CONTENT
-      grid_ui$content
-    ),
-    layout_sidebar(
-      border = FALSE,
-      sidebar = board_properties(
-        id = id,
-        board_ui$blocks_ui,
-        grid_ui$add_to_dashboard,
-        board_ui$toolbar_ui$manage_blocks$sidebar
-      ),
-      board_ui$toolbar_ui$manage_links,
-      # Notifications
-      board_ui$notifications
     )
   )
 }
@@ -187,72 +111,17 @@ board_body <- function(id, board_ui, grid_ui) {
 #'
 #' @param id Board id.
 #' @param board_ui Board ui.
-#' @param grid_ui Grid ui.
 #' @rdname board-layout
 #' @keywords internal
-board_header <- function(id, board_ui, grid_ui) {
+board_header <- function(id, board_ui) {
   div(
     class = "d-flex align-items-center justify-content-around gap-5",
-    board_burger(board_ui, grid_ui),
+    board_burger(board_ui),
     board_actions(
       board_ui$toolbar_ui$generate_code,
-      board_ui$toolbar_ui$preserve_board$buttons,
-      actionButton(
-        NS(id, "preview"),
-        "Preview",
-        icon = icon("eye")
-      ),
-      actionButton(
-        NS(id, "mode"),
-        "Mode",
-        icon = icon("network-wired")
-      )
+      board_ui$toolbar_ui$preserve_board$buttons
     ),
     board_ui$board_options_ui
-  )
-}
-
-#' Manage board sidebars
-#'
-#' @param board Board reactiveValues. Read-only.
-#' @param update Update reactiveVal to signal change to the board.
-#' @param parent Parent global reactiveValues.
-#' @param ... Extra elements.
-#'
-#' @keywords internal
-#' @rdname handlers-utils
-manage_sidebars <- function(board, update, parent, ...) {
-  session <- get("session", parent.frame(1))
-  ns <- session$ns
-
-  # Hide the sidebar toggles to avoid accidental clicks by users
-  # The switching is handles via below observeEvents
-  session$sendCustomMessage("hide-sidebars-toggles", list(ns = ns(NULL)))
-
-  # Toggle sidebars based on the board mode.
-  # Since we render the same UI either in the properties sidebar
-  # or the dashboard sidebar, they can't be opened at the same time.
-  observeEvent(
-    c(parent$mode, parent$selected_block),
-    {
-      cond <- if (
-        is.null(parent$selected_block) || length(parent$selected_block) > 1
-      ) {
-        FALSE
-      } else {
-        (parent$mode == "network" && nchar(parent$selected_block) > 0)
-      }
-
-      toggle_sidebar(
-        id = "properties",
-        open = cond
-      )
-      toggle_sidebar(
-        id = "dashboard",
-        open = (parent$mode == "dashboard")
-      )
-    },
-    ignoreInit = TRUE
   )
 }
 
@@ -278,79 +147,6 @@ manage_block_visibility <- function(board, update, parent, ...) {
     }
   )
   return(NULL)
-}
-
-#' Manage app mode
-#'
-#' @keywords internal
-#' @rdname handlers-utils
-manage_app_mode <- function(board, update, parent, ...) {
-  session <- get("session", parent.frame(1))
-  input <- session$input
-
-  # App mode
-  observeEvent(input$mode, {
-    if (input$mode %% 2 == 0) parent$mode <- "network" else
-      parent$mode <- "dashboard"
-
-    if (parent$mode == "network" && input$preview %% 2 != 0) {
-      shinyjs::click("preview")
-    }
-    updateActionButton(
-      session,
-      "mode",
-      icon = if (parent$mode == "network") icon("network-wired") else
-        icon("table-columns")
-    )
-  })
-
-  # Viewer mode: maximize dashboard view to save space
-  observeEvent(input$preview, {
-    toggle_preview(parent, session)
-  })
-
-  # Restore correct app mode
-  observeEvent(req(parent$refreshed == "grid"), {
-    if (parent$mode == "dashboard") {
-      shinyjs::click("mode")
-    }
-    parent$refreshed <- NULL
-  })
-
-  # Disable mode or preview when there is no block
-  observeEvent(board$blocks, {
-    # close sidebar if no remaining block (prevents from getting
-    # stuck in the dashboard.
-    if (parent$mode == "dashboard" && length(board$blocks) == 0) {
-      shinyjs::click("mode")
-    }
-    shinyjs::toggleState(
-      "mode",
-      condition = length(board$blocks) > 0
-    )
-    shinyjs::toggleState(
-      "preview",
-      condition = length(board$blocks) > 0
-    )
-  })
-}
-
-toggle_preview <- function(vals, session) {
-  is_odd <- session$input$preview %% 2 == 0
-  vals$preview <- if (is_odd) FALSE else TRUE
-  if (vals$mode != "dashboard") shinyjs::click("mode")
-  updateActionButton(
-    session,
-    "preview",
-    icon = if (!is_odd) icon("eye-slash") else icon("eye")
-  )
-  session$sendCustomMessage(
-    "toggle-view",
-    list(
-      id = sprintf("#%s", session$ns("dashboard")),
-      val = !is_odd
-    )
-  )
 }
 
 #' Board restoration callback
@@ -383,7 +179,6 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
   toolbar_plugins <- c(
     "preserve_board",
     "manage_blocks",
-    "manage_links",
     "manage_stacks",
     "generate_code"
   )
@@ -402,21 +197,9 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
 
   my_board_ui <- list(
     toolbar_ui = toolbar_ui,
-    blocks_ui = div(
-      id = paste0(id, "_board"),
-      do.call(
-        div,
-        c(
-          id = paste0(id, "_blocks"),
-          block_ui(id, x, edit_ui = block_plugin)
-        )
-      )
-    ),
     notifications = board_ui(id, plugins[["notify_user"]], x),
     board_options_ui = board_ui(id, board_options(x))
   )
-
-  my_dash <- dashboard_ui(id, x)
 
   tagList(
     scoutbar(
@@ -424,9 +207,86 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
       placeholder = "What do you want to do?",
       showRecentSearch = TRUE
     ),
-    board_header(id, my_board_ui, my_dash),
-    board_body(id, my_board_ui, my_dash)
+    board_header(id, my_board_ui),
+    dockViewOutput(
+      paste0(id, "-layout"),
+      width = "100%",
+      height = "100vh"
+    )
   )
+}
+
+#' App layout
+#'
+#' @keywords internal
+#' @rdname handlers-utils
+build_layout <- function(board, update, parent, ...) {
+  session <- get("session", parent.frame(1))
+  input <- session$input
+  output <- session$output
+  ns <- session$ns
+
+  # Insert block panel on add
+  observeEvent(parent$selected_block, {
+    # Don't re-add the same block panel if in the dock
+    if (
+      sprintf("block-%s", parent$selected_block) %in% get_panels_ids("layout")
+    ) {
+      return(NULL)
+    }
+
+    blk_ui <- block_ui(
+      ns(sprintf("block-%s", parent$selected_block)),
+      board$board,
+      board_blocks(board$board)[parent$selected_block]
+    )
+
+    add_panel(
+      "layout",
+      panel = dockViewR::panel(
+        id = sprintf("block-%s", parent$selected_block),
+        title = sprintf("Block: %s", parent$selected_block),
+        content = blk_ui
+      ),
+      position = list(
+        referencePanel = "dag",
+        direction = "right"
+      )
+    )
+  })
+
+  output$layout <- renderDockView({
+    # Since board$board is reactive, we need to isolate it
+    # so we don't re-render the whole layout each time ...
+    isolate({
+      dock_view(
+        panels = list(
+          panel(
+            id = "dag",
+            title = "Pipeline overview",
+            content = board_ui(
+              session$ns(NULL),
+              dash_board_plugins("manage_links"),
+              board$board
+            )
+          ),
+          panel(
+            id = "dashboard",
+            title = "Dashboard",
+            content = tagList(
+              dashboard_ui(session$ns(NULL), board$board)
+            ),
+            position = list(
+              referencePanel = "dag",
+              direction = "right"
+            )
+          )
+        ),
+        # TBD (make theme function of board options)
+        theme = "light"
+      )
+    })
+  })
 }
 
 #' Scoutbar management callback

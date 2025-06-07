@@ -2,27 +2,20 @@
 % Please edit documentation in R/utils-board.R
 \name{board_burger}
 \alias{board_burger}
-\alias{board_body}
 \alias{board_header}
 \title{Board extra actions}
 \usage{
-board_burger(board_ui, grid_ui)
+board_burger(board_ui)
 
-board_body(id, board_ui, grid_ui)
-
-board_header(id, board_ui, grid_ui)
+board_header(id, board_ui)
 }
 \arguments{
 \item{board_ui}{Board ui.}
-
-\item{grid_ui}{Grid ui.}
 
 \item{id}{Board id.}
 }
 \description{
 Extra actions dropdown.
-
-Body layout
 
 Header layout.
 }
