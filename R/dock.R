@@ -65,8 +65,9 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       # Signal to remove panel from dock.
       # Panel will be removed by manage_dashboard.
       vals$in_grid[[removed]] <- NULL
-      if (paste0("block_", removed) %in% get_panels_ids("dock"))
+      if (paste0("block_", removed) %in% get_panels_ids("dock")) {
         remove_panel("dock", paste0("block_", removed))
+      }
     })
   })
 
@@ -83,6 +84,22 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
         input$add_to_dashboard,
         vals
       )
+
+      # Render a second output containing only
+      # the block result on demand
+      if (input$add_to_dashboard) {
+        output[[sprintf("dock-%s", parent$selected_block)]] <- renderUI({
+          board$blocks[[parent$selected_block]]$result
+        })
+      } else {
+        # Remove output from dock
+        removeUI(
+          selector = sprintf("#dock-%s", parent$selected_block),
+          immediate = TRUE,
+          session = session
+        )
+        output[[sprintf("dock-%s", parent$selected_block)]] <- NULL
+      }
     }
   )
 
@@ -127,8 +144,12 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   output$dock <- renderDockView({
     dock_view(
       panels = list(), # TBD handle when we initalise from a non empty dock
-      theme = if (nchar(Sys.getenv("DOCK_THEME")) > 0)
-        Sys.getenv("DOCK_THEME") else "replit"
+      # TBD: handle theme from global app theme
+      theme = if (nchar(Sys.getenv("DOCK_THEME")) > 0) {
+        Sys.getenv("DOCK_THEME")
+      } else {
+        "replit"
+      }
     )
   })
   outputOptions(output, "dock", suspendWhenHidden = FALSE)

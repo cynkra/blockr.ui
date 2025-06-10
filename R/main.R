@@ -14,7 +14,6 @@ main_ui <- function(id, board) {
     plugins = dash_board_plugins(
       c(
         "preserve_board",
-        "manage_blocks",
         "manage_stacks",
         "generate_code",
         "notify_user"

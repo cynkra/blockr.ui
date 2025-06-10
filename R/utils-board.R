@@ -178,7 +178,6 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
 
   toolbar_plugins <- c(
     "preserve_board",
-    "manage_blocks",
     "manage_stacks",
     "generate_code"
   )
@@ -246,14 +245,32 @@ build_layout <- function(board, update, parent, ...) {
       panel = dockViewR::panel(
         id = sprintf("block-%s", parent$selected_block),
         title = sprintf("Block: %s", parent$selected_block),
-        content = blk_ui
+        content = tagList(
+          blk_ui,
+          board_ui(
+            session$ns(NULL),
+            dash_board_plugins("manage_blocks")
+          )
+        )
       ),
+      # TBD: should render as a separate group (not tabbed)
       position = list(
         referencePanel = "dag",
         direction = "right"
       )
     )
   })
+
+  # Remove block panel on block remove
+  # As we can remove multiple blocks at once, we
+  # need to loop over the removed blocks.
+  observeEvent(parent$removed_block, {
+    lapply(parent$removed_block, \(blk) {
+      remove_panel("layout", paste0("block-", blk))
+    })
+  })
+
+  # TBD: why are outputs not shown?
 
   output$layout <- renderDockView({
     # Since board$board is reactive, we need to isolate it
@@ -266,10 +283,18 @@ build_layout <- function(board, update, parent, ...) {
             title = "Pipeline overview",
             content = board_ui(
               session$ns(NULL),
-              dash_board_plugins("manage_links"),
-              board$board
+              dash_board_plugins("manage_links")
             )
           ),
+          #panel(
+          #  id = "blocks",
+          #  title = "Blocks",
+          #  content = div(id = "main-board_blocks"),
+          #  position = list(
+          #    referencePanel = "dag",
+          #    direction = "right"
+          #  )
+          #),
           panel(
             id = "dashboard",
             title = "Dashboard",

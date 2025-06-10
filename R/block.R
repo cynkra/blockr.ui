@@ -9,53 +9,48 @@
 #' @rdname block_ui
 block_ui.dash_board <- function(id, x, block = NULL, ...) {
   block_card <- function(x, id, ns) {
-    id <- paste0("block_", id)
-
     blk_info <- get_block_registry(x)
-    div(
-      class = "m-2",
-      id = ns(id),
-      card(
-        full_screen = TRUE,
-        card_header(
-          class = "d-flex justify-content-between",
-          card_title(
-            blk_icon(attr(blk_info, "category")),
-            sprintf(
-              "Block: %s (id: %s)",
-              attr(blk_info, "name"),
-              gsub("block_", "", id)
-            )
-          ),
-          tooltip(
-            icon("info-circle"),
-            p(
-              icon("lightbulb"),
-              "How to use this block?",
-            ),
-            p(attr(blk_info, "description"), ".")
-          )
-        ),
-        # subtitle
-        div(
-          class = "card-subtitle mb-2 text-body-secondary",
+    card(
+      full_screen = TRUE,
+      card_header(
+        class = "d-flex justify-content-between",
+        card_title(
+          blk_icon(attr(blk_info, "category")),
           sprintf(
-            "Type: %s; Package: %s",
-            attr(blk_info, "category"),
-            attr(blk_info, "package")
+            "Block: %s (id: %s)",
+            attr(blk_info, "name"),
+            gsub("block_", "", id)
           )
         ),
-        expr_ui(ns(id), x),
-        block_ui(ns(id), x)
-      )
+        tooltip(
+          icon("info-circle"),
+          p(
+            icon("lightbulb"),
+            "How to use this block?",
+          ),
+          p(attr(blk_info, "description"), ".")
+        )
+      ),
+      # subtitle
+      div(
+        class = "card-subtitle mb-2 text-body-secondary",
+        sprintf(
+          "Type: %s; Package: %s",
+          attr(blk_info, "category"),
+          attr(blk_info, "package")
+        )
+      ),
+      expr_ui(ns(NULL), x),
+      block_ui(ns(NULL), x)
     )
   }
 
+  ns <- NS(id)
   id <- names(block)
   stopifnot(is.character(id) && length(id) == 1L)
   block <- block[[1]]
   stopifnot(is_block(block))
-  block_card(block, id, ns = NS(id))
+  block_card(block, id, ns = ns)
 }
 
 #' @rdname block_ui
