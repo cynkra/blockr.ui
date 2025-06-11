@@ -74,7 +74,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   # Toggle state for each selected block and update the state
   observeEvent(
     {
-      req(length(board$blocks) > 0)
+      req(length(board$blocks) > 0, parent$selected_block)
       input$add_to_dashboard
     },
     {
@@ -88,17 +88,39 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       # Render a second output containing only
       # the block result on demand
       if (input$add_to_dashboard) {
-        output[[sprintf("dock-%s", parent$selected_block)]] <- renderUI({
-          board$blocks[[parent$selected_block]]$result
-        })
-      } else {
-        # Remove output from dock
-        removeUI(
-          selector = sprintf("#dock-%s", parent$selected_block),
-          immediate = TRUE,
-          session = session
+        output[[sprintf(
+          "dock-%s",
+          parent$selected_block
+        )]] <- block_output(
+          board$blocks[[parent$selected_block]]$block,
+          board$blocks[[parent$selected_block]]$server$result(),
+          session
         )
-        output[[sprintf("dock-%s", parent$selected_block)]] <- NULL
+
+        add_panel(
+          "dock",
+          sprintf("block_%s", parent$selected_block),
+          panel = dockViewR::panel(
+            id = sprintf("block-%s", parent$selected_block),
+            title = sprintf("Block: %s", parent$selected_block),
+            content = DT::dataTableOutput(
+              session$ns(
+                sprintf(
+                  "dock-%s",
+                  parent$selected_block
+                )
+              )
+            )
+          )
+        )
+      } else {
+        if (
+          sprintf("block_%s", parent$selected_block) %in% get_panels_ids("dock")
+        ) {
+          # Remove output from dock
+          remove_panel("dock", sprintf("block_%s", parent$selected_block))
+          output[[sprintf("dock-%s", parent$selected_block)]] <- NULL
+        }
       }
     }
   )

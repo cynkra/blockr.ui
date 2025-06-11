@@ -226,48 +226,23 @@ build_layout <- function(board, update, parent, ...) {
   ns <- session$ns
 
   # Insert block panel on add
-  observeEvent(parent$selected_block, {
-    # Don't re-add the same block panel if in the dock
-    if (
-      sprintf("block-%s", parent$selected_block) %in% get_panels_ids("layout")
-    ) {
-      return(NULL)
+  observeEvent(
+    {
+      parent$selected_block
+    },
+    {
+      insert_block_ui(parent$selected_block, board$board)
     }
-
-    blk_ui <- block_ui(
-      ns(sprintf("block-%s", parent$selected_block)),
-      board$board,
-      board_blocks(board$board)[parent$selected_block]
-    )
-
-    add_panel(
-      "layout",
-      panel = dockViewR::panel(
-        id = sprintf("block-%s", parent$selected_block),
-        title = sprintf("Block: %s", parent$selected_block),
-        content = tagList(
-          blk_ui,
-          board_ui(
-            session$ns(NULL),
-            dash_board_plugins("manage_blocks")
-          )
-        )
-      ),
-      # TBD: should render as a separate group (not tabbed)
-      position = list(
-        referencePanel = "dag",
-        direction = "right"
-      )
-    )
-  })
+  )
 
   # Remove block panel on block remove
   # As we can remove multiple blocks at once, we
   # need to loop over the removed blocks.
   observeEvent(parent$removed_block, {
-    lapply(parent$removed_block, \(blk) {
-      remove_panel("layout", paste0("block-", blk))
-    })
+    remove_block_ui(
+      parent$removed_block,
+      board$board
+    )
   })
 
   # TBD: why are outputs not shown?

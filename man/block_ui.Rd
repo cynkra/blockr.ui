@@ -2,12 +2,15 @@
 % Please edit documentation in R/block.R
 \name{block_ui.dash_board}
 \alias{block_ui.dash_board}
+\alias{insert_block_ui.dash_board}
 \alias{remove_block_ui.dash_board}
 \title{Block custom UI}
 \usage{
 \method{block_ui}{dash_board}(id, x, block = NULL, ...)
 
-\method{remove_block_ui}{dash_board}(id, x, blocks = NULL, ...)
+\method{insert_block_ui}{dash_board}(id, x, ...)
+
+\method{remove_block_ui}{dash_board}(id, x, ...)
 }
 \arguments{
 \item{id}{Block module id.}

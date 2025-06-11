@@ -12,7 +12,7 @@ dash_board_plugins <- function(which = NULL) {
     manage_links(server = add_rm_link_server, ui = add_rm_link_ui),
     manage_stacks(server = add_rm_stack_server, ui = add_rm_stack_ui),
     notify_user(),
-    generate_code(ui = gen_code_ui),
+    generate_code(server = generate_code_server, ui = generate_code_ui),
     edit_block(),
     edit_stack()
   )

@@ -55,36 +55,72 @@ block_ui.dash_board <- function(id, x, block = NULL, ...) {
 
 #' @rdname block_ui
 #' @export
-remove_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
-  pars <- list(...)
-
-  if (is.null(blocks)) {
-    stopifnot(is.character(id) && length(id) == 1L)
-
-    removeUI(
-      paste0("#", id, "_blocks > div"),
-      multiple = TRUE,
-      immediate = TRUE,
-      session = if (!is.null(pars$session)) {
-        pars$session
-      } else {
-        getDefaultReactiveDomain()
-      }
-    )
-  } else {
-    stopifnot(is.character(blocks))
-    for (block in blocks) {
-      removeUI(
-        sprintf("#%s-%s", id, paste0("block_", block)),
-        immediate = TRUE,
-        session = if (!is.null(pars$session)) {
-          pars$session
-        } else {
-          getDefaultReactiveDomain()
-        }
-      )
-    }
+insert_block_ui.dash_board <- function(id, x, ...) {
+  stopifnot(
+    is.character(id),
+    length(id) == 1,
+    is_board(x)
+  )
+  # Why the hell do I have to do that? If I don't
+  # insert_block_ui triggers when there is no block yet ...
+  if (length(board_blocks(x)) == 0) {
+    return(NULL)
   }
+  session <- getDefaultReactiveDomain()
+  stopifnot(!is.null(session))
+  ns <- session$ns
+
+  # Don't re-add the same block panel if in the dock
+  if (sprintf("block-%s", id) %in% get_panels_ids("layout")) {
+    return(NULL)
+  }
+
+  blk_ui <- block_ui(
+    ns(sprintf("block_%s", id)),
+    x,
+    board_blocks(x)[id]
+  )
+
+  # For some reasons, we need to add the panel first
+  # then add the block UI to the panel.
+  add_panel(
+    "layout",
+    panel = dockViewR::panel(
+      id = sprintf("block-%s", id),
+      title = sprintf("Block: %s", id),
+      content = tagList()
+    ),
+    # TBD: should render as a separate group (not tabbed)
+    position = list(
+      referencePanel = "dag",
+      direction = "right"
+    )
+  )
+
+  insertUI(
+    sprintf("#%s", session$ns(paste0("layout-", sprintf("block-%s", id)))),
+    "beforeEnd",
+    blk_ui,
+    immediate = TRUE
+  )
+
+  invisible(x)
+}
+
+#' @rdname block_ui
+#' @export
+remove_block_ui.dash_board <- function(id, x, ...) {
+  stopifnot(is.character(id), is_board(x))
+  # Why do I have to do that too? This thing
+  # even triggers when there is no block ...
+  if (length(board_blocks(x)) == 0) {
+    return(NULL)
+  }
+  lapply(id, \(blk) {
+    remove_panel("layout", paste0("block-", blk))
+  })
+
+  invisible(x)
 }
 
 #' Get block info in registry
