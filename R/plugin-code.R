@@ -26,11 +26,11 @@ generate_code_server <- function(id, board, ...) {
       dot_args <- list(...)
 
       code <- reactive(
-        gen_code(board)
+        export_code(lst_xtr_reval(board$blocks, "server", "expr"), board$board)
       )
 
       observeEvent(
-        dot_args$parent$display_code,
+        req(dot_args$parent$display_code),
         {
           output$code_out <- renderPrint(HTML(code()))
 
@@ -49,6 +49,8 @@ generate_code_server <- function(id, board, ...) {
               size = "l"
             )
           )
+
+          dot_args$parent$display_code <- FALSE
         }
       )
 
@@ -72,7 +74,7 @@ generate_code_ui <- function(id, board) {
 copy_to_clipboard <- function(session, id) {
   deps <- htmltools::htmlDependency(
     "copy-to-clipboard",
-    pkg_version(),
+    utils::packageVersion("blockr.core"),
     src = pkg_file("assets", "js"),
     script = "copyToClipboard.js"
   )

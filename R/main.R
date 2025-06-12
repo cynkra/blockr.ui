@@ -66,7 +66,9 @@ create_app_state.dock_board <- function(board) {
     scoutbar_snapshots = list(),
     # For snapshots
     save_board = FALSE,
-    backup_list = list()
+    backup_list = list(),
+    # For code generation
+    display_code = FALSE
   )
 }
 

@@ -5,10 +5,6 @@
 dashboard_ui.dock_board <- function(id, board, ...) {
   ns <- NS(id)
   list(
-    add_to_dashboard = bslib::input_switch(
-      ns("add_to_dashboard"),
-      "Use in dashboard?"
-    ),
     options = tagList(
       numericInput(
         ns("dashboard_zoom"),
@@ -74,20 +70,13 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   # Toggle state for each selected block and update the state
   observeEvent(
     {
-      req(length(board$blocks) > 0, parent$selected_block)
-      input$add_to_dashboard
+      req(parent$selected_block)
+      vals$in_grid[[parent$selected_block]]
     },
     {
-      update_dashboard_state(
-        board$board,
-        parent$selected_block,
-        input$add_to_dashboard,
-        vals
-      )
-
       # Render a second output containing only
       # the block result on demand
-      if (input$add_to_dashboard) {
+      if (parent$in_grid[[parent$selected_block]]) {
         output[[sprintf(
           "dock-%s",
           parent$selected_block
@@ -115,52 +104,15 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
         )
       } else {
         if (
-          sprintf("block_%s", parent$selected_block) %in% get_panels_ids("dock")
+          sprintf("block-%s", parent$selected_block) %in% get_panels_ids("dock")
         ) {
           # Remove output from dock
-          remove_panel("dock", sprintf("block_%s", parent$selected_block))
+          remove_panel("dock", sprintf("block-%s", parent$selected_block))
           output[[sprintf("dock-%s", parent$selected_block)]] <- NULL
         }
       }
-    }
-  )
-
-  # When we change block, update the switch to the value it should
-  # be from vals$in_grid[[selected()]]. Also, callback from
-  # links module: any change in the add to grid
-  # options updates the local in_grid reactive value to move
-  # the blocks between the sidebar and the grid.
-  observeEvent(
-    {
-      req(length(board$blocks) > 0, length(parent$in_grid) > 0)
-      req(parent$selected_block %in% names(parent$in_grid))
-      req(length(parent$selected_block) == 1)
-      c(parent$selected_block, parent$in_grid)
     },
-    {
-      update_block_dashboard_input(
-        board$board,
-        parent$selected_block,
-        parent$in_grid[[parent$selected_block]],
-        vals,
-        session
-      )
-    }
-  )
-
-  # Move items between properties tab and grid.
-  # Since we can't rebuilt the UI of each block and preserve its state
-  # we have to move elements from one place to another. This also avoids ID
-  # duplication.
-  observeEvent(
-    {
-      req(parent$mode)
-      req(length(vals$in_grid) > 0)
-      parent$refreshed == "grid"
-    },
-    {
-      manage_dashboard(board$board, parent$mode, vals, session)
-    }
+    ignoreInit = TRUE
   )
 
   output$dock <- renderDockView({
@@ -192,6 +144,12 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
     }
   )
 
+  # Callback from links plugin
+  observeEvent(parent$in_grid, {
+    vals$in_grid <- parent$in_grid
+  })
+
+  # Maintain consistency between parent and local reactive values
   observeEvent(vals$in_grid, {
     parent$in_grid <- vals$in_grid
   })

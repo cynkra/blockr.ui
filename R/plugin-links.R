@@ -53,6 +53,11 @@ add_rm_link_server <- function(id, board, update, ...) {
         })
       })
 
+      # Trigger show code
+      observeEvent(input$show_code, {
+        dot_args$parent$display_code <- TRUE
+      })
+
       # Trigger scoutbar from network menu
       observeEvent(input$add_block, {
         dot_args$parent$open_scoutbar <- input$add_block
@@ -229,6 +234,81 @@ add_rm_link_server <- function(id, board, update, ...) {
       observeEvent(input$remove_stack, {
         unstack_nodes(vals, dot_args$parent, session)
       })
+
+      # Add/remove to/from dashboard
+      observeEvent(input$add_to_dashboard, {
+        dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- TRUE
+      })
+
+      observeEvent(input$remove_from_dashboard, {
+        dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- FALSE
+      })
+
+      observeEvent(
+        {
+          req(dot_args$parent$selected_block)
+          dot_args$parent$in_grid[[dot_args$parent$selected_block]]
+        },
+        {
+          new_items <- if (
+            dot_args$parent$in_grid[[dot_args$parent$selected_block]]
+          ) {
+            "(e) => {
+              if (e.targetType === 'node') {
+                return [
+                  { name: 'Create edge', value: 'create_edge' },
+                  { name: 'Append node', value: 'append_node' },
+                  { name: 'Remove node', value: 'remove_node' },
+                  { name: 'Remove from dashboard', value: 'remove_from_dashboard' }
+                ];
+              } else if (e.targetType === 'edge') {
+                return [
+                  { name: 'Remove edge', value: 'remove_edge' }
+                ];
+              } else if (e.targetType === 'canvas') {
+                return [
+                  { name: 'Create stack', value: 'create_stack' },
+                  { name: 'New block', value: 'add_block' }
+                ];
+              } else if (e.targetType === 'combo') {
+                return [
+                  { name: 'Remove stack', value: 'remove_stack' }
+                ];
+              }
+            }"
+          } else {
+            "(e) => {
+              if (e.targetType === 'node') {
+                return [
+                  { name: 'Create edge', value: 'create_edge' },
+                  { name: 'Append node', value: 'append_node' },
+                  { name: 'Remove node', value: 'remove_node' },
+                  { name: 'Add to dashboard', value: 'add_to_dashboard' }
+                ];
+              } else if (e.targetType === 'edge') {
+                return [
+                  { name: 'Remove edge', value: 'remove_edge' }
+                ];
+              } else if (e.targetType === 'canvas') {
+                return [
+                  { name: 'Create stack', value: 'create_stack' },
+                  { name: 'New block', value: 'add_block' }
+                ];
+              } else if (e.targetType === 'combo') {
+                return [
+                  { name: 'Remove stack', value: 'remove_stack' }
+                ];
+              }
+            }"
+          }
+
+          g6_proxy(ns("network")) |>
+            g6_update_plugin(
+              key = "contextmenu",
+              getItems = JS(new_items)
+            )
+        }
+      )
 
       NULL
     }

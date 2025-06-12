@@ -8,9 +8,9 @@
 \usage{
 \method{block_ui}{dash_board}(id, x, block = NULL, ...)
 
-\method{insert_block_ui}{dash_board}(id, x, ...)
+\method{insert_block_ui}{dash_board}(id, x, blocks = NULL, ...)
 
-\method{remove_block_ui}{dash_board}(id, x, ...)
+\method{remove_block_ui}{dash_board}(id, x, blocks = NULL, ...)
 }
 \arguments{
 \item{id}{Block module id.}

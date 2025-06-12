@@ -333,6 +333,10 @@ default_g6_plugins <- function(graph, ..., ns) {
               Shiny.setInputValue('%s', current.id)
             } else if (value === 'add_block') {
               Shiny.setInputValue('%s', true, {priority: 'event'})
+            } else if (value === 'add_to_dashboard') {
+              Shiny.setInputValue('%s', true, {priority: 'event'})
+            } else if (value === 'remove_from_dashboard') {
+              Shiny.setInputValue('%s', true, {priority: 'event'})
             }
           }",
             ns("removed_node"),
@@ -340,7 +344,9 @@ default_g6_plugins <- function(graph, ..., ns) {
             ns("append_node"),
             ns("create_stack"),
             ns("remove_stack"),
-            ns("add_block")
+            ns("add_block"),
+            ns("add_to_dashboard"),
+            ns("remove_from_dashboard")
           )
         ),
         # nolint end
@@ -389,7 +395,8 @@ default_g6_plugins <- function(graph, ..., ns) {
             { id: 'delete', value: 'delete' },
             { id: 'add-block', value : 'add-block'},
             { id: 'save-board', value : 'save-board'},
-            { id: 'browse-snapshots', value : 'browse-snapshots'}
+            { id: 'browse-snapshots', value : 'browse-snapshots'},
+             { id: 'show-code', value : 'show-code'}
           ]"
         ),
         onClick = JS(
@@ -428,13 +435,16 @@ default_g6_plugins <- function(graph, ..., ns) {
                 Shiny.setInputValue('%s', true, {priority: 'event'})
               } else if (value === 'browse-snapshots') {
                 Shiny.setInputValue('%s', true, {priority: 'event'})
+              } else if (value === 'show-code') {
+                Shiny.setInputValue('%s', true, {priority: 'event'})
               }
             }
           ",
             ns("removed_node"),
             ns("add_block"),
             ns("save_board"),
-            ns("browse_snapshots")
+            ns("browse_snapshots"),
+            ns("show_code")
           )
         )
       )

@@ -119,6 +119,10 @@ custom_icons <- function() {
     tags$i(
       `data-fa-symbol` = "browse-snapshots",
       class = "fa-solid fa-file-import fa-fw"
+    ),
+    tags$i(
+      `data-fa-symbol` = "show-code",
+      class = "fa-solid fa-code fa-fw"
     )
   )
 }

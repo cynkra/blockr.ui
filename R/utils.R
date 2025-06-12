@@ -37,12 +37,24 @@ lst_xtr <- function(x, ...) {
   x
 }
 
+lst_xtr_reval <- function(x, ...) {
+  lapply(lst_xtr(x, ...), reval)
+}
+
 set_names <- function(object = nm, nm) {
   names(object) <- nm
   object
 }
 
+reval <- function(x) {
+  x()
+}
+
 reval_if <- function(x) if (is.function(x)) x() else x
+
+pkg_file <- function(...) {
+  system.file(..., package = "blockr.core")
+}
 
 #' Useful for shinytest2
 #' Pre-process reactiveValues results

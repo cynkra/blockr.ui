@@ -53,21 +53,14 @@ block_ui.dash_board <- function(id, x, block = NULL, ...) {
   block_card(block, id, ns = ns)
 }
 
-#' @rdname block_ui
-#' @export
-insert_block_ui.dash_board <- function(id, x, ...) {
+#' @keywords internal
+insert_block_panel <- function(id, x, session = getDefaultReactiveDomain()) {
   stopifnot(
     is.character(id),
     length(id) == 1,
-    is_board(x)
+    is_board(x),
+    !is.null(session)
   )
-  # Why the hell do I have to do that? If I don't
-  # insert_block_ui triggers when there is no block yet ...
-  if (length(board_blocks(x)) == 0) {
-    return(NULL)
-  }
-  session <- getDefaultReactiveDomain()
-  stopifnot(!is.null(session))
   ns <- session$ns
 
   # Don't re-add the same block panel if in the dock
@@ -88,7 +81,8 @@ insert_block_ui.dash_board <- function(id, x, ...) {
     panel = dockViewR::panel(
       id = sprintf("block-%s", id),
       title = sprintf("Block: %s", id),
-      content = tagList()
+      content = tagList(),
+      removable = TRUE
     ),
     # TBD: should render as a separate group (not tabbed)
     position = list(
@@ -107,20 +101,26 @@ insert_block_ui.dash_board <- function(id, x, ...) {
   invisible(x)
 }
 
-#' @rdname block_ui
-#' @export
-remove_block_ui.dash_board <- function(id, x, ...) {
-  stopifnot(is.character(id), is_board(x))
-  # Why do I have to do that too? This thing
-  # even triggers when there is no block ...
-  if (length(board_blocks(x)) == 0) {
-    return(NULL)
-  }
+#' @keywords internal
+remove_block_panels <- function(id) {
+  stopifnot(is.character(id))
   lapply(id, \(blk) {
     remove_panel("layout", paste0("block-", blk))
   })
 
   invisible(x)
+}
+
+#' @rdname block_ui
+#' @export
+insert_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
+  NULL
+}
+
+#' @rdname block_ui
+#' @export
+remove_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
+  NULL
 }
 
 #' Get block info in registry

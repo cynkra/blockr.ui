@@ -231,7 +231,7 @@ build_layout <- function(board, update, parent, ...) {
       parent$selected_block
     },
     {
-      insert_block_ui(parent$selected_block, board$board)
+      insert_block_panel(parent$selected_block, board$board)
     }
   )
 
@@ -239,10 +239,7 @@ build_layout <- function(board, update, parent, ...) {
   # As we can remove multiple blocks at once, we
   # need to loop over the removed blocks.
   observeEvent(parent$removed_block, {
-    remove_block_ui(
-      parent$removed_block,
-      board$board
-    )
+    remove_block_panels(parent$removed_block)
   })
 
   # TBD: why are outputs not shown?
@@ -261,15 +258,6 @@ build_layout <- function(board, update, parent, ...) {
               dash_board_plugins("manage_links")
             )
           ),
-          #panel(
-          #  id = "blocks",
-          #  title = "Blocks",
-          #  content = div(id = "main-board_blocks"),
-          #  position = list(
-          #    referencePanel = "dag",
-          #    direction = "right"
-          #  )
-          #),
           panel(
             id = "dashboard",
             title = "Dashboard",
