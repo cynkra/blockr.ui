@@ -14,8 +14,6 @@ main_ui <- function(id, board) {
     plugins = dash_board_plugins(
       c(
         "preserve_board",
-        "manage_blocks",
-        "manage_links",
         "manage_stacks",
         "generate_code",
         "notify_user"
@@ -47,18 +45,33 @@ create_app_state.dock_board <- function(board) {
     in_grid = list(),
     refreshed = NULL,
     network = structure(list(), class = "network"),
-    add_block = NULL,
+    # Blocks/nodes
     append_block = FALSE,
     added_block = NULL,
     removed_block = NULL,
     selected_block = NULL,
+    # Edges
     cancelled_edge = NULL,
     added_edge = NULL,
     removed_edge = NULL,
+    # Stacks
     added_stack = NULL,
     stack_added_block = NULL,
     stack_removed_block = NULL,
-    removed_stack = NULL
+    removed_stack = NULL,
+    # scoutbar
+    open_scoutbar = FALSE,
+    scoutbar = list(
+      trigger = NULL,
+      action = NULL,
+      value = NULL,
+      is_open = FALSE
+    ),
+    # For snapshots
+    save_board = FALSE,
+    backup_list = list(),
+    # For code generation
+    display_code = FALSE
   )
 }
 
@@ -103,14 +116,11 @@ main_server <- function(id, board) {
         ),
         callbacks = list(
           grid = dashboard_server,
-          app_mod = manage_app_mode,
-          manage_sidebars = manage_sidebars,
-          # Only one block can be visible at a time in the sidebar,
-          # as only one block can be selected at a time in the network
-          block_visibility = manage_block_visibility,
           # Callback to signal other modules that the restore is done.
           # This allows to restore each part in the correct order.
-          on_board_restore = board_restore
+          on_board_restore = board_restore,
+          manage_scoutbar = manage_scoutbar,
+          layout = build_layout
         ),
         parent = app_state
       )
