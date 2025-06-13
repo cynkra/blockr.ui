@@ -65,31 +65,36 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       # Render a second output containing only
       # the block result on demand
       if (parent$in_grid[[parent$selected_block]]) {
-        output[[sprintf(
-          "dock-%s",
-          parent$selected_block
-        )]] <- block_output(
-          board$blocks[[parent$selected_block]]$block,
-          board$blocks[[parent$selected_block]]$server$result(),
-          session
-        )
+        if (
+          !(sprintf("block-%s", parent$selected_block) %in%
+            get_panels_ids("dock"))
+        ) {
+          output[[sprintf(
+            "dock-%s",
+            parent$selected_block
+          )]] <- block_output(
+            board$blocks[[parent$selected_block]]$block,
+            board$blocks[[parent$selected_block]]$server$result(),
+            session
+          )
 
-        add_panel(
-          "dock",
-          sprintf("block_%s", parent$selected_block),
-          panel = dockViewR::panel(
-            id = sprintf("block-%s", parent$selected_block),
-            title = sprintf("Block: %s", parent$selected_block),
-            content = DT::dataTableOutput(
-              session$ns(
-                sprintf(
-                  "dock-%s",
-                  parent$selected_block
+          add_panel(
+            "dock",
+            sprintf("block_%s", parent$selected_block),
+            panel = dockViewR::panel(
+              id = sprintf("block-%s", parent$selected_block),
+              title = sprintf("Block: %s", parent$selected_block),
+              content = DT::dataTableOutput(
+                session$ns(
+                  sprintf(
+                    "dock-%s",
+                    parent$selected_block
+                  )
                 )
               )
             )
           )
-        )
+        }
       } else {
         if (
           sprintf("block-%s", parent$selected_block) %in% get_panels_ids("dock")

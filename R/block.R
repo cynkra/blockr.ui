@@ -9,6 +9,7 @@
 #' @rdname block_ui
 block_ui.dash_board <- function(id, x, block = NULL, ...) {
   block_card <- function(x, id, ns) {
+    blk_id <- ns(paste0("block_", id))
     blk_info <- get_block_registry(x)
     card(
       full_screen = TRUE,
@@ -40,8 +41,8 @@ block_ui.dash_board <- function(id, x, block = NULL, ...) {
           attr(blk_info, "package")
         )
       ),
-      expr_ui(ns(NULL), x),
-      block_ui(ns(NULL), x)
+      expr_ui(blk_id, x),
+      block_ui(blk_id, x)
     )
   }
 
@@ -54,7 +55,17 @@ block_ui.dash_board <- function(id, x, block = NULL, ...) {
 }
 
 #' @keywords internal
-insert_block_panel <- function(id, x, session = getDefaultReactiveDomain()) {
+remove_block_panels <- function(id) {
+  stopifnot(is.character(id))
+  lapply(id, \(blk) {
+    remove_panel("layout", paste0("block-", blk))
+  })
+}
+
+#' @rdname block_ui
+#' @export
+insert_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
+  session <- getDefaultReactiveDomain()
   stopifnot(
     is.character(id),
     length(id) == 1,
@@ -68,19 +79,18 @@ insert_block_panel <- function(id, x, session = getDefaultReactiveDomain()) {
     return(NULL)
   }
 
-  blk_ui <- block_ui(
-    ns(sprintf("block_%s", id)),
-    x,
-    board_blocks(x)[id]
-  )
+  # TBD: maybe if blocks had length > 1, we should use a loop?
+  # This can happen when we restore a board with multiple blocks
+
+  blk_ui <- block_ui(id, x, blocks)
 
   # For some reasons, we need to add the panel first
   # then add the block UI to the panel.
   add_panel(
     "layout",
     panel = dockViewR::panel(
-      id = sprintf("block-%s", id),
-      title = sprintf("Block: %s", id),
+      id = sprintf("block-%s", names(blocks)),
+      title = sprintf("Block: %s", names(blocks)),
       content = tagList(),
       position = list(
         referencePanel = if (length(get_panels_ids("layout")) == 2) {
@@ -99,27 +109,15 @@ insert_block_panel <- function(id, x, session = getDefaultReactiveDomain()) {
   )
 
   insertUI(
-    sprintf("#%s", session$ns(paste0("layout-", sprintf("block-%s", id)))),
-    "beforeEnd",
-    blk_ui,
+    sprintf(
+      "#%s",
+      session$ns(paste0("layout-", sprintf("block-%s", names(blocks))))
+    ),
+    ui = blk_ui,
     immediate = TRUE
   )
 
   invisible(x)
-}
-
-#' @keywords internal
-remove_block_panels <- function(id) {
-  stopifnot(is.character(id))
-  lapply(id, \(blk) {
-    remove_panel("layout", paste0("block-", blk))
-  })
-}
-
-#' @rdname block_ui
-#' @export
-insert_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
-  NULL
 }
 
 #' @rdname block_ui
