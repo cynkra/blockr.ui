@@ -74,48 +74,54 @@ insert_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
   )
   ns <- session$ns
 
+  blocks <- blocks[which(
+    !(sprintf("block-%s", names(blocks)) %in%
+      get_panels_ids("layout"))
+  )]
   # Don't re-add the same block panel if in the dock
-  if (sprintf("block-%s", id) %in% get_panels_ids("layout")) {
+  if (length(blocks) == 0) {
     return(NULL)
   }
 
-  # TBD: maybe if blocks had length > 1, we should use a loop?
+  # Loop over blocks.
   # This can happen when we restore a board with multiple blocks
+  lapply(seq_along(blocks), \(i) {
+    blk <- blocks[i]
+    blk_ui <- block_ui(id, x, blk)
 
-  blk_ui <- block_ui(id, x, blocks)
-
-  # For some reasons, we need to add the panel first
-  # then add the block UI to the panel.
-  add_panel(
-    "layout",
-    panel = dockViewR::panel(
-      id = sprintf("block-%s", names(blocks)),
-      title = sprintf("Block: %s", names(blocks)),
-      content = tagList(),
-      position = list(
-        referencePanel = if (length(get_panels_ids("layout")) == 2) {
-          "dag"
-        } else {
-          get_panels_ids("layout")[length(get_panels_ids("layout"))]
-        },
-        direction = if (length(get_panels_ids("layout")) == 2) {
-          "below"
-        } else {
-          "right"
-        }
-      ),
-      removable = TRUE
+    # For some reasons, we need to add the panel first
+    # then add the block UI to the panel.
+    add_panel(
+      "layout",
+      panel = dockViewR::panel(
+        id = sprintf("block-%s", names(blk)),
+        title = sprintf("Block: %s", names(blk)),
+        content = tagList(),
+        position = list(
+          referencePanel = if (length(get_panels_ids("layout")) == 2) {
+            "dag"
+          } else {
+            get_panels_ids("layout")[length(get_panels_ids("layout"))]
+          },
+          direction = if (length(get_panels_ids("layout")) == 2) {
+            "below"
+          } else {
+            "right"
+          }
+        ),
+        removable = TRUE
+      )
     )
-  )
 
-  insertUI(
-    sprintf(
-      "#%s",
-      session$ns(paste0("layout-", sprintf("block-%s", names(blocks))))
-    ),
-    ui = blk_ui,
-    immediate = TRUE
-  )
+    insertUI(
+      sprintf(
+        "#%s",
+        session$ns(paste0("layout-", sprintf("block-%s", names(blk))))
+      ),
+      ui = blk_ui,
+      immediate = TRUE
+    )
+  })
 
   invisible(x)
 }
