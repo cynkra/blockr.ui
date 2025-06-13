@@ -61,48 +61,121 @@ blk_choices <- function() {
   })
 }
 
-#' Board action bar
-#'
-#' Default action bar.
-#'
-#' @param ... Extra UI elements.
-#' @keywords internal
-board_actions <- function(...) {
-  div(
-    class = "btn-toolbar",
-    role = "toolbar",
-    `aria-label` = "Toolbar with button groups",
-    div(
-      class = "btn-group btn-group-sm",
-      role = "group",
-      ...
-    )
+#' @rdname board_ui
+#' @export
+board_ui.board_options <- function(id, x, ...) {
+  ns <- NS(id)
+
+  bslib::popover(
+    bsicons::bs_icon("gear", size = "1.5em"),
+    accordion(
+      id = ns("board_options"),
+      multiple = TRUE,
+      open = TRUE,
+      accordion_panel(
+        title = "General options",
+        textInput(
+          ns("board_name"),
+          "Board name",
+          board_option("board_name", x)
+        )
+      ),
+      accordion_panel(
+        title = "Tables options",
+        numericInput(
+          ns("n_rows"),
+          "Preview rows",
+          board_option("n_rows", x),
+          min = 1L,
+          step = 1L
+        ),
+        selectInput(
+          ns("page_size"),
+          "Preview page size",
+          c(5, 10, 25, 50, 100),
+          board_option("page_size", x)
+        ),
+        bslib::input_switch(
+          ns("filter_rows"),
+          "Enable preview search",
+          board_option("filter_rows", x)
+        )
+      ),
+      accordion_panel(
+        title = "Dashboard options",
+        numericInput(
+          ns("dashboard_zoom"),
+          "Dashboard zoom",
+          board_option("dashboard_zoom", x),
+          min = 0.5,
+          max = 1.5,
+          step = 0.1
+        )
+      ),
+      accordion_panel(
+        title = "Theme options",
+        if (is_pkg_avail("thematic")) {
+          bslib::input_switch(
+            ns("thematic"),
+            "Enable thematic",
+            coal(board_option("thematic", x), FALSE)
+          )
+        },
+        span(
+          bslib::input_dark_mode(
+            id = ns("dark_mode"),
+            mode = board_option("dark_mode", x)
+          ),
+          tags$label(
+            "Light/dark mode",
+            style = "vertical-align: top; margin-top: 3px;"
+          )
+        )
+      )
+    ),
+    title = "Board options"
   )
 }
 
-#' Board extra actions
-#'
-#' Extra actions dropdown.
-#'
-#' @rdname board-layout
-#' @keywords internal
-board_burger <- function(board_ui) {
-  dropdown_button(
-    icon = icon("bars"),
-    tags$li(
-      tags$h6(
-        class = "dropdown-header",
-        "Save and Restore"
-      )
-    ),
-    board_ui$toolbar_ui$preserve_board$restore,
-    tags$li(
-      tags$h6(
-        class = "dropdown-header",
-        "Grid options"
-      )
-    )
+#' @rdname board_ui
+#' @export
+update_ui.board_options <- function(x, session, ...) {
+  updateTextInput(
+    session,
+    "board_name",
+    value = board_option("board_name", x)
   )
+
+  updateNumericInput(
+    session,
+    "n_rows",
+    value = board_option("n_rows", x)
+  )
+
+  updateSelectInput(
+    session,
+    "page_size",
+    selected = board_option("page_size", x)
+  )
+
+  bslib::toggle_switch(
+    "filter_rows",
+    value = board_option("filter_rows", x),
+    session = session
+  )
+
+  bslib::toggle_dark_mode(
+    mode = board_option("dark_mode", x),
+    session = session
+  )
+
+  updateNumericInput(
+    session,
+    "dashboard_zoom",
+    value = board_option("dashboard_zoom", x)
+  )
+
+  invisible()
 }
 
 #' Board header
@@ -115,13 +188,12 @@ board_burger <- function(board_ui) {
 #' @keywords internal
 board_header <- function(id, board_ui) {
   div(
-    class = "d-flex align-items-center justify-content-around gap-5",
-    board_burger(board_ui),
-    board_actions(
-      board_ui$toolbar_ui$generate_code,
-      board_ui$toolbar_ui$preserve_board$buttons
-    ),
-    board_ui$board_options_ui
+    class = "d-flex align-items-center justify-content-center mx-5 gap-3",
+    board_ui$toolbar_ui$preserve_board$restore,
+    div(
+      style = "margin-left: auto",
+      board_ui$board_options_ui
+    )
   )
 }
 
@@ -201,16 +273,16 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
   )
 
   tagList(
-    scoutbar(
-      sprintf("%s-scoutbar", id),
-      placeholder = "What do you want to do?",
-      showRecentSearch = TRUE
-    ),
     board_header(id, my_board_ui),
     dockViewOutput(
       paste0(id, "-layout"),
       width = "100%",
       height = "100vh"
+    ),
+    scoutbar(
+      sprintf("%s-scoutbar", id),
+      placeholder = "What do you want to do?",
+      showRecentSearch = TRUE
     )
   )
 }
@@ -242,8 +314,6 @@ build_layout <- function(board, update, parent, ...) {
     remove_block_panels(parent$removed_block)
   })
 
-  # TBD: why are outputs not shown?
-
   output$layout <- renderDockView({
     # Since board$board is reactive, we need to isolate it
     # so we don't re-render the whole layout each time ...
@@ -271,7 +341,7 @@ build_layout <- function(board, update, parent, ...) {
           )
         ),
         # TBD (make theme function of board options)
-        theme = "light"
+        theme = get_board_option_value("dark_mode")
       )
     })
   })
@@ -310,6 +380,7 @@ manage_scoutbar <- function(board, update, parent, ...) {
         parent$open_scoutbar <- FALSE
         parent$scoutbar <- list()
       }
+      parent$scoutbar$is_open <- input[["scoutbar-open"]]
     }
   )
 

@@ -19,6 +19,11 @@ add_rm_link_server <- function(id, board, update, ...) {
       ns <- session$ns
       dot_args <- list(...)
 
+      # Signal to close the loading screen once the network is initialized
+      observeEvent(input[["network-initialized"]], {
+        session$sendCustomMessage("app-ready", list())
+      })
+
       # When starting from non empty board (happens once)
       observeEvent(
         req(
@@ -60,7 +65,8 @@ add_rm_link_server <- function(id, board, update, ...) {
 
       # Trigger scoutbar from network menu
       observeEvent(input$add_block, {
-        dot_args$parent$open_scoutbar <- input$add_block
+        dot_args$parent$scoutbar$trigger <- "links"
+        dot_args$parent$open_scoutbar <- TRUE
       })
 
       # Trigger save board
@@ -68,8 +74,20 @@ add_rm_link_server <- function(id, board, update, ...) {
         dot_args$parent$save_board <- input$save_board
       })
 
+      # Auto-click on the right scoutbar page
+      # to display the right scoutbar sub-page depending on the trigger
+      observeEvent(req(dot_args$parent$scoutbar$is_open), {
+        session$sendCustomMessage(
+          "select-scoutbar-page",
+          list(
+            value = dot_args$parent$scoutbar$trigger
+          )
+        )
+      })
+
       # Trigger browse snapshots/open scoutbar
       observeEvent(input$browse_snapshots, {
+        dot_args$parent$scoutbar$trigger <- "serialize"
         dot_args$parent$open_scoutbar <- TRUE
       })
 
@@ -103,6 +121,7 @@ add_rm_link_server <- function(id, board, update, ...) {
 
       # Append block
       observeEvent(input$append_node, {
+        dot_args$parent$scoutbar$trigger <- "links"
         if (isFALSE(dot_args$parent$append_block)) {
           dot_args$parent$append_block <- TRUE
         }

@@ -61,9 +61,12 @@ create_app_state.dock_board <- function(board) {
     removed_stack = NULL,
     # scoutbar
     open_scoutbar = FALSE,
-    scoutbar_value = NULL,
-    scoutbar_blocks = list(),
-    scoutbar_snapshots = list(),
+    scoutbar = list(
+      trigger = NULL,
+      action = NULL,
+      value = NULL,
+      is_open = FALSE
+    ),
     # For snapshots
     save_board = FALSE,
     backup_list = list(),

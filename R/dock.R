@@ -4,22 +4,10 @@
 #' @export
 dashboard_ui.dock_board <- function(id, board, ...) {
   ns <- NS(id)
-  list(
-    options = tagList(
-      numericInput(
-        ns("dashboard_zoom"),
-        "Dock zoom level",
-        min = 0.5,
-        max = 1.5,
-        value = 1,
-        step = 0.1,
-      )
-    ),
-    content = div(
-      id = ns("dashboard_zoom_target"),
-      style = "zoom: 1;",
-      dockViewOutput(ns("dock"), height = "100vh")
-    )
+  div(
+    id = ns("dashboard_zoom_target"),
+    style = "zoom: 1;",
+    dockViewOutput(ns("dock"), height = "100vh")
   )
 }
 
@@ -129,7 +117,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   outputOptions(output, "dock", suspendWhenHidden = FALSE)
 
   # Handle zoom on grid element
-  observeEvent(input$dashboard_zoom, {
+  observeEvent(get_board_option_value("dashboard_zoom"), {
     handle_dashboard_zoom(session)
   })
 

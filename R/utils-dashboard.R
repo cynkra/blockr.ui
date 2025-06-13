@@ -98,11 +98,12 @@ find_blocks_ids.dock_board <- function(
 #' @param session Shiny session object
 #' @keywords internal
 handle_dashboard_zoom <- function(session) {
+  ns <- session$ns
   session$sendCustomMessage(
     "update-dashboard-zoom",
     list(
-      id = sprintf("#%s", session$ns("dashboard_zoom_target")),
-      zoom = session$input$dashboard_zoom
+      id = sprintf("#%s", ns("dashboard_zoom_target")),
+      zoom = get_board_option_value("dashboard_zoom")
     )
   )
 }

@@ -56,6 +56,10 @@ pkg_file <- function(...) {
   system.file(..., package = "blockr.core")
 }
 
+is_pkg_avail <- function(pkg) {
+  requireNamespace(pkg, quietly = TRUE)
+}
+
 #' Useful for shinytest2
 #' Pre-process reactiveValues results
 #'

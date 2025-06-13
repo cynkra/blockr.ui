@@ -82,12 +82,19 @@ insert_block_panel <- function(id, x, session = getDefaultReactiveDomain()) {
       id = sprintf("block-%s", id),
       title = sprintf("Block: %s", id),
       content = tagList(),
+      position = list(
+        referencePanel = if (length(get_panels_ids("layout")) == 2) {
+          "dag"
+        } else {
+          get_panels_ids("layout")[length(get_panels_ids("layout"))]
+        },
+        direction = if (length(get_panels_ids("layout")) == 2) {
+          "below"
+        } else {
+          "right"
+        }
+      ),
       removable = TRUE
-    ),
-    # TBD: should render as a separate group (not tabbed)
-    position = list(
-      referencePanel = "dag",
-      direction = "right"
     )
   )
 
@@ -107,8 +114,6 @@ remove_block_panels <- function(id) {
   lapply(id, \(blk) {
     remove_panel("layout", paste0("block-", blk))
   })
-
-  invisible(x)
 }
 
 #' @rdname block_ui

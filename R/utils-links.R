@@ -285,7 +285,7 @@ default_g6_plugins <- function(graph, ..., ns) {
       ...,
       #"minimap",
       "tooltip",
-      grid_line(),
+      #grid_line(),
       fullscreen(),
       # Conditional menu for edge and nodes
       context_menu(
