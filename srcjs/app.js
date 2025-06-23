@@ -28,4 +28,14 @@ export const setupApp = () => {
     }
     $('.scoutbar-cell-item')[scoutbarChoice].click();
   })
+
+  // Move block UI to offcanvas
+  Shiny.addCustomMessageHandler('hide-block', (m) => {
+    $(m.offcanvas).find('.offcanvas-body').append($(m.block_id).find('.card'));
+  })
+
+  // Move block UI back to panel
+  Shiny.addCustomMessageHandler('show-block', (m) => {
+    $(m.panel_id).append($(m.block_id));
+  })
 } 

@@ -273,6 +273,10 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
   )
 
   tagList(
+    # Offcanvas is used has an hidden element to move block UI whenever
+    # we remove and add panels in the dock. This avoids to have
+    # to recreate the block UI each time (which causes other issues anyway)
+    off_canvas(id = paste0(id, "-offcanvas"), title = "Board"),
     board_header(id, my_board_ui),
     dockViewOutput(
       paste0(id, "-layout"),
@@ -297,13 +301,59 @@ build_layout <- function(board, update, parent, ...) {
   output <- session$output
   ns <- session$ns
 
-  # Insert block panel on add
+  # TBD: re-insert block panel ui if it was closed
   observeEvent(
     {
-      parent$selected_block
+      req(parent$selected_block)
+      # Don't do anything if the block panel is already there
+      req(isFALSE(any(grepl(parent$selected_block, get_panels_ids("layout")))))
     },
     {
-      insert_block_panel(parent$selected_block, board$board)
+      # Reinsert panel but without block UI, as this is already in the offcanvas
+      insert_block_ui(
+        ns(NULL),
+        board$board,
+        board_blocks(board$board)[parent$selected_block],
+        create_block_ui = FALSE
+      )
+
+      # Move UI from offcanvas to the new panel
+      session$sendCustomMessage(
+        "show-block",
+        list(
+          block_id = sprintf(
+            "#%s",
+            session$ns(parent$selected_block)
+          ),
+          panel_id = sprintf(
+            "#%s",
+            session$ns(paste0("layout-block-", parent$selected_block))
+          )
+        )
+      )
+    },
+    ignoreInit = TRUE
+  )
+
+  observeEvent(
+    input[["layout_panel-to-remove"]],
+    {
+      # Remove the block panel when the user clicks on the
+      # close button of the panel.
+      session$sendCustomMessage(
+        "hide-block",
+        list(
+          offcanvas = sprintf("#%s", ns("offcanvas")),
+          block_id = sprintf(
+            "#%s",
+            session$ns(paste0("layout-", input[["layout_panel-to-remove"]]))
+          )
+        )
+      )
+      remove_panel(
+        "layout",
+        input[["layout_panel-to-remove"]]
+      )
     }
   )
 

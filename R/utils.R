@@ -60,6 +60,21 @@ is_pkg_avail <- function(pkg) {
   requireNamespace(pkg, quietly = TRUE)
 }
 
+coal <- function(..., fail_null = TRUE) {
+  for (i in seq_len(...length())) {
+    x <- ...elt(i)
+    if (is.null(x)) {
+      next
+    } else {
+      return(x)
+    }
+  }
+  if (isTRUE(fail_null)) {
+    stop("No non-NULL value encountered")
+  }
+  NULL
+}
+
 #' Useful for shinytest2
 #' Pre-process reactiveValues results
 #'

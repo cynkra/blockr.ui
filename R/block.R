@@ -12,6 +12,7 @@ block_ui.dash_board <- function(id, x, block = NULL, ...) {
     blk_id <- ns(paste0("block_", id))
     blk_info <- get_block_registry(x)
     card(
+      id = ns(id),
       full_screen = TRUE,
       card_header(
         class = "d-flex justify-content-between",
@@ -64,7 +65,13 @@ remove_block_panels <- function(id) {
 
 #' @rdname block_ui
 #' @export
-insert_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
+insert_block_ui.dash_board <- function(
+  id,
+  x,
+  blocks = NULL,
+  create_block_ui = TRUE,
+  ...
+) {
   session <- getDefaultReactiveDomain()
   stopifnot(
     is.character(id),
@@ -113,14 +120,18 @@ insert_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
       )
     )
 
-    insertUI(
-      sprintf(
-        "#%s",
-        session$ns(paste0("layout-", sprintf("block-%s", names(blk))))
-      ),
-      ui = blk_ui,
-      immediate = TRUE
-    )
+    # We only create the block UI once if it is not already there. Hide and showing
+    # it again is done outside of this function.
+    if (create_block_ui) {
+      insertUI(
+        sprintf(
+          "#%s",
+          session$ns(paste0("layout-", sprintf("block-%s", names(blk))))
+        ),
+        ui = blk_ui,
+        immediate = TRUE
+      )
+    }
   })
 
   invisible(x)
