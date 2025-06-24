@@ -305,10 +305,12 @@ build_layout <- function(board, update, parent, ...) {
   observeEvent(
     {
       req(parent$selected_block)
-      # Don't do anything if the block panel is already there
-      req(isFALSE(any(grepl(parent$selected_block, get_panels_ids("layout")))))
     },
     {
+      # Don't do anything if the block panel is already there
+      if (any(grepl(parent$selected_block, get_panels_ids("layout")))) {
+        return(NULL)
+      }
       # Reinsert panel but without block UI, as this is already in the offcanvas
       insert_block_ui(
         ns(NULL),
@@ -331,8 +333,7 @@ build_layout <- function(board, update, parent, ...) {
           )
         )
       )
-    },
-    ignoreInit = TRUE
+    }
   )
 
   observeEvent(
