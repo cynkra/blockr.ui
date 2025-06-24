@@ -82,8 +82,7 @@ insert_block_ui.dash_board <- function(
   ns <- session$ns
 
   blocks <- blocks[which(
-    !(sprintf("block-%s", names(blocks)) %in%
-      get_panels_ids("layout"))
+    !(sprintf("block-%s", names(blocks)) %in% get_panels_ids("layout"))
   )]
   # Don't re-add the same block panel if in the dock
   if (length(blocks) == 0) {
