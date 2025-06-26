@@ -392,9 +392,17 @@ build_layout <- function(board, update, parent, ...) {
           )
         ),
         # TBD (make theme function of board options)
-        theme = get_board_option_value("dark_mode")
+        theme = "light"
       )
     })
+  })
+
+  # Update theme in real time
+  observeEvent(get_board_option_value("dark_mode"), {
+    update_dock_view(
+      "layout",
+      list(theme = get_board_option_value("dark_mode"))
+    )
   })
 }
 

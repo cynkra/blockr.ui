@@ -131,6 +131,14 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   })
   outputOptions(output, "dock", suspendWhenHidden = FALSE)
 
+  # Update dock theme based on board options
+  observeEvent(get_board_option_value("dark_mode"), {
+    update_dock_view(
+      "dock",
+      list(theme = get_board_option_value("dark_mode"))
+    )
+  })
+
   # Handle zoom on grid element
   observeEvent(get_board_option_value("dashboard_zoom"), {
     handle_dashboard_zoom(session)

@@ -115,7 +115,7 @@ insert_block_ui.dash_board <- function(
             "right"
           }
         ),
-        remove = list(enable = TRUE, mode = "auto")
+        remove = list(enable = TRUE, mode = "manual")
       )
     )
 

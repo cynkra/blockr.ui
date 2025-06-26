@@ -396,7 +396,7 @@ default_g6_plugins <- function(graph, ..., ns) {
             { id: 'add-block', value : 'add-block'},
             { id: 'save-board', value : 'save-board'},
             { id: 'browse-snapshots', value : 'browse-snapshots'},
-             { id: 'show-code', value : 'show-code'}
+            { id: 'show-code', value : 'show-code'}
           ]"
         ),
         onClick = JS(
