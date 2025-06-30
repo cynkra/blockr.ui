@@ -10,23 +10,23 @@
 #' @keywords internal
 blk_icon <- function(category) {
   if (!length(category)) {
-    res <- "alien"
+    res <- "reddit-alien"
   } else {
     res <- switch(
       category,
       "data" = "table",
-      "file" = "download-simple",
+      "file" = "file",
       "parse" = "gear",
       "plot" = "chart-line",
-      "transform" = "magic-wand",
+      "transform" = "wand-magic",
       "table" = "table",
-      "cake"
+      "reddit-alien"
     )
   }
 
   # FIXME: We can't use fontawesome in the scoutbaR
   # due to compatibility issue with the g6R toolbar...
-  phosphoricons::ph_i(res)
+  icon(res)
 }
 
 #' Create block choices for scoutbaR widget
@@ -485,7 +485,7 @@ manage_scoutbar <- function(board, update, parent, ...) {
                   round(infos[["mtime"]], units = "secs"),
                   round(infos[["size"]] / 1000, 1)
                 ),
-                icon = phosphoricons::ph_i("file")
+                icon = icon("file")
               )
             }
           )

@@ -69,7 +69,6 @@ serve.dash_board <- function(x, id = "main", ...) {
     padding = 0,
     gap = 0,
     shinyjs::useShinyjs(),
-    custom_icons(),
     add_busy_load_deps(main_ui(id, x))
   )
 

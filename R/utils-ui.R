@@ -101,28 +101,3 @@ dropdown_button <- function(..., icon) {
     )
   )
 }
-
-#' Needed to be able to use custom SVG icons in G6 toolbar
-#' Icons are taken from fontawesome
-#' @keywords internal
-custom_icons <- function() {
-  tagList(
-    phosphoricons::html_dependency_phosphor(),
-    tags$i(
-      `data-fa-symbol` = "add-block",
-      class = "fa-solid fa-circle-plus fa-fw"
-    ),
-    tags$i(
-      `data-fa-symbol` = "save-board",
-      class = "fa-solid fa-floppy-disk fa-fw"
-    ),
-    tags$i(
-      `data-fa-symbol` = "browse-snapshots",
-      class = "fa-solid fa-file-import fa-fw"
-    ),
-    tags$i(
-      `data-fa-symbol` = "show-code",
-      class = "fa-solid fa-code fa-fw"
-    )
-  )
-}

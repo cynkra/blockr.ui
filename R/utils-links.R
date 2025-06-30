@@ -165,11 +165,7 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
     edges = edges
   ) |>
     default_g6_options() |>
-    g6_layout(
-      layout = list(
-        type = "force"
-      )
-    ) |>
+    g6_layout() |>
     default_g6_behaviors(ns = ns) |>
     default_g6_plugins(ns = ns)
 }
@@ -393,10 +389,10 @@ default_g6_plugins <- function(graph, ..., ns) {
             { id : 'zoom-out' , value : 'zoom-out' },   
             { id : 'auto-fit' , value : 'auto-fit' },
             { id: 'delete', value: 'delete' },
-            { id: 'add-block', value : 'add-block'},
-            { id: 'save-board', value : 'save-board'},
-            { id: 'browse-snapshots', value : 'browse-snapshots'},
-            { id: 'show-code', value : 'show-code'}
+            { id: 'icon-roundaddfill', value : 'add-block'},
+            { id: 'icon-down_light', value : 'save-board'},
+            { id: 'icon-upload', value : 'browse-snapshots'},
+            { id: 'icon-text', value : 'show-code'}
           ]"
         ),
         onClick = JS(

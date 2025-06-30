@@ -38,8 +38,7 @@ Imports:
     jsonlite,
     htmltools,
     dockViewR,
-    g6R,
-    phosphoricons
+    g6R
 Remotes:
     BristolMyersSquibb/blockr.core,
     BristolMyersSquibb/blockr.dplyr,
