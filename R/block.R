@@ -1,102 +1,145 @@
 #' Block custom UI
 #'
 #' @param id Block module id.
-#' @param x Block object.
-#' @param blocks (Additional) blocks (or IDs) for which to generate the UI.
+#' @param x Board object.
+#' @param block Block to generate the UI for.
 #' @param ... Generic consistency.
 #'
 #' @export
 #' @rdname block_ui
-block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
+block_ui.dash_board <- function(id, x, block = NULL, ...) {
   block_card <- function(x, id, ns) {
-    id <- paste0("block_", id)
-
+    blk_id <- ns(paste0("block_", id))
     blk_info <- get_block_registry(x)
-    div(
-      class = "m-2",
+    card(
       id = ns(id),
-      card(
-        full_screen = TRUE,
-        card_header(
-          class = "d-flex justify-content-between",
-          card_title(
-            blk_icon(attr(blk_info, "category")),
-            sprintf(
-              "Block: %s (id: %s)",
-              attr(blk_info, "name"),
-              gsub("block_", "", id)
-            )
-          ),
-          tooltip(
-            icon("info-circle"),
-            p(
-              icon("lightbulb"),
-              "How to use this block?",
-            ),
-            p(attr(blk_info, "description"), ".")
-          )
-        ),
-        # subtitle
-        div(
-          class = "card-subtitle mb-2 text-body-secondary",
+      full_screen = TRUE,
+      card_header(
+        class = "d-flex justify-content-between",
+        card_title(
+          blk_icon(attr(blk_info, "category")),
           sprintf(
-            "Type: %s; Package: %s",
-            attr(blk_info, "category"),
-            attr(blk_info, "package")
+            "Block: %s (id: %s)",
+            attr(blk_info, "name"),
+            gsub("block_", "", id)
           )
         ),
-        expr_ui(ns(id), x),
-        block_ui(ns(id), x)
+        tooltip(
+          icon("info-circle"),
+          p(
+            icon("lightbulb"),
+            "How to use this block?",
+          ),
+          p(attr(blk_info, "description"), ".")
+        )
+      ),
+      # subtitle
+      div(
+        class = "card-subtitle mb-2 text-body-secondary",
+        sprintf(
+          "Type: %s; Package: %s",
+          attr(blk_info, "category"),
+          attr(blk_info, "package")
+        )
+      ),
+      expr_ui(blk_id, x),
+      block_ui(blk_id, x)
+    )
+  }
+
+  ns <- NS(id)
+  id <- names(block)
+  stopifnot(is.character(id) && length(id) == 1L)
+  block <- block[[1]]
+  stopifnot(is_block(block))
+  block_card(block, id, ns = ns)
+}
+
+#' @keywords internal
+remove_block_panels <- function(id) {
+  stopifnot(is.character(id))
+  lapply(id, \(blk) {
+    remove_panel("layout", paste0("block-", blk))
+  })
+}
+
+#' @rdname block_ui
+#' @export
+insert_block_ui.dash_board <- function(
+  id,
+  x,
+  blocks = NULL,
+  create_block_ui = TRUE,
+  ...
+) {
+  session <- getDefaultReactiveDomain()
+  stopifnot(
+    is.character(id),
+    length(id) == 1,
+    is_board(x),
+    !is.null(session)
+  )
+  ns <- session$ns
+
+  blocks <- blocks[which(
+    !(sprintf("block-%s", names(blocks)) %in% get_panels_ids("layout"))
+  )]
+  # Don't re-add the same block panel if in the dock
+  if (length(blocks) == 0) {
+    return(NULL)
+  }
+
+  # Loop over blocks.
+  # This can happen when we restore a board with multiple blocks
+  lapply(seq_along(blocks), \(i) {
+    blk <- blocks[i]
+    blk_ui <- block_ui(id, x, blk)
+
+    # For some reasons, we need to add the panel first
+    # then add the block UI to the panel.
+    add_panel(
+      "layout",
+      panel = dockViewR::panel(
+        id = sprintf("block-%s", names(blk)),
+        title = sprintf("Block: %s", names(blk)),
+        content = tagList(),
+        position = list(
+          referencePanel = if (length(get_panels_ids("layout")) == 2) {
+            "dag"
+          } else {
+            get_panels_ids("layout")[length(get_panels_ids("layout"))]
+          },
+          direction = if (length(get_panels_ids("layout")) == 2) {
+            "below"
+          } else {
+            "right"
+          }
+        ),
+        remove = list(enable = TRUE, mode = "manual")
       )
     )
-  }
 
-  stopifnot(is.character(id) && length(id) == 1L)
+    # We only create the block UI once if it is not already there. Hide and showing
+    # it again is done outside of this function.
+    if (create_block_ui) {
+      insertUI(
+        sprintf(
+          "#%s",
+          session$ns(paste0("layout-", sprintf("block-%s", names(blk))))
+        ),
+        ui = blk_ui,
+        immediate = TRUE
+      )
+    }
+  })
 
-  if (is.null(blocks)) {
-    blocks <- board_blocks(x)
-  } else if (is.character(blocks)) {
-    blocks <- board_blocks(x)[blocks]
-  }
-
-  stopifnot(is_blocks(blocks))
-
-  tagList(
-    map(
-      block_card,
-      blocks,
-      names(blocks),
-      MoreArgs = list(ns = NS(id))
-    )
-  )
+  invisible(x)
 }
 
 #' @rdname block_ui
 #' @export
 remove_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
-  pars <- list(...)
-
-  if (is.null(blocks)) {
-    stopifnot(is.character(id) && length(id) == 1L)
-
-    removeUI(
-      paste0("#", id, "_blocks > div"),
-      multiple = TRUE,
-      immediate = TRUE,
-      session = if (!is.null(pars$session)) pars$session else
-        getDefaultReactiveDomain()
-    )
-  } else {
-    stopifnot(is.character(blocks))
-    for (block in blocks) {
-      removeUI(
-        sprintf("#%s-%s", id, paste0("block_", block)),
-        immediate = TRUE,
-        session = if (!is.null(pars$session)) pars$session else
-          getDefaultReactiveDomain()
-      )
-    }
-  }
+  NULL
 }
 
 #' Get block info in registry

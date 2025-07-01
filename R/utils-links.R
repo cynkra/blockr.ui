@@ -93,7 +93,9 @@ validate_edge_creation <- function(target, rv) {
     target,
     rv
   )
-  if (!check_cons) return(FALSE)
+  if (!check_cons) {
+    return(FALSE)
+  }
 
   return(TRUE)
 }
@@ -163,11 +165,7 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
     edges = edges
   ) |>
     default_g6_options() |>
-    g6_layout(
-      layout = list(
-        type = "force"
-      )
-    ) |>
+    g6_layout() |>
     default_g6_behaviors(ns = ns) |>
     default_g6_plugins(ns = ns)
 }
@@ -283,7 +281,7 @@ default_g6_plugins <- function(graph, ..., ns) {
       ...,
       #"minimap",
       "tooltip",
-      grid_line(),
+      #grid_line(),
       fullscreen(),
       # Conditional menu for edge and nodes
       context_menu(
@@ -331,6 +329,10 @@ default_g6_plugins <- function(graph, ..., ns) {
               Shiny.setInputValue('%s', current.id)
             } else if (value === 'add_block') {
               Shiny.setInputValue('%s', true, {priority: 'event'})
+            } else if (value === 'add_to_dashboard') {
+              Shiny.setInputValue('%s', true, {priority: 'event'})
+            } else if (value === 'remove_from_dashboard') {
+              Shiny.setInputValue('%s', true, {priority: 'event'})
             }
           }",
             ns("removed_node"),
@@ -338,7 +340,9 @@ default_g6_plugins <- function(graph, ..., ns) {
             ns("append_node"),
             ns("create_stack"),
             ns("remove_stack"),
-            ns("add_block")
+            ns("add_block"),
+            ns("add_to_dashboard"),
+            ns("remove_from_dashboard")
           )
         ),
         # nolint end
@@ -381,15 +385,14 @@ default_g6_plugins <- function(graph, ..., ns) {
         position = "left",
         getItems = JS(
           "( ) => [   
-            { id : 'zoom-in' , value : 'zoom-in' } ,  
-            { id : 'zoom-out' , value : 'zoom-out' } ,   
-            { id : 'auto-fit' , value : 'auto-fit' } ,
-            { id: 'delete', value: 'delete' }, 
-            { id: 'request-fullscreen', value: 'request-fullscreen' },
-            { id: 'exit-fullscreen', value: 'exit-fullscreen' },
-            { id: 'add-block', value : 'add-block'},
-            { id: 'save-board', value : 'save-board'},
-            { id: 'browse-snapshots', value : 'browse-snapshots'}
+            { id : 'zoom-in' , value : 'zoom-in' },  
+            { id : 'zoom-out' , value : 'zoom-out' },   
+            { id : 'auto-fit' , value : 'auto-fit' },
+            { id: 'delete', value: 'delete' },
+            { id: 'icon-roundaddfill', value : 'add-block'},
+            { id: 'icon-down_light', value : 'save-board'},
+            { id: 'icon-upload', value : 'browse-snapshots'},
+            { id: 'icon-text', value : 'show-code'}
           ]"
         ),
         onClick = JS(
@@ -428,13 +431,16 @@ default_g6_plugins <- function(graph, ..., ns) {
                 Shiny.setInputValue('%s', true, {priority: 'event'})
               } else if (value === 'browse-snapshots') {
                 Shiny.setInputValue('%s', true, {priority: 'event'})
+              } else if (value === 'show-code') {
+                Shiny.setInputValue('%s', true, {priority: 'event'})
               }
             }
           ",
             ns("removed_node"),
             ns("add_block"),
             ns("save_board"),
-            ns("browse_snapshots")
+            ns("browse_snapshots"),
+            ns("show_code")
           )
         )
       )
@@ -763,13 +769,17 @@ register_node_stack_link <- function(id, rv, vals, session) {
 
       # Send feedback to stack module to add the node to existing stack
       if (length(has_stack)) {
-        if (id %in% stacks_blocks) return(NULL)
+        if (id %in% stacks_blocks) {
+          return(NULL)
+        }
         vals$stack_added_node <- list(
           node_id = id,
           stack_id = strsplit(node_state$combo, "combo-")[[1]][2]
         )
       } else {
-        if (!(id %in% stacks_blocks)) return(NULL)
+        if (!(id %in% stacks_blocks)) {
+          return(NULL)
+        }
         stack_id <- unlist(lapply(
           names(board_stacks(rv$board)),
           \(nme) {

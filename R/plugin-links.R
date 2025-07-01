@@ -19,6 +19,11 @@ add_rm_link_server <- function(id, board, update, ...) {
       ns <- session$ns
       dot_args <- list(...)
 
+      # Signal to close the loading screen once the network is initialized
+      observeEvent(input[["network-initialized"]], {
+        session$sendCustomMessage("app-ready", list())
+      })
+
       # When starting from non empty board (happens once)
       observeEvent(
         req(
@@ -53,9 +58,15 @@ add_rm_link_server <- function(id, board, update, ...) {
         })
       })
 
+      # Trigger show code
+      observeEvent(input$show_code, {
+        dot_args$parent$display_code <- TRUE
+      })
+
       # Trigger scoutbar from network menu
       observeEvent(input$add_block, {
-        dot_args$parent$open_scoutbar <- input$add_block
+        dot_args$parent$scoutbar$trigger <- "links"
+        dot_args$parent$open_scoutbar <- TRUE
       })
 
       # Trigger save board
@@ -63,8 +74,20 @@ add_rm_link_server <- function(id, board, update, ...) {
         dot_args$parent$save_board <- input$save_board
       })
 
+      # Auto-click on the right scoutbar page
+      # to display the right scoutbar sub-page depending on the trigger
+      observeEvent(req(dot_args$parent$scoutbar$is_open), {
+        session$sendCustomMessage(
+          "select-scoutbar-page",
+          list(
+            value = dot_args$parent$scoutbar$trigger
+          )
+        )
+      })
+
       # Trigger browse snapshots/open scoutbar
       observeEvent(input$browse_snapshots, {
+        dot_args$parent$scoutbar$trigger <- "serialize"
         dot_args$parent$open_scoutbar <- TRUE
       })
 
@@ -98,8 +121,10 @@ add_rm_link_server <- function(id, board, update, ...) {
 
       # Append block
       observeEvent(input$append_node, {
-        if (isFALSE(dot_args$parent$append_block))
+        dot_args$parent$scoutbar$trigger <- "links"
+        if (isFALSE(dot_args$parent$append_block)) {
           dot_args$parent$append_block <- TRUE
+        }
       })
 
       # Implement Edge creation by DND
@@ -229,6 +254,81 @@ add_rm_link_server <- function(id, board, update, ...) {
         unstack_nodes(vals, dot_args$parent, session)
       })
 
+      # Add/remove to/from dashboard
+      observeEvent(input$add_to_dashboard, {
+        dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- TRUE
+      })
+
+      observeEvent(input$remove_from_dashboard, {
+        dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- FALSE
+      })
+
+      observeEvent(
+        {
+          req(dot_args$parent$selected_block)
+          dot_args$parent$in_grid[[dot_args$parent$selected_block]]
+        },
+        {
+          new_items <- if (
+            dot_args$parent$in_grid[[dot_args$parent$selected_block]]
+          ) {
+            "(e) => {
+              if (e.targetType === 'node') {
+                return [
+                  { name: 'Create edge', value: 'create_edge' },
+                  { name: 'Append node', value: 'append_node' },
+                  { name: 'Remove node', value: 'remove_node' },
+                  { name: 'Remove from dashboard', value: 'remove_from_dashboard' }
+                ];
+              } else if (e.targetType === 'edge') {
+                return [
+                  { name: 'Remove edge', value: 'remove_edge' }
+                ];
+              } else if (e.targetType === 'canvas') {
+                return [
+                  { name: 'Create stack', value: 'create_stack' },
+                  { name: 'New block', value: 'add_block' }
+                ];
+              } else if (e.targetType === 'combo') {
+                return [
+                  { name: 'Remove stack', value: 'remove_stack' }
+                ];
+              }
+            }"
+          } else {
+            "(e) => {
+              if (e.targetType === 'node') {
+                return [
+                  { name: 'Create edge', value: 'create_edge' },
+                  { name: 'Append node', value: 'append_node' },
+                  { name: 'Remove node', value: 'remove_node' },
+                  { name: 'Add to dashboard', value: 'add_to_dashboard' }
+                ];
+              } else if (e.targetType === 'edge') {
+                return [
+                  { name: 'Remove edge', value: 'remove_edge' }
+                ];
+              } else if (e.targetType === 'canvas') {
+                return [
+                  { name: 'Create stack', value: 'create_stack' },
+                  { name: 'New block', value: 'add_block' }
+                ];
+              } else if (e.targetType === 'combo') {
+                return [
+                  { name: 'Remove stack', value: 'remove_stack' }
+                ];
+              }
+            }"
+          }
+
+          g6_proxy(ns("network")) |>
+            g6_update_plugin(
+              key = "contextmenu",
+              getItems = JS(new_items)
+            )
+        }
+      )
+
       NULL
     }
   )
@@ -239,6 +339,6 @@ add_rm_link_server <- function(id, board, update, ...) {
 #' @export
 add_rm_link_ui <- function(id, board) {
   tagList(
-    g6_output(NS(id, "network"), height = "400px")
+    g6_output(NS(id, "network"), height = "800px")
   )
 }

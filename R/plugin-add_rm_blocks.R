@@ -80,22 +80,5 @@ add_rm_block_server <- function(id, board, update, ...) {
 #' @rdname add_rm_block
 #' @export
 add_rm_block_ui <- function(id, board) {
-  list(
-    sidebar = div(
-      class = "btn-group",
-      role = "group",
-      actionButton(
-        NS(id, "append_block"),
-        "Append block",
-        icon = icon("circle-plus"),
-        class = "btn-light"
-      ),
-      actionButton(
-        NS(id, "remove_block"),
-        "Remove block",
-        icon = icon("trash"),
-        class = "btn-danger"
-      )
-    )
-  )
+  NULL
 }

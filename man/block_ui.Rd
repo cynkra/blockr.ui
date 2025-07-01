@@ -2,19 +2,22 @@
 % Please edit documentation in R/block.R
 \name{block_ui.dash_board}
 \alias{block_ui.dash_board}
+\alias{insert_block_ui.dash_board}
 \alias{remove_block_ui.dash_board}
 \title{Block custom UI}
 \usage{
-\method{block_ui}{dash_board}(id, x, blocks = NULL, ...)
+\method{block_ui}{dash_board}(id, x, block = NULL, ...)
+
+\method{insert_block_ui}{dash_board}(id, x, blocks = NULL, create_block_ui = TRUE, ...)
 
 \method{remove_block_ui}{dash_board}(id, x, blocks = NULL, ...)
 }
 \arguments{
 \item{id}{Block module id.}
 
-\item{x}{Block object.}
+\item{x}{Board object.}
 
-\item{blocks}{(Additional) blocks (or IDs) for which to generate the UI.}
+\item{block}{Block to generate the UI for.}
 
 \item{...}{Generic consistency.}
 }

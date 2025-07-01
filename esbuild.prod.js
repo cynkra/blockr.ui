@@ -6,7 +6,7 @@ import autoprefixer from 'autoprefixer';
 esbuild
   .build({
     entryPoints: ['./srcjs/main.js'],
-    outdir: "inst/blockr.ui-0.5.0/dist",
+    outdir: "inst/blockr.ui-1.0.0/dist",
     entryNames: "blockr.ui.min",
     bundle: true,
     format: "esm",

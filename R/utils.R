@@ -37,12 +37,43 @@ lst_xtr <- function(x, ...) {
   x
 }
 
+lst_xtr_reval <- function(x, ...) {
+  lapply(lst_xtr(x, ...), reval)
+}
+
 set_names <- function(object = nm, nm) {
   names(object) <- nm
   object
 }
 
+reval <- function(x) {
+  x()
+}
+
 reval_if <- function(x) if (is.function(x)) x() else x
+
+pkg_file <- function(...) {
+  system.file(..., package = "blockr.core")
+}
+
+is_pkg_avail <- function(pkg) {
+  requireNamespace(pkg, quietly = TRUE)
+}
+
+coal <- function(..., fail_null = TRUE) {
+  for (i in seq_len(...length())) {
+    x <- ...elt(i)
+    if (is.null(x)) {
+      next
+    } else {
+      return(x)
+    }
+  }
+  if (isTRUE(fail_null)) {
+    stop("No non-NULL value encountered")
+  }
+  NULL
+}
 
 #' Useful for shinytest2
 #' Pre-process reactiveValues results

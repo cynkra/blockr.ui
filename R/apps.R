@@ -47,6 +47,7 @@ new_dash_board <- function(...) {
       dark_mode = "light",
       stacks_colors = hcl.colors(n_stacks, palette = stacks_color_palette),
       dashboard_type = dashboard_type,
+      dashboard_zoom = 1,
       snapshot = list(
         location = snapshot_location,
         auto = auto_snapshot
@@ -64,15 +65,11 @@ validate_dashboard_type <- function(type = c("dock")) {
 serve.dash_board <- function(x, id = "main", ...) {
   Sys.setenv("blockr_dark_mode" = "light")
 
-  addResourcePath(
-    "www/images",
-    system.file("assets/images", package = utils::packageName())
-  )
-
   ui <- page_fillable(
+    padding = 0,
+    gap = 0,
     shinyjs::useShinyjs(),
-    custom_icons(),
-    main_ui(id, x)
+    add_busy_load_deps(main_ui(id, x))
   )
 
   server <- function(input, output, session) {

@@ -138,6 +138,24 @@ ser_deser_server <- function(id, board, ...) {
 #' @rdname ser_deser
 #' @export
 ser_deser_ui <- function(id, board) {
+  import_btn <- htmltools::tagQuery(
+    fileInput(
+      NS(id, "restore"),
+      buttonLabel = "Import",
+      label = "",
+      placeholder = "Select a board file"
+    )
+  )$find(".btn")$addClass("btn-sm")$reset()$find(".input-group")$addClass(
+    "input-group-sm"
+  )$allTags()
+
+  # To fix CSS alignement issues with bootstrap
+  import_btn$attribs$class <- gsub(
+    "form-group",
+    "custom-form-group",
+    import_btn$attribs$class
+  )
+
   list(
     buttons = tagList(
       if (isTRUE(board_option("snapshot", board)$auto)) {
@@ -156,16 +174,12 @@ ser_deser_ui <- function(id, board) {
       }
     ),
     restore = tagList(
+      import_btn,
       downloadButton(
         NS(id, "serialize"),
         "Export",
+        class = "btn-sm",
         icon = icon("file-export"),
-      ),
-      fileInput(
-        NS(id, "restore"),
-        buttonLabel = "Import",
-        label = "",
-        placeholder = "Select file from any location"
       )
     )
   )
