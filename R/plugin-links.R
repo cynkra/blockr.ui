@@ -19,7 +19,7 @@ add_rm_link_server <- function(id, board, update, ...) {
       ns <- session$ns
       dot_args <- list(...)
 
-      # TBD When starting from non empty board (happens once)
+      # When starting from non empty board (happens once)
       observeEvent(
         req(
           isFALSE(dot_args$parent$cold_start),
@@ -31,7 +31,7 @@ add_rm_link_server <- function(id, board, update, ...) {
         once = TRUE
       )
 
-      # TBD Restore network from serialisation
+      # Restore network from serialisation
       observeEvent(req(dot_args$parent$refreshed == "board"), {
         restore_network(board, dot_args$parent, session)
       })
@@ -55,7 +55,17 @@ add_rm_link_server <- function(id, board, update, ...) {
 
       # Trigger scoutbar from network menu
       observeEvent(input$add_block, {
-        dot_args$parent$add_block <- input$add_block
+        dot_args$parent$open_scoutbar <- input$add_block
+      })
+
+      # Trigger save board
+      observeEvent(input$save_board, {
+        dot_args$parent$save_board <- input$save_board
+      })
+
+      # Trigger browse snapshots/open scoutbar
+      observeEvent(input$browse_snapshots, {
+        dot_args$parent$open_scoutbar <- TRUE
       })
 
       # Add node to network board$nodes so the graph is updated
