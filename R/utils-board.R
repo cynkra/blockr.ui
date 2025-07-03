@@ -295,115 +295,113 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-build_layout <- function(board, update, parent, ...) {
-  session <- get("session", parent.frame(1))
-  input <- session$input
-  output <- session$output
-  ns <- session$ns
-
-  # TBD: re-insert block panel ui if it was closed
-  observeEvent(
-    {
-      req(parent$selected_block)
-    },
-    {
-      # Don't do anything if the block panel is already there
-      if (any(grepl(parent$selected_block, get_panels_ids("layout")))) {
-        return(NULL)
-      }
-      # Reinsert panel but without block UI, as this is already in the offcanvas
-      insert_block_ui(
-        ns(NULL),
-        board$board,
-        board_blocks(board$board)[parent$selected_block],
-        create_block_ui = FALSE
-      )
-
-      # Move UI from offcanvas to the new panel
-      session$sendCustomMessage(
-        "show-block",
-        list(
-          block_id = sprintf(
-            "#%s",
-            session$ns(parent$selected_block)
-          ),
-          panel_id = sprintf(
-            "#%s",
-            session$ns(paste0("layout-block-", parent$selected_block))
-          )
+build_layout <- function(modules, session) {
+  function(board, update, parent, ...) {
+    input <- session$input
+    output <- session$output
+    ns <- session$ns
+    browser()
+    # TBD: re-insert block panel ui if it was closed
+    observeEvent(
+      {
+        req(parent$selected_block)
+      },
+      {
+        # Don't do anything if the block panel is already there
+        if (any(grepl(parent$selected_block, get_panels_ids("layout")))) {
+          return(NULL)
+        }
+        # Reinsert panel but without block UI, as this is already in the offcanvas
+        insert_block_ui(
+          ns(NULL),
+          board$board,
+          board_blocks(board$board)[parent$selected_block],
+          create_block_ui = FALSE
         )
-      )
-    }
-  )
 
-  observeEvent(
-    input[["layout_panel-to-remove"]],
-    {
-      # Remove the block panel when the user clicks on the
-      # close button of the panel.
-      session$sendCustomMessage(
-        "hide-block",
-        list(
-          offcanvas = sprintf("#%s", ns("offcanvas")),
-          block_id = sprintf(
-            "#%s",
-            session$ns(paste0("layout-", input[["layout_panel-to-remove"]]))
-          )
-        )
-      )
-      remove_panel(
-        "layout",
-        input[["layout_panel-to-remove"]]
-      )
-    }
-  )
-
-  # Remove block panel on block remove
-  # As we can remove multiple blocks at once, we
-  # need to loop over the removed blocks.
-  observeEvent(parent$removed_block, {
-    remove_block_panels(parent$removed_block)
-  })
-
-  output$layout <- renderDockView({
-    # Since board$board is reactive, we need to isolate it
-    # so we don't re-render the whole layout each time ...
-    isolate({
-      dock_view(
-        panels = list(
-          panel(
-            id = "dag",
-            title = "Pipeline overview",
-            content = board_ui(
-              session$ns(NULL),
-              dash_board_plugins("manage_links")
-            )
-          ),
-          panel(
-            id = "dashboard",
-            title = "Dashboard",
-            content = tagList(
-              dashboard_ui(session$ns(NULL), board$board)
+        # Move UI from offcanvas to the new panel
+        session$sendCustomMessage(
+          "show-block",
+          list(
+            block_id = sprintf(
+              "#%s",
+              ns(parent$selected_block)
             ),
-            position = list(
-              referencePanel = "dag",
-              direction = "right"
+            panel_id = sprintf(
+              "#%s",
+              ns(paste0("layout-block-", parent$selected_block))
             )
           )
-        ),
-        # TBD (make theme function of board options)
-        theme = "light"
-      )
-    })
-  })
-
-  # Update theme in real time
-  observeEvent(get_board_option_value("dark_mode"), {
-    update_dock_view(
-      "layout",
-      list(theme = get_board_option_value("dark_mode"))
+        )
+      }
     )
-  })
+
+    observeEvent(
+      input[["layout_panel-to-remove"]],
+      {
+        # Remove the block panel when the user clicks on the
+        # close button of the panel.
+        session$sendCustomMessage(
+          "hide-block",
+          list(
+            offcanvas = sprintf("#%s", ns("offcanvas")),
+            block_id = sprintf(
+              "#%s",
+              ns(paste0("layout-", input[["layout_panel-to-remove"]]))
+            )
+          )
+        )
+        remove_panel(
+          "layout",
+          input[["layout_panel-to-remove"]]
+        )
+      }
+    )
+
+    # Remove block panel on block remove
+    # As we can remove multiple blocks at once, we
+    # need to loop over the removed blocks.
+    observeEvent(parent$removed_block, {
+      remove_block_panels(parent$removed_block)
+    })
+
+    output$layout <- renderDockView({
+      # Since board$board is reactive, we need to isolate it
+      # so we don't re-render the whole layout each time ...
+      isolate({
+        browser()
+        dock_view(
+          panels = c(
+            list(
+              panel(
+                id = "dag",
+                title = "Pipeline overview",
+                content = board_ui(
+                  ns(NULL),
+                  dash_board_plugins("manage_links")
+                )
+              ),
+              map(
+                panel,
+                id = chr_ply(modules, board_module_id),
+                title = chr_ply(modules, board_module_title),
+                content = lapply(modules, call_board_module_ui, ns(NULL),
+                                 board$board),
+                MoreArgs = list(
+                  position = list(
+                    referencePanel = "dag",
+                    direction = "right"
+                  )
+                )
+              )
+            )
+          ),
+          # TBD (make theme function of board options)
+          theme = "light"
+        )
+      })
+    })
+  }
 }
 
 #' Scoutbar management callback

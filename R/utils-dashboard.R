@@ -18,21 +18,19 @@ init_dashboard_state <- function(board, blocks, vals) {
 #'
 #' @param board Board object.
 #' @param blocks Board block objects.
-#' @param vals Local reactive values.
 #' @param parent Parent reactive values.
 #' @param session Shiny session object.
 #' Contains blocks coordinates, dimensions, ...
 #' @export
 #' @rdname restore-dashboard
-restore_dashboard <- function(board, blocks, vals, parent, session) {
+restore_dashboard <- function(board, blocks, parent, session) {
   UseMethod("restore_dashboard", board)
 }
 
 #' @export
 #' @rdname restore-dashboard
-restore_dashboard.dash_board <- function(board, blocks, vals, parent, session) {
-  vals$in_grid <- NULL
-  vals$grid <- parent$grid
+restore_dashboard.dash_board <- function(board, blocks, parent, session) {
+  parent$in_grid <- NULL
   ids <- names(blocks)
 
   in_grid_ids <- find_blocks_ids(board, parent, session)
@@ -41,7 +39,7 @@ restore_dashboard.dash_board <- function(board, blocks, vals, parent, session) {
   # and all values are false
   if (!length(in_grid_ids)) {
     lapply(ids, \(id) {
-      vals$in_grid[[id]] <- FALSE
+      parent$in_grid[[id]] <- FALSE
     })
     return(NULL)
   }
@@ -50,11 +48,11 @@ restore_dashboard.dash_board <- function(board, blocks, vals, parent, session) {
   not_in_grid <- which(!(ids %in% in_grid_ids))
 
   lapply(in_grid_ids, \(id) {
-    vals$in_grid[[id]] <- TRUE
+    parent$in_grid[[id]] <- TRUE
   })
 
   lapply(ids[not_in_grid], \(id) {
-    vals$in_grid[[id]] <- FALSE
+    parent$in_grid[[id]] <- FALSE
   })
   parent$refreshed <- "grid"
 }

@@ -7,9 +7,9 @@
 \alias{find_blocks_ids.dock_board}
 \title{Restore dashboard state from board state}
 \usage{
-restore_dashboard(board, blocks, vals, parent, session)
+restore_dashboard(board, blocks, parent, session)
 
-\method{restore_dashboard}{dash_board}(board, blocks, vals, parent, session)
+\method{restore_dashboard}{dash_board}(board, blocks, parent, session)
 
 find_blocks_ids(board, parent, session)
 
@@ -19,8 +19,6 @@ find_blocks_ids(board, parent, session)
 \item{board}{Board object.}
 
 \item{blocks}{Board block objects.}
-
-\item{vals}{Local reactive values.}
 
 \item{parent}{Parent reactive values.}
 

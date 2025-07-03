@@ -16,16 +16,18 @@ dashboard_ui.dock_board <- function(id, board, ...) {
 #' @rdname dashboard
 #' @export
 dashboard_server.dock_board <- function(board, update, parent, ...) {
+
+  isolate(
+    {
+      parent$grid <- structure(list(), class = "dock")
+      parent$in_grid <- list()
+    }
+  )
+
   session <- get("session", parent.frame(1))
   input <- session$input
   ns <- session$ns
   output <- session$output
-
-  # Local reactiveValues
-  vals <- reactiveValues(
-    grid = structure(list(), class = "dock"),
-    in_grid = list()
-  )
 
   # Restore dock from serialisation only when network is restored
   observeEvent(
@@ -33,14 +35,14 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       req(parent$refreshed == "network")
     },
     {
-      restore_dashboard(board$board, board$blocks, vals, parent, session)
+      restore_dashboard(board$board, board$blocks, parent, session)
       # We don't even need to call restore_dock!
     }
   )
 
   # Whenever a new block is created, we initialise its grid state
   observeEvent(parent$added_block, {
-    vals$in_grid[[block_uid(parent$added_block)]] <- FALSE
+    parent$in_grid[[block_uid(parent$added_block)]] <- FALSE
   })
 
   # Removed block(s) must not be referenced in the grid
@@ -48,7 +50,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
     lapply(parent$removed_block, \(removed) {
       # Signal to remove panel from dock.
       # Panel will be removed by manage_dashboard.
-      vals$in_grid[[removed]] <- NULL
+      parent$in_grid[[removed]] <- NULL
       if (paste0("block_", removed) %in% get_panels_ids("dock")) {
         remove_panel("dock", paste0("block_", removed))
       }
@@ -78,7 +80,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   observeEvent(
     {
       req(parent$selected_block)
-      vals$in_grid[[parent$selected_block]]
+      parent$in_grid[[parent$selected_block]]
     },
     {
       # Render a second output containing only
@@ -131,14 +133,6 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   })
   outputOptions(output, "dock", suspendWhenHidden = FALSE)
 
-  # Update dock theme based on board options
-  observeEvent(get_board_option_value("dark_mode"), {
-    update_dock_view(
-      "dock",
-      list(theme = get_board_option_value("dark_mode"))
-    )
-  })
-
   # Handle zoom on grid element
   observeEvent(get_board_option_value("dashboard_zoom"), {
     handle_dashboard_zoom(session)
@@ -151,21 +145,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       input$dock_state
     },
     {
-      vals$grid <- structure(input$dock_state, class = "dock")
+      parent$grid <- structure(input$dock_state, class = "dock")
     }
   )
-
-  # Callback from links plugin
-  observeEvent(parent$in_grid, {
-    vals$in_grid <- parent$in_grid
-  })
-
-  # Maintain consistency between parent and local reactive values
-  observeEvent(vals$in_grid, {
-    parent$in_grid <- vals$in_grid
-  })
-
-  observeEvent(vals$grid, {
-    parent$grid <- vals$grid
-  })
 }

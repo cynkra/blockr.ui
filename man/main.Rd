@@ -13,12 +13,14 @@ create_app_state(board)
 
 \method{create_app_state}{dock_board}(board)
 
-main_server(id, board)
+main_server(id, board, modules = new_dashboard_module())
 }
 \arguments{
 \item{id}{Unique id.}
 
 \item{board}{Board object.}
+
+\item{modules}{Further modules to pass}
 }
 \description{
 The board is composed of 2 views pointing to the network module

@@ -11,7 +11,7 @@ manage_block_visibility(board, update, parent, ...)
 
 board_restore(board, update, parent, ...)
 
-build_layout(board, update, parent, ...)
+build_layout(modules, session)
 
 manage_scoutbar(board, update, parent, ...)
 }

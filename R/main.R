@@ -41,8 +41,6 @@ create_app_state.dock_board <- function(board) {
     mode = "network",
     cold_start = TRUE,
     preview = FALSE,
-    grid = structure(list(), class = "dock"),
-    in_grid = list(),
     refreshed = NULL,
     network = structure(list(), class = "network"),
     # Blocks/nodes
@@ -80,14 +78,22 @@ create_app_state.dock_board <- function(board) {
 #' Server module for board.
 #'
 #' @param board Board object.
+#' @param modules Further modules to pass
 #'
 #' @rdname main
 #' @export
-main_server <- function(id, board) {
+main_server <- function(id, board, modules = new_dashboard_module()) {
+
+  if (is_board_module(modules)) {
+    modules <- list(modules)
+  }
+
+  stopifnot(is.list(modules), all(lgl_ply(modules, is_board_module)))
+
   moduleServer(
     id,
     function(input, output, session) {
-      ns <- session$n
+      ns <- session$ns
 
       app_state <- create_app_state(board)
 
@@ -114,13 +120,15 @@ main_server <- function(id, board) {
             "notify_user"
           )
         ),
-        callbacks = list(
-          grid = dashboard_server,
-          # Callback to signal other modules that the restore is done.
-          # This allows to restore each part in the correct order.
-          on_board_restore = board_restore,
-          manage_scoutbar = manage_scoutbar,
-          layout = build_layout
+        callbacks = c(
+          lapply(modules, board_module_server),
+          list(
+            # Callback to signal other modules that the restore is done.
+            # This allows to restore each part in the correct order.
+            on_board_restore = board_restore,
+            manage_scoutbar = manage_scoutbar,
+            layout = build_layout(modules, session)
+          )
         ),
         parent = app_state
       )
