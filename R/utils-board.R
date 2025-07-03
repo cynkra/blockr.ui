@@ -197,46 +197,6 @@ board_header <- function(id, board_ui) {
   )
 }
 
-#' Manage blocks visibility
-#'
-#' @keywords internal
-#' @rdname handlers-utils
-manage_block_visibility <- function(board, update, parent, ...) {
-  observeEvent(
-    {
-      req(parent$mode == "network")
-      req(parent$selected_block)
-    },
-    {
-      to_hide <- which(names(board$blocks) != parent$selected_block)
-
-      shinyjs::show(paste0("block_", parent$selected_block))
-      if (length(to_hide)) {
-        lapply(names(board$blocks)[to_hide], \(el) {
-          shinyjs::hide(paste0("block_", el))
-        })
-      }
-    }
-  )
-  return(NULL)
-}
-
-#' Board restoration callback
-#'
-#' @keywords internal
-#' @rdname handlers-utils
-board_restore <- function(board, update, parent, ...) {
-  board_refresh <- get("board_refresh", parent.frame(1))
-  observeEvent(
-    board_refresh(),
-    {
-      parent$refreshed <- "board"
-    },
-    ignoreInit = TRUE
-  )
-  return(NULL)
-}
-
 #' Custom board UI
 #'
 #' @param id Namespace ID.
@@ -291,6 +251,22 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
   )
 }
 
+#' Board restoration callback
+#'
+#' @keywords internal
+#' @rdname handlers-utils
+board_restore <- function(board, update, parent, ...) {
+  board_refresh <- get("board_refresh", parent.frame(1))
+  observeEvent(
+    board_refresh(),
+    {
+      parent$refreshed <- "board"
+    },
+    ignoreInit = TRUE
+  )
+  return(NULL)
+}
+
 #' App layout
 #'
 #' @keywords internal
@@ -300,6 +276,15 @@ build_layout <- function(board, update, parent, ...) {
   input <- session$input
   output <- session$output
   ns <- session$ns
+
+  # Init offcanvas state: this is used to store the
+  # block ids that are currently shown in a panel or in the offcanvas.
+  session$sendCustomMessage(
+    "init-offcanvas-state",
+    list(
+      offcanvas_input = ns("offcanvas_state")
+    )
+  )
 
   # TBD: re-insert block panel ui if it was closed
   observeEvent(
@@ -316,17 +301,28 @@ build_layout <- function(board, update, parent, ...) {
         ns(NULL),
         board$board,
         board_blocks(board$board)[parent$selected_block],
-        create_block_ui = FALSE
+        # When we restore a board we have to recreate the block UI.
+        create_block_ui = if (is.null(input$offcanvas_state)) {
+          TRUE
+        } else {
+          if (parent$selected_block %in% input$offcanvas_state) {
+            FALSE
+          } else {
+            TRUE
+          }
+        }
       )
 
       # Move UI from offcanvas to the new panel
       session$sendCustomMessage(
         "show-block",
         list(
+          offcanvas_input = ns("offcanvas_state"),
           block_id = sprintf(
             "#%s",
             session$ns(parent$selected_block)
           ),
+          block_raw_id = parent$selected_block,
           panel_id = sprintf(
             "#%s",
             session$ns(paste0("layout-block-", parent$selected_block))
@@ -344,7 +340,11 @@ build_layout <- function(board, update, parent, ...) {
       session$sendCustomMessage(
         "hide-block",
         list(
+          offcanvas_input = ns("offcanvas_state"),
           offcanvas = sprintf("#%s", ns("offcanvas")),
+          block_raw_id = strsplit(input[["layout_panel-to-remove"]], "block-")[[
+            1
+          ]][2],
           block_id = sprintf(
             "#%s",
             session$ns(paste0("layout-", input[["layout_panel-to-remove"]]))

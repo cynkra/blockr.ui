@@ -29,13 +29,24 @@ export const setupApp = () => {
     $('.scoutbar-cell-item')[scoutbarChoice].click();
   })
 
+  // Offcanvas initial state
+  Shiny.addCustomMessageHandler('init-offcanvas-state', (m) => {
+    Shiny.setInputValue(m.offcanvas_input, []);
+  });
+
   // Move block UI to offcanvas
   Shiny.addCustomMessageHandler('hide-block', (m) => {
     $(m.offcanvas).find('.offcanvas-body').append($(m.block_id).find('.card'));
+    Shiny.shinyapp.$inputValues[m.offcanvas_input].push(m.block_raw_id)
+    Shiny.setInputValue(m.offcanvas_input, Shiny.shinyapp.$inputValues[m.offcanvas_input]);
   })
 
   // Move block UI back to panel
   Shiny.addCustomMessageHandler('show-block', (m) => {
     $(m.panel_id).append($(m.block_id));
+    if (!Shiny.shinyapp.$inputValues[m.offcanvas_input].length) return;
+    const index = Shiny.shinyapp.$inputValues[m.offcanvas_input].indexOf(m.block_raw_id);
+    Shiny.shinyapp.$inputValues[m.offcanvas_input].splice(index, 1);
+    Shiny.setInputValue(m.offcanvas_input, Shiny.shinyapp.$inputValues[m.offcanvas_input]);
   })
 } 
