@@ -369,7 +369,6 @@ build_layout <- function(modules, session) {
       # Since board$board is reactive, we need to isolate it
       # so we don't re-render the whole layout each time ...
       isolate({
-        browser()
         dock_view(
           panels = c(
             list(
