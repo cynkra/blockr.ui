@@ -292,10 +292,18 @@ build_layout <- function(board, update, parent, ...) {
       req(parent$selected_block)
     },
     {
+      # Extract block panels
+      block_panels <- chr_ply(
+        grep("block", get_panels_ids("layout"), value = TRUE),
+        \(pane) {
+          strsplit(pane, "block-")[[1]][2]
+        }
+      )
       # Don't do anything if the block panel is already there
-      if (any(grepl(parent$selected_block, get_panels_ids("layout")))) {
+      if (parent$selected_block %in% block_panels) {
         return(NULL)
       }
+
       # Reinsert panel but without block UI, as this is already in the offcanvas
       insert_block_ui(
         ns(NULL),
