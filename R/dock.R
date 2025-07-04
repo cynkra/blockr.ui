@@ -59,7 +59,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   # the block result on demand
   observeEvent(
     {
-      req(parent$selected_block)
+      req(parent$selected_block, vals$in_grid[[parent$selected_block]])
       board$blocks[[parent$selected_block]]$server$result()
     },
     {
