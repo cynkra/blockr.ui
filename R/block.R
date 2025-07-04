@@ -69,7 +69,6 @@ insert_block_ui.dash_board <- function(
   id,
   x,
   blocks = NULL,
-  create_block_ui = TRUE,
   ...
 ) {
   session <- getDefaultReactiveDomain()
@@ -79,61 +78,111 @@ insert_block_ui.dash_board <- function(
     is_board(x),
     !is.null(session)
   )
+
   ns <- session$ns
 
-  blocks <- blocks[which(
-    !(sprintf("block-%s", names(blocks)) %in% get_panels_ids("layout"))
-  )]
-  # Don't re-add the same block panel if in the dock
-  if (length(blocks) == 0) {
-    return(NULL)
+  # Handle startup state when blocks is NULL then we look at the board blocks.
+  if (is.null(blocks)) {
+    blocks <- board_blocks(x)
   }
 
   # Loop over blocks.
-  # This can happen when we restore a board with multiple blocks
+  # This can happen when we restore a board with multiple blocks.
+  # Insert all the UI in the hidden offcanvas. Then we can show them
+  # on demand ...
   lapply(seq_along(blocks), \(i) {
     blk <- blocks[i]
     blk_ui <- block_ui(id, x, blk)
 
-    # For some reasons, we need to add the panel first
-    # then add the block UI to the panel.
-    add_panel(
-      "layout",
-      panel = dockViewR::panel(
-        id = sprintf("block-%s", names(blk)),
-        title = sprintf("Block: %s", names(blk)),
-        content = tagList(),
-        position = list(
-          referencePanel = if (length(get_panels_ids("layout")) == 2) {
-            "dag"
-          } else {
-            get_panels_ids("layout")[length(get_panels_ids("layout"))]
-          },
-          direction = if (length(get_panels_ids("layout")) == 2) {
-            "below"
-          } else {
-            "right"
-          }
-        ),
-        remove = list(enable = TRUE, mode = "manual")
-      )
+    insertUI(
+      sprintf(
+        "#%s .offcanvas-body",
+        ns("offcanvas")
+      ),
+      ui = blk_ui,
+      immediate = TRUE
     )
-
-    # We only create the block UI once if it is not already there. Hide and showing
-    # it again is done outside of this function.
-    if (create_block_ui) {
-      insertUI(
-        sprintf(
-          "#%s",
-          session$ns(paste0("layout-", sprintf("block-%s", names(blk))))
-        ),
-        ui = blk_ui,
-        immediate = TRUE
-      )
-    }
   })
 
   invisible(x)
+}
+
+#' Show a block panel
+#'
+#' Move block from offcanvas-body to a panel.
+#'
+#' @param id Block id to show
+#' @param parent Parent reactive values.
+#' @param session Shiny session object.
+#' @rdname block-panel
+show_block_panel <- function(id, parent, session) {
+  ns <- session$ns
+
+  # Extract block panels
+  block_panels <- chr_ply(
+    grep("block", get_panels_ids("layout"), value = TRUE),
+    \(pane) {
+      strsplit(pane, "block-")[[1]][2]
+    }
+  )
+  # Don't do anything if the block panel is already there
+  if (parent$selected_block %in% block_panels) {
+    return(NULL)
+  }
+
+  add_panel(
+    "layout",
+    panel = dockViewR::panel(
+      id = sprintf("block-%s", id),
+      title = sprintf("Block: %s", id),
+      content = tagList(),
+      position = list(
+        referencePanel = if (length(get_panels_ids("layout")) == 2) {
+          "dag"
+        } else {
+          get_panels_ids("layout")[length(get_panels_ids("layout"))]
+        },
+        direction = if (length(get_panels_ids("layout")) == 2) {
+          "below"
+        } else {
+          "right"
+        }
+      ),
+      remove = list(enable = TRUE, mode = "manual")
+    )
+  )
+
+  # Move UI from offcanvas to the new panel
+  session$sendCustomMessage(
+    "show-block",
+    list(
+      offcanvas_input = ns("offcanvas_state"),
+      block_id = sprintf("#%s", ns(id)),
+      block_raw_id = id,
+      panel_id = sprintf("#%s", ns(paste0("layout-block-", id)))
+    )
+  )
+}
+
+#' Hide a block panel
+#'
+#' Move block from panel to offcanvas-body.
+#'
+#' @rdname block-panel
+hide_block_panel <- function(id, session) {
+  ns <- session$ns
+  # Remove the block panel when the user clicks on the
+  # close button of the panel.
+  session$sendCustomMessage(
+    "hide-block",
+    list(
+      offcanvas_input = ns("offcanvas_state"),
+      offcanvas = sprintf("#%s", ns("offcanvas")),
+      block_raw_id = strsplit(id, "block-")[[1]][2],
+      block_id = sprintf("#%s", ns(paste0("layout-", id)))
+    )
+  )
+  remove_panel("layout", id)
 }
 
 #' @rdname block_ui

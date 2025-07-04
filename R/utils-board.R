@@ -277,92 +277,20 @@ build_layout <- function(board, update, parent, ...) {
   output <- session$output
   ns <- session$ns
 
-  # Init offcanvas state: this is used to store the
-  # block ids that are currently shown in a panel or in the offcanvas.
-  session$sendCustomMessage(
-    "init-offcanvas-state",
-    list(
-      offcanvas_input = ns("offcanvas_state")
-    )
-  )
-
   # TBD: re-insert block panel ui if it was closed
   observeEvent(
     {
       req(parent$selected_block)
     },
     {
-      # Extract block panels
-      block_panels <- chr_ply(
-        grep("block", get_panels_ids("layout"), value = TRUE),
-        \(pane) {
-          strsplit(pane, "block-")[[1]][2]
-        }
-      )
-      # Don't do anything if the block panel is already there
-      if (parent$selected_block %in% block_panels) {
-        return(NULL)
-      }
-
-      # Reinsert panel but without block UI, as this is already in the offcanvas
-      insert_block_ui(
-        ns(NULL),
-        board$board,
-        board_blocks(board$board)[parent$selected_block],
-        # When we restore a board we have to recreate the block UI.
-        create_block_ui = if (is.null(input$offcanvas_state)) {
-          TRUE
-        } else {
-          if (parent$selected_block %in% input$offcanvas_state) {
-            FALSE
-          } else {
-            TRUE
-          }
-        }
-      )
-
-      # Move UI from offcanvas to the new panel
-      session$sendCustomMessage(
-        "show-block",
-        list(
-          offcanvas_input = ns("offcanvas_state"),
-          block_id = sprintf(
-            "#%s",
-            session$ns(parent$selected_block)
-          ),
-          block_raw_id = parent$selected_block,
-          panel_id = sprintf(
-            "#%s",
-            session$ns(paste0("layout-block-", parent$selected_block))
-          )
-        )
-      )
+      show_block_panel(parent$selected_block, parent, session)
     }
   )
 
   observeEvent(
     input[["layout_panel-to-remove"]],
     {
-      # Remove the block panel when the user clicks on the
-      # close button of the panel.
-      session$sendCustomMessage(
-        "hide-block",
-        list(
-          offcanvas_input = ns("offcanvas_state"),
-          offcanvas = sprintf("#%s", ns("offcanvas")),
-          block_raw_id = strsplit(input[["layout_panel-to-remove"]], "block-")[[
-            1
-          ]][2],
-          block_id = sprintf(
-            "#%s",
-            session$ns(paste0("layout-", input[["layout_panel-to-remove"]]))
-          )
-        )
-      )
-      remove_panel(
-        "layout",
-        input[["layout_panel-to-remove"]]
-      )
+      hide_block_panel(input[["layout_panel-to-remove"]], session)
     }
   )
 

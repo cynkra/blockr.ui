@@ -8,7 +8,7 @@
 \usage{
 \method{block_ui}{dash_board}(id, x, block = NULL, ...)
 
-\method{insert_block_ui}{dash_board}(id, x, blocks = NULL, create_block_ui = TRUE, ...)
+\method{insert_block_ui}{dash_board}(id, x, blocks = NULL, ...)
 
 \method{remove_block_ui}{dash_board}(id, x, blocks = NULL, ...)
 }
