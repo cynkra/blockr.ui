@@ -27,19 +27,12 @@ mock_add_block <- function(blk, rv, parent, session) {
   session$flushReact()
 }
 
-
 testServer(
   blockr.ui::add_rm_stack_server,
   args = list(
     board = reactiveValues(
       blocks = list(),
-      board = new_board(
-        class = "dash_board",
-        options = new_board_options(
-          dark_mode = "light",
-          stacks_colors = hcl.colors(20, palette = "spectral")
-        )
-      ),
+      board = new_dash_board(),
       board_id = "board",
       inputs = list(),
       links = list(),
@@ -62,11 +55,39 @@ testServer(
     mock_add_block(new_dataset_block(), board, dot_args$parent, session)
     mock_add_block(new_dataset_block(), board, dot_args$parent, session)
     dot_args$parent$added_stack <- board_block_ids(board$board)
+    expect_length(dot_args$parent$added_stack, 2)
     session$flushReact()
     expect_s3_class(update()$stacks$add, "stacks")
+    expect_null(dot_args$parent$added_stack)
     board_stacks(board$board) <- update()$stacks$add
 
-    # TBD: remove and add node from/to stack
+    # Remove block from stack
+    dot_args$parent$stack_removed_node <- list(
+      stack_id = names(board_stacks(board$board)),
+      node_id = board_block_ids(board$board)[1]
+    )
+    session$flushReact()
+    expect_s3_class(update()$stacks$mod, "stacks")
+    expect_identical(
+      stack_blocks(update()$stacks$mod[[1]]),
+      board_block_ids(board$board)[2]
+    )
+    board_stacks(board$board) <- update()$stacks$mod # manually update stack
+    expect_null(dot_args$parent$stack_removed_node)
+
+    ## Add block (again) to stack
+    dot_args$parent$stack_added_node <- list(
+      stack_id = names(board_stacks(board$board)),
+      node_id = board_block_ids(board$board)[1]
+    )
+    session$flushReact()
+    expect_s3_class(update()$stacks$mod, "stacks")
+    expect_identical(
+      stack_blocks(update()$stacks$mod[[1]]),
+      rev(board_block_ids(board$board))
+    )
+    expect_null(dot_args$parent$stack_added_node)
+    board_stacks(board$board) <- update()$stacks$mod # manually update stack
 
     # Remove stack
     dot_args$parent$removed_stack <- tail(board_stack_ids(board$board), n = 1)
