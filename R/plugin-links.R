@@ -263,25 +263,15 @@ add_rm_link_server <- function(id, board, update, ...) {
       })
 
       # Add/remove to/from dashboard
-      observeEvent(
-        {
-          req(dot_args$parent$selected_block)
-          input$add_to_dashboard
-        },
-        {
-          dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- TRUE
-        }
-      )
+      observeEvent(input$add_to_dashboard, {
+        req(dot_args$parent$selected_block)
+        dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- TRUE
+      })
 
-      observeEvent(
-        {
-          req(dot_args$parent$selected_block)
-          input$remove_from_dashboard
-        },
-        {
-          dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- FALSE
-        }
-      )
+      observeEvent(input$remove_from_dashboard, {
+        req(dot_args$parent$selected_block)
+        dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- FALSE
+      })
 
       observeEvent(
         {
