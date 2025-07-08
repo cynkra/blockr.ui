@@ -82,7 +82,7 @@ find_blocks_ids.dock_board <- function(
     return(NULL)
   }
   chr_ply(
-    strsplit(names(parent$grid$panels), "block_"),
+    strsplit(names(parent$grid$panels), "block-"),
     `[[`,
     2
   )
