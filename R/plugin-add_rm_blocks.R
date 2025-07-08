@@ -19,14 +19,6 @@ add_rm_block_server <- function(id, board, update, ...) {
       ns <- session$ns
       dot_args <- list(...)
 
-      # TBD: implement add_block_to -> add a block after the selected one
-      # We need a contextual registry and update the scoutbar with relevant
-      # choices. I think we can use the same scoutbar as for the classic
-      # add block with all choices.
-      observeEvent(input$append_block, {
-        dot_args$parent$append_block <- TRUE
-      })
-
       # Adding a block, we update the rv$added so the graph is updated
       # in the links plugin
       observeEvent(
@@ -41,14 +33,6 @@ add_rm_block_server <- function(id, board, update, ...) {
           )
           dot_args$parent$added_block <- new_blk[[1]]
           attr(dot_args$parent$added_block, "uid") <- names(new_blk)
-        }
-      )
-
-      # Remove block and node
-      observeEvent(
-        input$remove_block,
-        {
-          dot_args$parent$removed_block <- dot_args$parent$selected_block
         }
       )
 

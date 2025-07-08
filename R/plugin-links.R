@@ -120,12 +120,20 @@ add_rm_link_server <- function(id, board, update, ...) {
       })
 
       # Append block
-      observeEvent(input$append_node, {
-        dot_args$parent$scoutbar$trigger <- "links"
-        if (isFALSE(dot_args$parent$append_block)) {
-          dot_args$parent$append_block <- TRUE
+      observeEvent(
+        {
+          input$append_node
+        },
+        {
+          if (is.null(dot_args$parent$selected_block)) {
+            return(NULL)
+          }
+          dot_args$parent$scoutbar$trigger <- "links"
+          if (isFALSE(dot_args$parent$append_block)) {
+            dot_args$parent$append_block <- TRUE
+          }
         }
-      })
+      )
 
       # Implement Edge creation by DND
       # we can drag from one node
@@ -255,13 +263,25 @@ add_rm_link_server <- function(id, board, update, ...) {
       })
 
       # Add/remove to/from dashboard
-      observeEvent(input$add_to_dashboard, {
-        dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- TRUE
-      })
+      observeEvent(
+        {
+          req(dot_args$parent$selected_block)
+          input$add_to_dashboard
+        },
+        {
+          dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- TRUE
+        }
+      )
 
-      observeEvent(input$remove_from_dashboard, {
-        dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- FALSE
-      })
+      observeEvent(
+        {
+          req(dot_args$parent$selected_block)
+          input$remove_from_dashboard
+        },
+        {
+          dot_args$parent$in_grid[[dot_args$parent$selected_block]] <- FALSE
+        }
+      )
 
       observeEvent(
         {

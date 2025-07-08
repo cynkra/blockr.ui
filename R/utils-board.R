@@ -197,46 +197,6 @@ board_header <- function(id, board_ui) {
   )
 }
 
-#' Manage blocks visibility
-#'
-#' @keywords internal
-#' @rdname handlers-utils
-manage_block_visibility <- function(board, update, parent, ...) {
-  observeEvent(
-    {
-      req(parent$mode == "network")
-      req(parent$selected_block)
-    },
-    {
-      to_hide <- which(names(board$blocks) != parent$selected_block)
-
-      shinyjs::show(paste0("block_", parent$selected_block))
-      if (length(to_hide)) {
-        lapply(names(board$blocks)[to_hide], \(el) {
-          shinyjs::hide(paste0("block_", el))
-        })
-      }
-    }
-  )
-  return(NULL)
-}
-
-#' Board restoration callback
-#'
-#' @keywords internal
-#' @rdname handlers-utils
-board_restore <- function(board, update, parent, ...) {
-  board_refresh <- get("board_refresh", parent.frame(1))
-  observeEvent(
-    board_refresh(),
-    {
-      parent$refreshed <- "board"
-    },
-    ignoreInit = TRUE
-  )
-  return(NULL)
-}
-
 #' Custom board UI
 #'
 #' @param id Namespace ID.
@@ -291,50 +251,99 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
   )
 }
 
+#' Board restoration callback
+#'
+#' @keywords internal
+#' @rdname handlers-utils
+board_restore <- function(board, update, parent, ...) {
+  board_refresh <- get("board_refresh", parent.frame(1))
+  observeEvent(
+    board_refresh(),
+    {
+      parent$refreshed <- "board"
+    },
+    ignoreInit = TRUE
+  )
+  return(NULL)
+}
+
 #' App layout
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-build_layout <- function(modules, session) {
-  function(board, update, parent, ...) {
+build_layout <- function(modules) {
+  function(board, update, session, parent, ...) {
     input <- session$input
     output <- session$output
     ns <- session$ns
-    browser()
+
     # TBD: re-insert block panel ui if it was closed
     observeEvent(
       {
         req(parent$selected_block)
       },
       {
-        # Don't do anything if the block panel is already there
-        if (any(grepl(parent$selected_block, get_panels_ids("layout")))) {
-          return(NULL)
-        }
-        # Reinsert panel but without block UI, as this is already in the offcanvas
-        insert_block_ui(
-          ns(NULL),
-          board$board,
-          board_blocks(board$board)[parent$selected_block],
-          create_block_ui = FALSE
-        )
+        show_block_panel(parent$selected_block, parent, session)
+      }
+    )
 
-        # Move UI from offcanvas to the new panel
-        session$sendCustomMessage(
-          "show-block",
-          list(
-            block_id = sprintf(
-              "#%s",
-              ns(parent$selected_block)
+    observeEvent(
+      input[["layout_panel-to-remove"]],
+      {
+        hide_block_panel(input[["layout_panel-to-remove"]], session)
+      }
+    )
+
+    # Remove block panel on block remove
+    # As we can remove multiple blocks at once, we
+    # need to loop over the removed blocks.
+    observeEvent(parent$removed_block, {
+      remove_block_panels(parent$removed_block)
+    })
+
+    output$layout <- renderDockView({
+      # Since board$board is reactive, we need to isolate it
+      # so we don't re-render the whole layout each time ...
+      isolate({
+        dock_view(
+          panels = list(
+            panel(
+              id = "dag",
+              title = "Pipeline overview",
+              content = board_ui(
+                session$ns(NULL),
+                dash_board_plugins("manage_links")
+              )
             ),
-            panel_id = sprintf(
-              "#%s",
-              ns(paste0("layout-block-", parent$selected_block))
+            panels = c(
+              list(
+                panel(
+                  id = "dag",
+                  title = "Pipeline overview",
+                  content = board_ui(
+                    ns(NULL),
+                    dash_board_plugins("manage_links")
+                  )
+                ),
+                map(
+                  panel,
+                  id = chr_ply(modules, board_module_id),
+                  title = chr_ply(modules, board_module_title),
+                  content = lapply(modules, call_board_module_ui, ns(NULL),
+                                   board$board),
+                  MoreArgs = list(
+                    position = list(
+                      referencePanel = "dag",
+                      direction = "right"
+                    )
+                  )
+                )
+              )
             )
           )
         )
-      }
-    )
+      })
+    })
 
     observeEvent(
       input[["layout_panel-to-remove"]],
@@ -357,49 +366,6 @@ build_layout <- function(modules, session) {
         )
       }
     )
-
-    # Remove block panel on block remove
-    # As we can remove multiple blocks at once, we
-    # need to loop over the removed blocks.
-    observeEvent(parent$removed_block, {
-      remove_block_panels(parent$removed_block)
-    })
-
-    output$layout <- renderDockView({
-      # Since board$board is reactive, we need to isolate it
-      # so we don't re-render the whole layout each time ...
-      isolate({
-        dock_view(
-          panels = c(
-            list(
-              panel(
-                id = "dag",
-                title = "Pipeline overview",
-                content = board_ui(
-                  ns(NULL),
-                  dash_board_plugins("manage_links")
-                )
-              ),
-              map(
-                panel,
-                id = chr_ply(modules, board_module_id),
-                title = chr_ply(modules, board_module_title),
-                content = lapply(modules, call_board_module_ui, ns(NULL),
-                                 board$board),
-                MoreArgs = list(
-                  position = list(
-                    referencePanel = "dag",
-                    direction = "right"
-                  )
-                )
-              )
-            )
-          ),
-          # TBD (make theme function of board options)
-          theme = "light"
-        )
-      })
-    })
   }
 }
 
