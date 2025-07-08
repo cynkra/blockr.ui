@@ -25,15 +25,15 @@ generate_code_server <- function(id, board, ...) {
     function(input, output, session) {
       dot_args <- list(...)
 
-      code <- reactive(
+      board_code <- reactive(
         export_code(lst_xtr_reval(board$blocks, "server", "expr"), board$board)
       )
+
+      output$code_out <- renderPrint(HTML(board_code()))
 
       observeEvent(
         req(dot_args$parent$display_code),
         {
-          output$code_out <- renderPrint(HTML(code()))
-
           id <- "code_out"
 
           showModal(
@@ -41,7 +41,7 @@ generate_code_server <- function(id, board, ...) {
               title = "Generated code",
               div(
                 class = "text-decoration-none position-relative",
-                if (nchar(code())) copy_to_clipboard(session, id),
+                if (nchar(board_code())) copy_to_clipboard(session, id),
                 verbatimTextOutput(session$ns(id))
               ),
               easyClose = TRUE,
@@ -49,7 +49,6 @@ generate_code_server <- function(id, board, ...) {
               size = "l"
             )
           )
-
           dot_args$parent$display_code <- FALSE
         }
       )
