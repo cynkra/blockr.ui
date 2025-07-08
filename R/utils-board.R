@@ -345,27 +345,13 @@ build_layout <- function(modules) {
       })
     })
 
-    observeEvent(
-      input[["layout_panel-to-remove"]],
-      {
-        # Remove the block panel when the user clicks on the
-        # close button of the panel.
-        session$sendCustomMessage(
-          "hide-block",
-          list(
-            offcanvas = sprintf("#%s", ns("offcanvas")),
-            block_id = sprintf(
-              "#%s",
-              ns(paste0("layout-", input[["layout_panel-to-remove"]]))
-            )
-          )
-        )
-        remove_panel(
-          "layout",
-          input[["layout_panel-to-remove"]]
-        )
-      }
-    )
+    # Update theme in real time
+    observeEvent(get_board_option_value("dark_mode"), {
+      update_dock_view(
+        "layout",
+        list(theme = get_board_option_value("dark_mode"))
+      )
+    })
   }
 }
 
