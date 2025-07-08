@@ -340,7 +340,9 @@ build_layout <- function(modules) {
                 )
               )
             )
-          )
+          ),
+          # TBD (make theme function of board options)
+          theme = "light"
         )
       })
     })
