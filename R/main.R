@@ -127,7 +127,7 @@ main_server <- function(id, board, modules = new_dashboard_module()) {
             # This allows to restore each part in the correct order.
             on_board_restore = board_restore,
             manage_scoutbar = manage_scoutbar,
-            layout = build_layout(modules, session)
+            layout = build_layout(modules)
           )
         ),
         parent = app_state

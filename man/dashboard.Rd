@@ -9,11 +9,11 @@
 \usage{
 dashboard_ui(id, board, ...)
 
-dashboard_server(board, update, parent, ...)
+dashboard_server(board, update, session, parent, ...)
 
 \method{dashboard_ui}{dock_board}(id, board, ...)
 
-\method{dashboard_server}{dock_board}(board, update, parent, ...)
+\method{dashboard_server}{dock_board}(board, update, session, parent, ...)
 }
 \arguments{
 \item{id}{Module id.}
@@ -23,6 +23,8 @@ dashboard_server(board, update, parent, ...)
 \item{...}{Extra parameters.}
 
 \item{update}{Update reactiveVal to signal change to the board.}
+
+\item{session}{Shiny session.}
 
 \item{parent}{Parent global reactiveValues.}
 }

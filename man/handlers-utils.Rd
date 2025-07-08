@@ -6,11 +6,11 @@
 \alias{manage_scoutbar}
 \title{Board restoration callback}
 \usage{
-board_restore(board, update, parent, ...)
+board_restore(board, update, session, parent, ...)
 
-build_layout(modules, session)
+build_layout(modules)
 
-manage_scoutbar(board, update, parent, ...)
+manage_scoutbar(board, update, session, parent, ...)
 }
 \description{
 Board restoration callback

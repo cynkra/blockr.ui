@@ -15,7 +15,7 @@ dashboard_ui.dock_board <- function(id, board, ...) {
 #'
 #' @rdname dashboard
 #' @export
-dashboard_server.dock_board <- function(board, update, parent, ...) {
+dashboard_server.dock_board <- function(board, update, session, parent, ...) {
 
   isolate(
     {
@@ -24,7 +24,6 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
     }
   )
 
-  session <- get("session", parent.frame(1))
   input <- session$input
   ns <- session$ns
   output <- session$output

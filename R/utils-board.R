@@ -255,7 +255,7 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-board_restore <- function(board, update, parent, ...) {
+board_restore <- function(board, update, session, parent, ...) {
   board_refresh <- get("board_refresh", parent.frame(1))
   observeEvent(
     board_refresh(),
@@ -306,37 +306,27 @@ build_layout <- function(modules) {
       # so we don't re-render the whole layout each time ...
       isolate({
         dock_view(
-          panels = list(
-            panel(
-              id = "dag",
-              title = "Pipeline overview",
-              content = board_ui(
-                session$ns(NULL),
-                dash_board_plugins("manage_links")
+          panels = c(
+            list(
+              panel(
+                id = "dag",
+                title = "Pipeline overview",
+                content = board_ui(
+                  ns(NULL),
+                  dash_board_plugins("manage_links")
+                )
               )
             ),
-            panels = c(
-              list(
-                panel(
-                  id = "dag",
-                  title = "Pipeline overview",
-                  content = board_ui(
-                    ns(NULL),
-                    dash_board_plugins("manage_links")
-                  )
-                ),
-                map(
-                  panel,
-                  id = chr_ply(modules, board_module_id),
-                  title = chr_ply(modules, board_module_title),
-                  content = lapply(modules, call_board_module_ui, ns(NULL),
-                                   board$board),
-                  MoreArgs = list(
-                    position = list(
-                      referencePanel = "dag",
-                      direction = "right"
-                    )
-                  )
+            map(
+              panel,
+              id = chr_ply(modules, board_module_id),
+              title = chr_ply(modules, board_module_title),
+              content = lapply(modules, call_board_module_ui, ns(NULL),
+                               board$board),
+              MoreArgs = list(
+                position = list(
+                  referencePanel = "dag",
+                  direction = "right"
                 )
               )
             )
@@ -361,8 +351,7 @@ build_layout <- function(modules) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-manage_scoutbar <- function(board, update, parent, ...) {
-  session <- get("session", parent.frame(1))
+manage_scoutbar <- function(board, update, session, parent, ...) {
   input <- session$input
   ns <- session$ns
 
