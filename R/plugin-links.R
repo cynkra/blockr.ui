@@ -58,6 +58,14 @@ add_rm_link_server <- function(id, board, update, ...) {
         })
       })
 
+      # Update theme in real time
+      observeEvent(get_board_option_value("dark_mode"), {
+        g6_proxy(ns("network")) |>
+          g6_set_theme(
+            get_board_option_value("dark_mode")
+          )
+      })
+
       # Trigger show code
       observeEvent(input$show_code, {
         dot_args$parent$display_code <- TRUE

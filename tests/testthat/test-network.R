@@ -50,12 +50,17 @@ testServer(
   args = list(
     board = reactiveValues(
       blocks = list(),
-      board = new_board(
-        class = "dash_board",
-        options = new_board_options(
-          dark_mode = "light",
-          stacks_colors = hcl.colors(20, palette = "spectral")
-        )
+      board = new_dash_board(
+        blocks = c(
+          a = new_dataset_block("BOD"),
+          b = new_dataset_block("ChickWeight"),
+          c = new_merge_block("Time")
+        ),
+        links = c(
+          ac = new_link("a", "c", "x"),
+          bc = new_link("b", "c", "y")
+        ),
+        stacks = list(ac = c("a", "c"))
       ),
       board_id = "board",
       inputs = list(),
@@ -68,13 +73,16 @@ testServer(
     parent = reactiveValues(
       network = NULL,
       refreshed = NULL,
+      # Blocks
       append_block = FALSE,
       added_block = NULL,
       removed_block = NULL,
       selected_block = NULL,
+      # Edges
       cancelled_edge = NULL,
       added_edge = NULL,
       removed_edge = NULL,
+      # stacks
       added_stack = NULL,
       stack_added_block = NULL,
       stack_removed_block = NULL,
@@ -83,6 +91,10 @@ testServer(
   ),
   {
     # TBD
+    session$setInputs("network-initialized" = TRUE)
+    dot_args$parent$cold_start <- FALSE
+    session$flushReact()
+    browser()
   }
 )
 

@@ -20,6 +20,86 @@ test_that("block ui works", {
 })
 
 test_that("remove_block_ui works", {
-  session <- MockShinySession$new()
-  expect_null(remove_block_ui(character(), my_board, session = session))
+  expect_null(remove_block_ui(character(), my_board))
 })
+
+# session <- as.environment(
+#   list(
+#     ns = identity,
+#     input = list(
+#       "layout_state" = test_dock
+#     ),
+#     sendCustomMessage = function(type, message) {
+#       session$lastCustomMessage <- list(
+#         type = type,
+#         message = message
+#       )
+#     },
+#     sendRemoveUI = function(selector = selector, multiple = multiple) {
+#       session$lastRemovedUI <- list(
+#         selector = selector,
+#         multiple = multiple
+#       )
+#     },
+#     sendInsertUI = function(selector, ui, multiple = FALSE) {
+#       session$lastInsertedUI <- list(
+#         selector = selector,
+#         multiple = multiple
+#       )
+#     }
+#   )
+# )
+
+# # Helper function to temporarily set .globals
+# with_test_domain <- function(domain, expr) {
+#   old <- get(".globals", envir = asNamespace("shiny"))
+#   on.exit(assign(".globals", old, envir = asNamespace("shiny")))
+#   assign(".globals", list(domain = domain), envir = asNamespace("shiny"))
+#   force(expr)
+# }
+
+# test_that("insert_block_ui works", {
+#   with_test_domain(session, {
+#     insert_block_ui(
+#       "my_block",
+#       my_board,
+#       session = session
+#     )
+#     expect_true(
+#       is.list(session$lastCustomMessage) &&
+#         session$lastCustomMessage$type == "show-block"
+#     )
+#     expect_true(
+#       grepl("layout-block-my_block", session$lastCustomMessage$message$panel_id)
+#     )
+#   })
+# })
+
+# test_that("hide_block_panel works", {
+#   parent <- list(
+#     offcanvas = "offcanvas",
+#     selected_block = "block4"
+#   )
+#   hide_block_panel("my_block", parent, session)
+#   expect_true(
+#     is.list(session$lastCustomMessage) &&
+#       session$lastCustomMessage$type == "hide-block"
+#   )
+#   expect_true(
+#     grepl("layout-block-my_block", session$lastCustomMessage$message$panel_id)
+#   )
+# })
+
+# test_that("show_block_panel works", {
+#   parent <- list(
+#     selected_block = "block4"
+#   )
+#   show_block_panel("my_block", parent, session)
+#   expect_true(
+#     is.list(session$lastCustomMessage) &&
+#       session$lastCustomMessage$type == "show-block"
+#   )
+#   expect_true(
+#     grepl("layout-block-my_block", session$lastCustomMessage$message$panel_id)
+#   )
+# })
