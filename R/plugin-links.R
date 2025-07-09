@@ -53,7 +53,15 @@ add_rm_link_server <- function(id, board, update, ...) {
         name = "context-menu-items",
         data = list(),
         filterFunc = function(data, req) {
-          browser()
+          res <- jsonlite::asJSON(
+            list(
+              list(name = "Create edge", value = "create_edge")
+            )
+          )
+          httpResponse(
+            content_type = "application/json",
+            content = res
+          )
         }
       )
 
