@@ -102,10 +102,20 @@ serve.dash_board <- function(x, id = "main", modules = new_dashboard_module(),
     notify_user()
   )
 
+  dummy_ace <- shinyAce::aceEditor(
+    "plop",
+    mode = "r",
+    theme = "github",
+    height = "0px"
+  )
+
+  dummy_ace[[2]]$attribs$style <- "display: none;"
+
   ui <- page_fillable(
     padding = 0,
     gap = 0,
     shinyjs::useShinyjs(),
+    dummy_ace,
     add_busy_load_deps(main_ui(id, x, plugins))
   )
 
