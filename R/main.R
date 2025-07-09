@@ -58,6 +58,7 @@ create_app_state.dock_board <- function(board) {
     stack_added_block = NULL,
     stack_removed_block = NULL,
     removed_stack = NULL,
+    stacks = NULL,
     # scoutbar
     open_scoutbar = FALSE,
     scoutbar = list(

@@ -28,7 +28,7 @@ gen_add_rm_link_server <- function(context_menu) {
             input[["network-initialized"]]
           ),
           {
-            cold_start(vals, board, parent, session)
+            cold_start(board, parent, session)
           },
           once = TRUE
         )
@@ -143,22 +143,6 @@ gen_add_rm_link_server <- function(context_menu) {
           parent$append_block <- FALSE
         })
 
-        # Append block
-        observeEvent(
-          {
-            input$append_node
-          },
-          {
-            if (is.null(parent$selected_block)) {
-              return(NULL)
-            }
-            parent$scoutbar$trigger <- "links"
-            if (isFALSE(parent$append_block)) {
-              parent$append_block <- TRUE
-            }
-          }
-        )
-
         # Implement Edge creation by DND
         # we can drag from one node
         # to another to connect them.
@@ -210,31 +194,11 @@ gen_add_rm_link_server <- function(context_menu) {
           ignoreNULL = FALSE
         )
 
-        # Remove edge (user selects the edge).
-        observeEvent(input$removed_edge, {
-          update(
-            list(
-              links = list(rm = input$removed_edge)
-            )
-          )
-        })
-
-        # Node removal: from context menu or from toolbar (multi nodes possible)
-
-        # Remove node + associated edges (we can remove multiple nodes at once)
         observeEvent(parent$removed_block, {
           # Note: links are cleaned in the add_rm_blocks plugin
           lapply(parent$removed_block, \(removed) {
             cleanup_node(removed, parent, board, session)
           })
-        })
-
-        # Create stack from canvas context menu
-        observeEvent(input$create_stack, {
-          show_stack_actions(
-            board,
-            session
-          )
         })
 
         observeEvent(input$new_stack, {
@@ -247,8 +211,6 @@ gen_add_rm_link_server <- function(context_menu) {
           parent$added_stack <- nodes_to_stack
           removeModal()
         })
-
-        vals <- reactiveValues(stacks = NULL)
 
         # Stack nodes
         observeEvent(
@@ -264,12 +226,11 @@ gen_add_rm_link_server <- function(context_menu) {
               tail(board_stack_ids(board$board), n = 1),
               sep = "-"
             )
-            # As soon as one board stack isn't in vals$stacks
-            if (!(last_stack_id %in% vals$stacks)) {
+            # As soon as one board stack isn't in parent$stacks
+            if (!(last_stack_id %in% parent$stacks)) {
               stack_nodes(
                 stack_id = NULL,
                 nodes = NULL,
-                vals,
                 board,
                 parent,
                 session
@@ -277,22 +238,6 @@ gen_add_rm_link_server <- function(context_menu) {
             }
           }
         )
-
-        # Remove stack: context menu for combo
-        observeEvent(input$remove_stack, {
-          unstack_nodes(vals, parent, session)
-        })
-
-        # Add/remove to/from dashboard
-        observeEvent(input$add_to_dashboard, {
-          req(parent$selected_block)
-          parent$in_grid[[parent$selected_block]] <- TRUE
-        })
-
-        observeEvent(input$remove_from_dashboard, {
-          req(parent$selected_block)
-          parent$in_grid[[parent$selected_block]] <- FALSE
-        })
 
         NULL
       }

@@ -958,7 +958,6 @@ show_stack_actions <- function(rv, session) {
 stack_nodes <- function(
   stack_id = NULL,
   nodes = NULL,
-  vals,
   rv,
   parent,
   session
@@ -985,14 +984,14 @@ stack_nodes <- function(
   stack_color <- input$stack_color
   if (is.null(stack_color)) {
     colors <- board_option("stacks_colors", rv$board)
-    if (length(vals$stacks) == 0) {
+    if (length(parent$stacks) == 0) {
       stack_color <- colors[1]
     } else {
-      stack_color <- colors[length(vals$stacks) * 5]
+      stack_color <- colors[length(parent$stacks) * 5]
     }
   }
 
-  vals$stacks <- c(vals$stacks, stack_id)
+  parent$stacks <- c(parent$stacks, stack_id)
 
   # Update graph
   g6_proxy(ns("network")) |>
@@ -1026,7 +1025,7 @@ stack_nodes <- function(
 #'
 #' @keywords internal
 #' @rdname stack-nodes
-unstack_nodes <- function(vals, parent, session) {
+unstack_nodes <- function(parent, session) {
   ns <- session$ns
   input <- session$input
 
@@ -1035,7 +1034,7 @@ unstack_nodes <- function(vals, parent, session) {
   parent$removed_stack <- strsplit(stack_id, "combo-")[[1]][2]
 
   # Update local reactiveValues
-  vals$stacks <- vals$stacks[-which(vals$stacks == stack_id)]
+  parent$stacks <- parent$stacks[-which(parent$stacks == stack_id)]
 
   # Send message to network
   # (combos are automatically removed from node state so
@@ -1141,18 +1140,18 @@ create_nodes_data_from_blocks <- function(blocks, stacks) {
 #' @keywords internal
 create_combos_data_from_stacks <- function(
   stacks,
-  vals,
+  parent,
   colors
 ) {
   lapply(seq_along(stacks), \(i) {
     stack_id <- sprintf("combo-%s", names(stacks)[[i]])
-    if (length(vals$stacks) == 0) {
+    if (length(parent$stacks) == 0) {
       stack_color <- colors[1]
     } else {
-      stack_color <- colors[length(vals$stacks) * 5]
+      stack_color <- colors[length(parent$stacks) * 5]
     }
 
-    vals$stacks <- c(vals$stacks, stack_id)
+    parent$stacks <- c(parent$stacks, stack_id)
 
     list(
       id = stack_id,
@@ -1179,12 +1178,11 @@ create_combos_data_from_stacks <- function(
 #' links and stacks.
 #'
 #' @keywords internal
-#' @param vals Module internal reactive values.
 #' @param rv Board reactive values. Read-only
 #' @param parent Global app reactive values.
 #' @param session Shiny session
 #' @rdname cold-start
-cold_start <- function(vals, rv, parent, session) {
+cold_start <- function(rv, parent, session) {
   ns <- session$ns
   # Cold start
   links <- board_links(rv$board)
@@ -1194,7 +1192,7 @@ cold_start <- function(vals, rv, parent, session) {
   edges_data <- create_edges_data_from_links(links)
   combos_data <- create_combos_data_from_stacks(
     stacks,
-    vals,
+    parent,
     board_option("stacks_colors", rv$board)
   )
   nodes_data <- create_nodes_data_from_blocks(blocks, stacks)

@@ -78,7 +78,12 @@ serve.dash_board <- function(x, id = "main", modules = new_dashboard_module(),
       list(
         list(
           create_edge_ctxm,
-          remove_node_ctxm
+          remove_node_ctxm,
+          remove_edge_ctxm,
+          append_node_ctxm,
+          create_stack_ctxm,
+          remove_stack_ctxm,
+          add_block_ctxm
         )
       ),
       lapply(modules, board_module_context_menu)

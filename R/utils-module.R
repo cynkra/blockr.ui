@@ -55,6 +55,10 @@ new_dashboard_module <- function(id = "dashboard", title = "Dashboard") {
     dashboard_server,
     id = id,
     title = title,
+    context_menu = list(
+      add_to_dashboard_ctxm,
+      remove_from_dashboard_ctxm
+    ),
     class = "dashboard_module"
   )
 }
@@ -196,13 +200,19 @@ create_edge_ctxm <- new_context_menu_entry(
   ",
   condition = function(board, parent, target) {
     target$type == "node"
-  }
+  },
+  id = "create_edge"
 )
 
 remove_node_ctxm <- new_context_menu_entry(
   name = "Remove node",
   js = function(id) {
-    paste0("Shiny.setInputValue('", id, "', current.id);")
+    sprintf("
+      if (current.id === undefined) return;
+      Shiny.setInputValue('%s', current.id);
+      ",
+      id
+    )
   },
   action = function(input, output, session, board, update, parent) {
     observeEvent(
@@ -214,5 +224,169 @@ remove_node_ctxm <- new_context_menu_entry(
   },
   condition = function(board, parent, target) {
     target$type == "node"
-  }
+  },
+  id = "remove_node"
+)
+
+remove_edge_ctxm <- new_context_menu_entry(
+  name = "Remove edge",
+  js = function(id) sprintf("
+    if (current.id === undefined) return;
+    Shiny.setInputValue('%s', current.id);
+    const graphId = `${target.closest('.g6').id}`;
+    const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
+    graph.removeEdgeData([current.id]);
+    graph.draw();
+    ",
+    id
+  ),
+  action = function(input, output, session, board, update, parent) {
+    observeEvent(
+      input$remove_edge,
+      {
+        update(
+          list(
+            links = list(rm = input$remove_edge)
+          )
+        )
+      }
+    )
+  },
+  condition = function(board, parent, target) {
+    target$type == "edge"
+  },
+  id = "remove_edge"
+)
+
+append_node_ctxm <- new_context_menu_entry(
+  name = "Append node",
+  js = function(id) sprintf("
+    Shiny.setInputValue('%s', true, {priority: 'event'});
+    ",
+    id
+  ),
+  action = function(input, output, session, board, update, parent) {
+    observeEvent(
+      input$append_node,
+      {
+        if (is.null(parent$selected_block)) {
+          return(NULL)
+        }
+        parent$scoutbar$trigger <- "links"
+        if (isFALSE(parent$append_block)) {
+          parent$append_block <- TRUE
+        }
+      }
+    )
+  },
+  condition = function(board, parent, target) {
+    target$type == "node"
+  },
+  id = "append_node"
+)
+
+create_stack_ctxm <- new_context_menu_entry(
+  name = "Create stack",
+  js = function(id) sprintf("
+    Shiny.setInputValue('%s', true, {priority: 'event'});
+    ",
+    id
+  ),
+  action = function(input, output, session, board, update, parent) {
+    observeEvent(
+      input$create_stack,
+      {
+        show_stack_actions(
+          board,
+          session
+        )
+      }
+    )
+  },
+  condition = function(board, parent, target) {
+    target$type == "canvas"
+  },
+  id = "create_stack"
+)
+
+remove_stack_ctxm <- new_context_menu_entry(
+  name = "Remove stack",
+  js = function(id) sprintf("
+    if (current.id === undefined) return;
+    Shiny.setInputValue('%s', current.id);
+    ",
+    id
+  ),
+  action = function(input, output, session, board, update, parent) {
+    observeEvent(
+      input$remove_stack,
+      unstack_nodes(parent, session)
+    )
+  },
+  condition = function(board, parent, target) {
+    target$type == "combo"
+  },
+  id = "remove_stack"
+)
+
+add_block_ctxm <- new_context_menu_entry(
+  name = "Add block",
+  js = function(id) sprintf("
+    Shiny.setInputValue('%s', true, {priority: 'event'});
+    ",
+    id
+  ),
+  condition = function(board, parent, target) {
+    target$type == "canvas"
+  },
+  id = "add_block"
+)
+
+add_to_dashboard_ctxm <- new_context_menu_entry(
+  name = "Add to dashboard",
+  js = function(id) sprintf("
+    Shiny.setInputValue('%s', true, {priority: 'event'});
+    ",
+    id
+  ),
+  action = function(input, output, session, board, update, parent) {
+    observeEvent(
+      input$add_to_dashboard,
+      {
+        req(parent$selected_block)
+        parent$in_grid[[parent$selected_block]] <- TRUE
+      }
+    )
+  },
+  condition = function(board, parent, target) {
+    target$type == "node" && (
+      !parent$selected_block %in% names(parent$in_grid) ||
+      !parent$in_grid[[parent$selected_block]]
+    )
+  },
+  id = "add_to_dashboard"
+)
+
+remove_from_dashboard_ctxm <- new_context_menu_entry(
+  name = "Remove from dashboard",
+  js = function(id) sprintf("
+    Shiny.setInputValue('%s', true, {priority: 'event'});
+    ",
+    id
+  ),
+  action = function(input, output, session, board, update, parent) {
+    observeEvent(
+      input$remove_from_dashboard,
+      {
+        req(parent$selected_block)
+        parent$in_grid[[parent$selected_block]] <- FALSE
+      }
+    )
+  },
+  condition = function(board, parent, target) {
+    target$type == "node" &&
+      parent$selected_block %in% names(parent$in_grid) &&
+      parent$in_grid[[parent$selected_block]]
+  },
+  id = "remove_from_dashboard"
 )
