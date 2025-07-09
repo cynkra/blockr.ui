@@ -159,7 +159,7 @@ define_conlabel.llm_block <- function(x, target, rv) {
 #' @return A G6 network visualization object that can be further customized or directly
 #'   rendered in R Markdown, Shiny, or other R environments.
 #' @keywords internal
-initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
+initialize_g6 <- function(nodes = NULL, edges = NULL, ns, path) {
   g6(
     nodes = nodes,
     edges = edges
@@ -167,7 +167,7 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
     default_g6_options() |>
     g6_layout() |>
     default_g6_behaviors(ns = ns) |>
-    default_g6_plugins(ns = ns)
+    default_g6_plugins(ns = ns, path = path)
 }
 
 #' Default g6 network options
@@ -271,7 +271,7 @@ default_g6_behaviors <- function(graph, ..., ns) {
 
 #' @rdname default-g6
 #' @keywords internal
-default_g6_plugins <- function(graph, ..., ns) {
+default_g6_plugins <- function(graph, ..., ns, path) {
   if (!inherits(graph, "g6")) {
     stop("default_g6_options must be called on a g6 instance")
   }
@@ -347,28 +347,29 @@ default_g6_plugins <- function(graph, ..., ns) {
         ),
         # nolint end
         getItems = JS(
-          "(e) => {
-          if (e.targetType === 'node') {
-            return [
-              { name: 'Create edge', value: 'create_edge' },
-              { name: 'Append node', value: 'append_node' },
-              { name: 'Remove node', value: 'remove_node' }
-            ];
-          } else if (e.targetType === 'edge') {
-            return [
-              { name: 'Remove edge', value: 'remove_edge' }
-            ];
-          } else if (e.targetType === 'canvas') {
-            return [
-              { name: 'Create stack', value: 'create_stack' },
-              { name: 'New block', value: 'add_block' }
-            ];
-          } else if (e.targetType === 'combo') {
-            return [
-              { name: 'Remove stack', value: 'remove_stack' }
-            ];
-          }
-        }"
+          paste0(
+            "async (e) => {\n",
+            "  console.log(e);\n",
+            "  const response = await fetch(\n",
+            "    '/", path, "',\n",
+            "    {\n",
+            "      headers: {\n",
+            "        'Accept': 'application/json',\n",
+            "        'Content-Type': 'application/json'\n",
+            "      }\n",
+            "      body: JSON.stringify(\n",
+            "        {\n",
+            "          id: e.target.id,\n",
+            "          type: e.target.type\n",
+            "        }\n",
+            "      )\n",
+            "    }\n",
+            "  );\n",
+            "  const items = await response.json();\n",
+            "  console.log(items);\n",
+            "  return items;\n",
+            "}"
+          )
         )
       ),
       g6R::toolbar(
