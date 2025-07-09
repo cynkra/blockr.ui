@@ -6,19 +6,20 @@
 #' @param id Unique id.
 #' @rdname main
 #' @export
-main_ui <- function(id, board) {
+main_ui <- function(id, board, plugins) {
   ns <- NS(id)
+
+  ui_plugins <- c(
+    "preserve_board",
+    "manage_stacks",
+    "generate_code",
+    "notify_user"
+  )
+
   board_ui(
     ns("board"),
     board,
-    plugins = dash_board_plugins(
-      c(
-        "preserve_board",
-        "manage_stacks",
-        "generate_code",
-        "notify_user"
-      )
-    )
+    plugins = plugins[ui_plugins]
   )
 }
 
@@ -82,11 +83,7 @@ create_app_state.dock_board <- function(board) {
 #'
 #' @rdname main
 #' @export
-main_server <- function(id, board, modules = new_dashboard_module()) {
-
-  if (is_board_module(modules)) {
-    modules <- list(modules)
-  }
+main_server <- function(id, board, plugins, modules) {
 
   stopifnot(is.list(modules), all(lgl_ply(modules, is_board_module)))
 
@@ -110,16 +107,7 @@ main_server <- function(id, board, modules = new_dashboard_module()) {
       board_server(
         "board",
         board,
-        plugins = dash_board_plugins(
-          c(
-            "preserve_board",
-            "manage_blocks",
-            "manage_links",
-            "manage_stacks",
-            "generate_code",
-            "notify_user"
-          )
-        ),
+        plugins = plugins,
         callbacks = c(
           lapply(modules, board_module_server),
           list(
@@ -127,7 +115,7 @@ main_server <- function(id, board, modules = new_dashboard_module()) {
             # This allows to restore each part in the correct order.
             on_board_restore = board_restore,
             manage_scoutbar = manage_scoutbar,
-            layout = build_layout(modules)
+            layout = build_layout(modules, plugins)
           )
         ),
         parent = app_state

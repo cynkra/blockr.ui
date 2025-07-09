@@ -8,7 +8,7 @@
 \usage{
 board_restore(board, update, session, parent, ...)
 
-build_layout(modules)
+build_layout(modules, plugins)
 
 manage_scoutbar(board, update, session, parent, ...)
 }

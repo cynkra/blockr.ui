@@ -159,7 +159,7 @@ define_conlabel.llm_block <- function(x, target, rv) {
 #' @return A G6 network visualization object that can be further customized or directly
 #'   rendered in R Markdown, Shiny, or other R environments.
 #' @keywords internal
-initialize_g6 <- function(nodes = NULL, edges = NULL, ns, path) {
+initialize_g6 <- function(nodes = NULL, edges = NULL, ns, path, context_menu) {
   g6(
     nodes = nodes,
     edges = edges
@@ -167,7 +167,7 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns, path) {
     default_g6_options() |>
     g6_layout() |>
     default_g6_behaviors(ns = ns) |>
-    default_g6_plugins(ns = ns, path = path)
+    default_g6_plugins(ns = ns, path = path, context_menu = context_menu)
 }
 
 #' Default g6 network options
@@ -271,7 +271,7 @@ default_g6_behaviors <- function(graph, ..., ns) {
 
 #' @rdname default-g6
 #' @keywords internal
-default_g6_plugins <- function(graph, ..., ns, path) {
+default_g6_plugins <- function(graph, ..., ns, path, context_menu) {
   if (!inherits(graph, "g6")) {
     stop("default_g6_options must be called on a g6 instance")
   }
@@ -296,64 +296,17 @@ default_g6_plugins <- function(graph, ..., ns, path) {
         ),
         # nolint start
         onClick = JS(
-          sprintf(
-            "(value, target, current) => {
-            const graphId = `${target.closest('.g6').id}`;
-            const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
-            if ((value !== 'create_stack' && value !== 'add_block') && current.id === undefined) return;
-            if (value === 'create_edge') {
-              graph.updateBehavior({
-                key: 'create-edge', // Specify the behavior to update
-                enable: true,
-              });
-              // Select node
-              graph.setElementState(current.id, 'selected');
-              // Disable drag node as it is incompatible with edge creation
-              graph.updateBehavior({ key: 'drag-element', enable: false });
-              graph.updateBehavior({ key: 'drag-element-force', enable: false });
-            } else if (value === 'remove_node') {
-              // Send message to R so we can modify the
-              // graph from R and not from JS
-              Shiny.setInputValue('%s', current.id)
-            } else if (value === 'remove_edge') {
-              // Needed to destroy the link since edge id can't be edited
-              // so the link ID is stored in the data attributes.
-              Shiny.setInputValue('%s', current.id);
-              graph.removeEdgeData([current.id]);
-              graph.draw();
-            } else if (value === 'append_node') {
-              Shiny.setInputValue('%s', true, {priority: 'event'})
-            } else if (value === 'create_stack') {
-              Shiny.setInputValue('%s', true, {priority: 'event'})
-            } else if (value === 'remove_stack') {
-              Shiny.setInputValue('%s', current.id)
-            } else if (value === 'add_block') {
-              Shiny.setInputValue('%s', true, {priority: 'event'})
-            } else if (value === 'add_to_dashboard') {
-              Shiny.setInputValue('%s', true, {priority: 'event'})
-            } else if (value === 'remove_from_dashboard') {
-              Shiny.setInputValue('%s', true, {priority: 'event'})
-            }
-          }",
-            ns("removed_node"),
-            ns("removed_edge"),
-            ns("append_node"),
-            ns("create_stack"),
-            ns("remove_stack"),
-            ns("add_block"),
-            ns("add_to_dashboard"),
-            ns("remove_from_dashboard")
-          )
+          context_menu_entry_js(context_menu, ns)
         ),
         # nolint end
         getItems = JS(
           paste0(
             "async (e) => {\n",
-            "  console.log(e);\n",
+            "  console.log(e.target);\n",
             "  const response = await fetch(\n",
             "    '", path, "',\n",
             "    {\n",
-            "      method: 'QUERY',",
+            "      method: 'POST',\n",
             "      headers: {\n",
             "        'Accept': 'application/json',\n",
             "        'Content-Type': 'application/json'\n",

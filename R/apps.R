@@ -62,18 +62,50 @@ validate_dashboard_type <- function(type = c("dock")) {
 }
 
 #' @export
-serve.dash_board <- function(x, id = "main", ...) {
+serve.dash_board <- function(x, id = "main", modules = new_dashboard_module(),
+                             ...) {
+
   Sys.setenv("blockr_dark_mode" = "light")
+
+  if (is_board_module(modules)) {
+    modules <- list(modules)
+  }
+
+  stopifnot(is.list(modules), all(lgl_ply(modules, is_board_module)))
+
+  ctx_menu_items <- unlst(
+    c(
+      list(
+        list(
+          create_edge_ctxm,
+          remove_node_ctxm
+        )
+      ),
+      lapply(modules, board_module_context_menu)
+    )
+  )
+
+  plugins <- plugins(
+    preserve_board(server = ser_deser_server, ui = ser_deser_ui),
+    manage_blocks(server = add_rm_block_server, ui = add_rm_block_ui),
+    manage_links(
+      server = gen_add_rm_link_server(ctx_menu_items),
+      ui = add_rm_link_ui
+    ),
+    manage_stacks(server = add_rm_stack_server, ui = add_rm_stack_ui),
+    generate_code(server = generate_code_server, ui = generate_code_ui),
+    notify_user()
+  )
 
   ui <- page_fillable(
     padding = 0,
     gap = 0,
     shinyjs::useShinyjs(),
-    add_busy_load_deps(main_ui(id, x))
+    add_busy_load_deps(main_ui(id, x, plugins))
   )
 
   server <- function(input, output, session) {
-    main_server(id, x)
+    main_server(id, x, plugins, modules)
   }
 
   shinyApp(add_blockr.ui_deps(ui), server)

@@ -271,7 +271,7 @@ board_restore <- function(board, update, session, parent, ...) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-build_layout <- function(modules) {
+build_layout <- function(modules, plugins) {
   function(board, update, session, parent, ...) {
     input <- session$input
     output <- session$output
@@ -313,7 +313,7 @@ build_layout <- function(modules) {
                 title = "Pipeline overview",
                 content = board_ui(
                   ns(NULL),
-                  dash_board_plugins("manage_links")
+                  plugins["manage_links"]
                 )
               )
             ),
