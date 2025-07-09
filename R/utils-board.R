@@ -232,11 +232,30 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
     board_options_ui = board_ui(id, board_options(x))
   )
 
+  # If there are blocks at start, we need to generate the UI
+  # There are then put in the offcanvas, waiting to be shown
+  # For now, I've omited the plugins[["edit_block"]] but that can
+  # be added later on.
+  blocks <- lapply(
+    board_block_ids(x),
+    \(blk_id) {
+      block_ui(
+        id = id,
+        x = x,
+        block = board_blocks(x)[blk_id]
+      )
+    }
+  )
+
   tagList(
     # Offcanvas is used has an hidden element to move block UI whenever
     # we remove and add panels in the dock. This avoids to have
     # to recreate the block UI each time (which causes other issues anyway)
-    off_canvas(id = paste0(id, "-offcanvas"), title = "Board"),
+    off_canvas(
+      id = paste0(id, "-offcanvas"),
+      title = "Board",
+      blocks
+    ),
     board_header(id, my_board_ui),
     dockViewOutput(
       paste0(id, "-layout"),
