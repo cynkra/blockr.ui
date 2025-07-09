@@ -302,7 +302,6 @@ default_g6_plugins <- function(graph, ..., ns, path, context_menu) {
         getItems = JS(
           paste0(
             "async (e) => {\n",
-            "  console.log(e.target);\n",
             "  const response = await fetch(\n",
             "    '", path, "',\n",
             "    {\n",
@@ -320,7 +319,6 @@ default_g6_plugins <- function(graph, ..., ns, path, context_menu) {
             "    }\n",
             "  );\n",
             "  const items = await response.json();\n",
-            "  console.log(items);\n",
             "  return items;\n",
             "}"
           )
