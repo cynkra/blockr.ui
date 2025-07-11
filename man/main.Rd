@@ -7,18 +7,20 @@
 \alias{main_server}
 \title{Main ui for blockr2}
 \usage{
-main_ui(id, board)
+main_ui(id, board, plugins)
 
 create_app_state(board)
 
 \method{create_app_state}{dock_board}(board)
 
-main_server(id, board)
+main_server(id, board, plugins, modules)
 }
 \arguments{
 \item{id}{Unique id.}
 
 \item{board}{Board object.}
+
+\item{modules}{Further modules to pass}
 }
 \description{
 The board is composed of 2 views pointing to the network module

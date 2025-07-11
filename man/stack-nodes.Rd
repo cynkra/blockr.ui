@@ -5,22 +5,22 @@
 \alias{unstack_nodes}
 \title{Dynamically group nodes}
 \usage{
-stack_nodes(stack_id = NULL, nodes = NULL, vals, rv, parent, session)
+stack_nodes(stack_id = NULL, nodes = NULL, rv, parent, session)
 
-unstack_nodes(vals, parent, session)
+unstack_nodes(parent, session)
 }
 \arguments{
 \item{stack_id}{Stack id to attach nodes to.}
 
 \item{nodes}{Vector of node ids to stack.}
 
-\item{vals}{Local scope (links module) reactive values.}
-
 \item{rv}{Board reactive values.}
 
 \item{parent}{Global scope (entire app) reactive values.}
 
 \item{session}{Shiny session object.}
+
+\item{vals}{Local scope (links module) reactive values.}
 }
 \description{
 Given a set of selected nodes, add them to a unique group
