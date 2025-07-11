@@ -145,7 +145,7 @@ show_block_panel <- function(id, parent, session) {
         direction = if (length(get_panels_ids("layout")) == 2) {
           "below"
         } else {
-          "right"
+          "within"
         }
       ),
       remove = list(enable = TRUE, mode = "manual")
