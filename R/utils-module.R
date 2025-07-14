@@ -1,5 +1,11 @@
-new_board_module <- function(ui, server, id, title, context_menu = list(),
-                             class = character()) {
+new_board_module <- function(
+  ui,
+  server,
+  id,
+  title,
+  context_menu = list(),
+  position = list(referencePanel = "dag", direction = "within"),
+  class = character()) {
 
   if (is_context_menu_entry(context_menu)) {
     context_menu <- list(context_menu)
@@ -15,6 +21,7 @@ new_board_module <- function(ui, server, id, title, context_menu = list(),
     list(server = server, ui = ui, context_menu = context_menu),
     id = id,
     title = title,
+    position = position,
     class = c(class, "board_module")
   )
 }
@@ -46,6 +53,11 @@ board_module_title <- function(x) {
 board_module_context_menu <- function(x) {
   stopifnot(is_board_module(x))
   x[["context_menu"]]
+}
+
+board_module_position <- function(x) {
+  stopifnot(is_board_module(x))
+  attr(x, "position")
 }
 
 new_dashboard_module <- function(id = "dashboard", title = "Dashboard") {
