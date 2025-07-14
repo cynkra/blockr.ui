@@ -133,7 +133,7 @@ context_menu_entry_id <- function(x) attr(x, "id")
 context_menu_entry_name <- function(x) attr(x, "name")
 
 context_menu_entry_condition <- function(x, ...) {
-  x[["condition"]](...)
+  isTRUE(try(x[["condition"]](...)))
 }
 
 context_menu_entry_action <- function(x, ...) {
@@ -387,10 +387,11 @@ add_to_dashboard_ctxm <- new_context_menu_entry(
     )
   },
   condition = function(board, parent, target) {
-    target$type == "node" && (
-      !parent$selected_block %in% names(parent$in_grid) ||
-      !parent$in_grid[[parent$selected_block]]
-    )
+    isTRUE(target$type == "node") &&
+      length(parent$selected_block) && (
+        !parent$selected_block %in% names(parent$in_grid) ||
+        !parent$in_grid[[parent$selected_block]]
+      )
   },
   id = "add_to_dashboard"
 )
@@ -412,7 +413,8 @@ remove_from_dashboard_ctxm <- new_context_menu_entry(
     )
   },
   condition = function(board, parent, target) {
-    target$type == "node" &&
+    isTRUE(target$type == "node") &&
+      length(parent$selected_block) &&
       parent$selected_block %in% names(parent$in_grid) &&
       parent$in_grid[[parent$selected_block]]
   },
