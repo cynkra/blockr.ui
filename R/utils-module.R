@@ -178,7 +178,11 @@ context_menu_entry_js <- function(x, ns = NULL) {
     ns_id <- ns(id)
   }
 
-  paste0("if (value === '", id, "') {\n", x[["js"]](ns_id), "\n}")
+  paste0(
+    "if (value === '", id, "') {\n(",
+    x[["js"]](ns_id),
+    ")(value, target, current)\n}"
+  )
 }
 
 build_context_menu <- function(x, ...) {
@@ -213,18 +217,20 @@ validate_context_menu_entries <- function(x) {
 create_edge_ctxm <- new_context_menu_entry(
   name = "Create edge",
   js = "
-    if (current.id === undefined) return;
-    const graphId = `${target.closest('.g6').id}`;
-    const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
-    graph.updateBehavior({
-      key: 'create-edge', // Specify the behavior to update
-      enable: true,
-    });
-    // Select node
-    graph.setElementState(current.id, 'selected');
-    // Disable drag node as it is incompatible with edge creation
-    graph.updateBehavior({ key: 'drag-element', enable: false });
-    graph.updateBehavior({ key: 'drag-element-force', enable: false });
+    (value, target, current) => {
+      if (current.id === undefined) return;
+      const graphId = `${target.closest('.g6').id}`;
+      const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
+      graph.updateBehavior({
+        key: 'create-edge', // Specify the behavior to update
+        enable: true,
+      });
+      // Select node
+      graph.setElementState(current.id, 'selected');
+      // Disable drag node as it is incompatible with edge creation
+      graph.updateBehavior({ key: 'drag-element', enable: false });
+      graph.updateBehavior({ key: 'drag-element-force', enable: false });
+    }
   ",
   condition = function(board, parent, target) {
     target$type == "node"
@@ -236,8 +242,10 @@ remove_node_ctxm <- new_context_menu_entry(
   name = "Remove node",
   js = function(id) {
     sprintf("
-      if (current.id === undefined) return;
-      Shiny.setInputValue('%s', current.id);
+      (value, target, current) => {
+        if (current.id === undefined) return;
+        Shiny.setInputValue('%s', current.id);
+      }
       ",
       id
     )
@@ -259,12 +267,14 @@ remove_node_ctxm <- new_context_menu_entry(
 remove_edge_ctxm <- new_context_menu_entry(
   name = "Remove edge",
   js = function(id) sprintf("
-    if (current.id === undefined) return;
-    Shiny.setInputValue('%s', current.id);
-    const graphId = `${target.closest('.g6').id}`;
-    const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
-    graph.removeEdgeData([current.id]);
-    graph.draw();
+    (value, target, current) => {
+      if (current.id === undefined) return;
+      Shiny.setInputValue('%s', current.id);
+      const graphId = `${target.closest('.g6').id}`;
+      const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
+      graph.removeEdgeData([current.id]);
+      graph.draw();
+    }
     ",
     id
   ),
@@ -289,7 +299,9 @@ remove_edge_ctxm <- new_context_menu_entry(
 append_node_ctxm <- new_context_menu_entry(
   name = "Append node",
   js = function(id) sprintf("
-    Shiny.setInputValue('%s', true, {priority: 'event'});
+    (value, target, current) => {
+      Shiny.setInputValue('%s', true, {priority: 'event'});
+    }
     ",
     id
   ),
@@ -316,7 +328,9 @@ append_node_ctxm <- new_context_menu_entry(
 create_stack_ctxm <- new_context_menu_entry(
   name = "Create stack",
   js = function(id) sprintf("
-    Shiny.setInputValue('%s', true, {priority: 'event'});
+    (value, target, current) => {
+      Shiny.setInputValue('%s', true, {priority: 'event'});
+    }
     ",
     id
   ),
@@ -340,8 +354,10 @@ create_stack_ctxm <- new_context_menu_entry(
 remove_stack_ctxm <- new_context_menu_entry(
   name = "Remove stack",
   js = function(id) sprintf("
-    if (current.id === undefined) return;
-    Shiny.setInputValue('%s', current.id);
+    (value, target, current) => {
+      if (current.id === undefined) return;
+      Shiny.setInputValue('%s', current.id);
+    }
     ",
     id
   ),
@@ -360,7 +376,9 @@ remove_stack_ctxm <- new_context_menu_entry(
 add_block_ctxm <- new_context_menu_entry(
   name = "Add block",
   js = function(id) sprintf("
-    Shiny.setInputValue('%s', true, {priority: 'event'});
+    (value, target, current) => {
+      Shiny.setInputValue('%s', true, {priority: 'event'});
+    }
     ",
     id
   ),
@@ -373,7 +391,9 @@ add_block_ctxm <- new_context_menu_entry(
 add_to_dashboard_ctxm <- new_context_menu_entry(
   name = "Add to dashboard",
   js = function(id) sprintf("
-    Shiny.setInputValue('%s', true, {priority: 'event'});
+    (value, target, current) => {
+      Shiny.setInputValue('%s', true, {priority: 'event'});
+    }
     ",
     id
   ),
@@ -399,7 +419,9 @@ add_to_dashboard_ctxm <- new_context_menu_entry(
 remove_from_dashboard_ctxm <- new_context_menu_entry(
   name = "Remove from dashboard",
   js = function(id) sprintf("
-    Shiny.setInputValue('%s', true, {priority: 'event'});
+    (value, target, current) => {
+      Shiny.setInputValue('%s', true, {priority: 'event'});
+    }
     ",
     id
   ),
