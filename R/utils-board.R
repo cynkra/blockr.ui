@@ -342,7 +342,7 @@ build_layout <- function(modules, plugins) {
               title = chr_ply(modules, board_module_title),
               content = lapply(modules, call_board_module_ui, ns(NULL),
                                board$board),
-              position = lapply(modules, board_module_position)
+              position = board_module_positions(modules)
             )
           ),
           # TBD (make theme function of board options)

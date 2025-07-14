@@ -1,11 +1,5 @@
-new_board_module <- function(
-  ui,
-  server,
-  id,
-  title,
-  context_menu = list(),
-  position = list(referencePanel = "dag", direction = "within"),
-  class = character()) {
+new_board_module <- function(ui, server, id, title, context_menu = list(),
+                             position = NULL, class = character()) {
 
   if (is_context_menu_entry(context_menu)) {
     context_menu <- list(context_menu)
@@ -58,6 +52,28 @@ board_module_context_menu <- function(x) {
 board_module_position <- function(x) {
   stopifnot(is_board_module(x))
   attr(x, "position")
+}
+
+board_module_positions <- function(x) {
+
+  res <- lapply(x, board_module_position)
+
+  nul <- lgl_ply(res, is.null)
+
+  if (nul[[1L]]) {
+    res[[1L]] <- list(referencePanel = "dag", direction = "right")
+  }
+
+  if (any(nul[-1L])) {
+    res[setdiff(which(nul), 1L)] <- rep(
+      list(
+        list(referencePanel = board_module_id(x[[1L]]), direction = "within")
+      ),
+      sum(nul[-1L])
+    )
+  }
+
+  res
 }
 
 new_dashboard_module <- function(id = "dashboard", title = "Dashboard") {
