@@ -10,17 +10,17 @@
 block_ui.dash_board <- function(id, x, block = NULL, ...) {
   block_card <- function(x, id, ns) {
     blk_id <- ns(paste0("block_", id))
-    blk_info <- get_block_registry(x)
+    blk_info <- get_block_metadata(x)
     card(
       id = ns(id),
       full_screen = TRUE,
       card_header(
         class = "d-flex justify-content-between",
         card_title(
-          blk_icon(attr(blk_info, "category")),
+          blk_icon(blk_info$category),
           sprintf(
             "Block: %s (id: %s)",
-            attr(blk_info, "name"),
+            blk_info$name,
             gsub("block_", "", id)
           )
         ),
@@ -30,7 +30,7 @@ block_ui.dash_board <- function(id, x, block = NULL, ...) {
             icon("lightbulb"),
             "How to use this block?",
           ),
-          p(attr(blk_info, "description"), ".")
+          p(blk_info$description, ".")
         )
       ),
       # subtitle
@@ -38,8 +38,8 @@ block_ui.dash_board <- function(id, x, block = NULL, ...) {
         class = "card-subtitle mb-2 text-body-secondary",
         sprintf(
           "Type: %s; Package: %s",
-          attr(blk_info, "category"),
-          attr(blk_info, "package")
+          blk_info$category,
+          blk_info$package
         )
       ),
       expr_ui(blk_id, x),
@@ -195,9 +195,36 @@ remove_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
 #'
 #' @param x Block object
 #' @keywords internal
-get_block_registry <- function(x) {
+get_block_metadata <- function(x) {
+
   stopifnot(is_block(x))
-  available_blocks()[[strsplit(attr(x, "ctor"), "new_")[[1]][2]]]
+
+  if (is_string(attr(x, "ctor"))) {
+
+    blk <- strsplit(attr(x, "ctor"), "new_")
+    blks <- available_blocks()
+
+    if (blk %in% names(blks)) {
+
+      info <- blks[[blk]]
+
+      res <- list(
+        category = attr(info, "category"),
+        name = attr(info, "name"),
+        description = attr(info, "description"),
+        package = attr(info, "package")
+      )
+
+      return(res)
+    }
+  }
+
+  list(
+    category = "Uncategorized",
+    name = block_name(x),
+    description = "No description available",
+    package = "local"
+  )
 }
 
 #' Get the state of a block
