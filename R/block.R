@@ -199,9 +199,11 @@ get_block_metadata <- function(x) {
 
   stopifnot(is_block(x))
 
-  if (is_string(attr(x, "ctor"))) {
+  ctor <- attr(x, "ctor")
 
-    blk <- strsplit(attr(x, "ctor"), "new_")
+  if (is_string(ctor)) {
+
+    blk <- sub("^new_", "", ctor)
     blks <- available_blocks()
 
     if (blk %in% names(blks)) {
