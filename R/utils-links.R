@@ -313,7 +313,7 @@ default_g6_plugins <- function(graph, ..., ns, path, context_menu) {
             "      body: JSON.stringify(\n",
             "        {\n",
             "          id: e.target.id,\n",
-            "          type: e.target.type\n",
+            "          type: e.targetType\n",
             "        }\n",
             "      )\n",
             "    }\n",
