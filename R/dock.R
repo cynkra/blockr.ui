@@ -33,8 +33,8 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
       req(parent$refreshed == "network")
     },
     {
+      # Restore reactive values
       restore_dashboard(board$board, board$blocks, parent, session)
-      # We don't even need to call restore_dock!
     }
   )
 
@@ -60,70 +60,47 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
   # the block result on demand
   observeEvent(
     {
-      req(
-        parent$selected_block,
-        length(parent$selected_block) == 1,
-        parent$in_grid[[parent$selected_block]]
-      )
-      board$blocks[[parent$selected_block]]$server$result()
+      req(parent$added_to_dashboard)
+      board$blocks[[parent$added_to_dashboard]]$server$result()
     },
     {
-      output[[sprintf(
-        "dock-%s-result",
-        parent$selected_block
-      )]] <- block_output(
-        board$blocks[[parent$selected_block]]$block,
-        board$blocks[[parent$selected_block]]$server$result(),
+      generate_dashboard_blk_output(
+        parent$added_to_dashboard,
+        board$blocks,
         session
       )
+    }
+  )
+
+  # Add panel to dashboard
+  observeEvent(
+    {
+      req(
+        parent$added_to_dashboard,
+        parent$in_grid[[parent$added_to_dashboard]]
+      )
+    },
+    {
+      add_blk_panel_to_dashboard(
+        parent$added_to_dashboard,
+        board$blocks,
+        session
+      )
+      parent$added_to_dashboard <- NULL
     }
   )
 
   # Toggle state for each selected block and update the state
   observeEvent(
     {
-      req(parent$selected_block, length(parent$selected_block) == 1)
-      parent$in_grid[[parent$selected_block]]
+      req(parent$removed_from_dashboard)
+      parent$in_grid[[parent$removed_from_dashboard]]
     },
     {
-      # Render a second output containing only
-      # the block result on demand
-      if (parent$in_grid[[parent$selected_block]]) {
-        if (
-          !(sprintf("block-%s", parent$selected_block) %in%
-            get_panels_ids("dock"))
-        ) {
-          dock_blk_ui <- block_ui(
-            session$ns(
-              sprintf(
-                "dock-%s",
-                parent$selected_block
-              )
-            ),
-            board$blocks[[parent$selected_block]]$block
-          )
-
-          add_panel(
-            "dock",
-            sprintf("block_%s", parent$selected_block),
-            panel = dockViewR::panel(
-              id = sprintf("block-%s", parent$selected_block),
-              title = sprintf("Block: %s", parent$selected_block),
-              content = dock_blk_ui
-            )
-          )
-        }
-      } else {
-        if (
-          sprintf("block-%s", parent$selected_block) %in% get_panels_ids("dock")
-        ) {
-          # Remove output from dock
-          remove_panel("dock", sprintf("block-%s", parent$selected_block))
-          output[[sprintf("dock-%s", parent$selected_block)]] <- NULL
-        }
-      }
-    },
-    ignoreInit = TRUE
+      # Remove output from dock
+      remove_blk_from_dashboard(parent$removed_from_dashboard, session)
+      parent$removed_from_dashboard <- NULL
+    }
   )
 
   output$dock <- renderDockView({
@@ -133,7 +110,6 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
       theme = "replit"
     )
   })
-  outputOptions(output, "dock", suspendWhenHidden = FALSE)
 
   # Handle zoom on grid element
   observeEvent(get_board_option_value("dashboard_zoom"), {

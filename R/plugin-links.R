@@ -68,9 +68,6 @@ gen_add_rm_link_server <- function(context_menu) {
 
         output$network <- render_g6({
           isolate({
-            # TBD allow for non empty initialisation
-            #parent$nodes
-            #parent$edges
             initialize_g6(
               ns = session$ns,
               path = ctx_path,
@@ -79,8 +76,15 @@ gen_add_rm_link_server <- function(context_menu) {
           })
         })
 
-        context_menu_entry_action(context_menu, input, output, session, board,
-                                  update, parent)
+        context_menu_entry_action(
+          context_menu,
+          input,
+          output,
+          session,
+          board,
+          update,
+          parent
+        )
 
         # Trigger show code
         observeEvent(input$show_code, {

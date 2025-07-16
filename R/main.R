@@ -71,7 +71,10 @@ create_app_state.dag_board <- function(board) {
     save_board = FALSE,
     backup_list = list(),
     # For code generation
-    display_code = FALSE
+    display_code = FALSE,
+    # Dashboard
+    removed_from_dashboard = NULL,
+    add_to_dashboard = NULL
   )
 }
 
@@ -84,7 +87,6 @@ create_app_state.dag_board <- function(board) {
 #' @rdname main
 #' @export
 main_server <- function(id, board, plugins, modules) {
-
   stopifnot(is.list(modules), all(lgl_ply(modules, is_board_module)))
 
   moduleServer(

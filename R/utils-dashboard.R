@@ -11,6 +11,50 @@ restore_dashboard <- function(board, blocks, parent, session) {
   UseMethod("restore_dashboard", board)
 }
 
+#' @keywords internal
+generate_dashboard_blk_output <- function(id, blocks, session) {
+  output <- session$output
+  output[[sprintf(
+    "dock-%s-result",
+    id
+  )]] <- block_output(
+    blocks[[id]]$block,
+    blocks[[id]]$server$result(),
+    session
+  )
+}
+
+#' @keywords internal
+add_blk_panel_to_dashboard <- function(id, blocks, session) {
+  ns <- session$ns
+  dock_blk_ui <- block_ui(
+    ns(
+      sprintf(
+        "dock-%s",
+        id
+      )
+    ),
+    blocks[[id]]$block
+  )
+
+  add_panel(
+    "dock",
+    sprintf("block_%s", id),
+    panel = dockViewR::panel(
+      id = sprintf("block-%s", id),
+      title = sprintf("Block: %s", id),
+      content = dock_blk_ui
+    )
+  )
+}
+
+#' @keywords internal
+remove_blk_from_dashboard <- function(id, session) {
+  output <- session$output
+  remove_panel("dock", sprintf("block-%s", id))
+  output[[sprintf("dock-%s-result", id)]] <- NULL
+}
+
 #' @export
 #' @rdname restore-dashboard
 restore_dashboard.dag_board <- function(board, blocks, parent, session) {
@@ -33,6 +77,9 @@ restore_dashboard.dag_board <- function(board, blocks, parent, session) {
 
   lapply(in_grid_ids, \(id) {
     parent$in_grid[[id]] <- TRUE
+    # Regenerate the output for the block as well as dock panel
+    generate_dashboard_blk_output(id, blocks, session)
+    add_blk_panel_to_dashboard(id, blocks, session)
   })
 
   lapply(ids[not_in_grid], \(id) {
