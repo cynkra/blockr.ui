@@ -3,17 +3,17 @@
 \name{dashboard_ui}
 \alias{dashboard_ui}
 \alias{dashboard_server}
-\alias{dashboard_ui.dock_board}
-\alias{dashboard_server.dock_board}
+\alias{dashboard_ui.dag_board}
+\alias{dashboard_server.dag_board}
 \title{Dashboard Ui generic}
 \usage{
 dashboard_ui(id, board, ...)
 
 dashboard_server(board, update, session, parent, ...)
 
-\method{dashboard_ui}{dock_board}(id, board, ...)
+\method{dashboard_ui}{dag_board}(id, board, ...)
 
-\method{dashboard_server}{dock_board}(board, update, session, parent, ...)
+\method{dashboard_server}{dag_board}(board, update, session, parent, ...)
 }
 \arguments{
 \item{id}{Module id.}

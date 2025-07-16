@@ -52,7 +52,7 @@ new_dag_board <- function(..., modules = new_dashboard_module()) {
         location = snapshot_location,
         auto = auto_snapshot
       )
-    )
+    ),
     modules = modules,
     class = "dag_board"
   )

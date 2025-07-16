@@ -2,18 +2,18 @@
 % Please edit documentation in R/utils-dashboard.R
 \name{restore_dashboard}
 \alias{restore_dashboard}
-\alias{restore_dashboard.dash_board}
+\alias{restore_dashboard.dag_board}
 \alias{find_blocks_ids}
-\alias{find_blocks_ids.dock_board}
+\alias{find_blocks_ids.dag_board}
 \title{Restore dashboard state from board state}
 \usage{
 restore_dashboard(board, blocks, parent, session)
 
-\method{restore_dashboard}{dash_board}(board, blocks, parent, session)
+\method{restore_dashboard}{dag_board}(board, blocks, parent, session)
 
 find_blocks_ids(board, parent, session)
 
-\method{find_blocks_ids}{dock_board}(board, parent, session)
+\method{find_blocks_ids}{dag_board}(board, parent, session)
 }
 \arguments{
 \item{board}{Board object.}
