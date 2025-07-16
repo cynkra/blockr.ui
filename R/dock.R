@@ -59,7 +59,11 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
   # the block result on demand
   observeEvent(
     {
-      req(parent$selected_block, parent$in_grid[[parent$selected_block]])
+      req(
+        parent$selected_block,
+        length(parent$selected_block) == 1,
+        parent$in_grid[[parent$selected_block]]
+      )
       board$blocks[[parent$selected_block]]$server$result()
     },
     {
@@ -77,7 +81,7 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
   # Toggle state for each selected block and update the state
   observeEvent(
     {
-      req(parent$selected_block)
+      req(parent$selected_block, length(parent$selected_block) == 1)
       parent$in_grid[[parent$selected_block]]
     },
     {

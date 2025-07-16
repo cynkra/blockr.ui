@@ -300,7 +300,7 @@ build_layout <- function(modules, plugins) {
     # TBD: re-insert block panel ui if it was closed
     observeEvent(
       {
-        req(parent$selected_block)
+        req(parent$selected_block, length(parent$selected_block) == 1)
       },
       {
         show_block_panel(parent$selected_block, parent, session)
@@ -341,8 +341,12 @@ build_layout <- function(modules, plugins) {
               panel,
               id = chr_ply(modules, board_module_id),
               title = chr_ply(modules, board_module_title),
-              content = lapply(modules, call_board_module_ui, ns(NULL),
-                               board$board),
+              content = lapply(
+                modules,
+                call_board_module_ui,
+                ns(NULL),
+                board$board
+              ),
               position = board_module_positions(modules)
             )
           ),
