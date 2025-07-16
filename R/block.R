@@ -7,7 +7,7 @@
 #'
 #' @export
 #' @rdname block_ui
-block_ui.dash_board <- function(id, x, block = NULL, ...) {
+block_ui.dag_board <- function(id, x, block = NULL, ...) {
   block_card <- function(x, id, ns) {
     blk_id <- ns(paste0("block_", id))
     blk_info <- get_block_metadata(x)
@@ -63,9 +63,10 @@ remove_block_panels <- function(id) {
   })
 }
 
+#' @param blocks Blocks to insert or remove.
 #' @rdname block_ui
 #' @export
-insert_block_ui.dash_board <- function(
+insert_block_ui.dag_board <- function(
   id,
   x,
   blocks = NULL,
@@ -145,7 +146,7 @@ show_block_panel <- function(id, parent, session) {
         direction = if (length(get_panels_ids("layout")) == 2) {
           "below"
         } else {
-          "right"
+          "within"
         }
       ),
       remove = list(enable = TRUE, mode = "manual")
@@ -187,7 +188,7 @@ hide_block_panel <- function(id, session) {
 
 #' @rdname block_ui
 #' @export
-remove_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
+remove_block_ui.dag_board <- function(id, x, blocks = NULL, ...) {
   NULL
 }
 

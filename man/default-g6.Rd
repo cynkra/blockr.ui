@@ -10,7 +10,7 @@ default_g6_options(graph, ...)
 
 default_g6_behaviors(graph, ..., ns)
 
-default_g6_plugins(graph, ..., ns)
+default_g6_plugins(graph, ..., ns, path, context_menu)
 }
 \arguments{
 \item{graph}{g6 network instance.}

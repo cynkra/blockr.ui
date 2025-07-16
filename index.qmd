@@ -47,7 +47,6 @@ library(blockr.dplyr)
 library(blockr.sdtm)
 library(blockr.io)
 
-Sys.setenv("DASHBOARD_TYPE" = "dock")
 run_demo_app()
 ```
 
@@ -88,8 +87,8 @@ There are few __options__ you can customize through setting up environment varia
 - `N_STACKS_COLORS`: how many colors to support in the stack color pickerInput. Default is 40.
 - `STACKS_COLOR_PALETTE`: the color palette type. Default is `spectral`. We use `hcl.colors` to setup
 the palette.
-- `DASHBOARD_TYPE`: Default is `dock` to leverage `{dockViewR}`. Other implementation may come later.
-  - `DOCK_THEME`: when `DASHBOARD_TYPE` is `dock` you can customize the dock skin. Choose among `c("light", "abyss", "dark", "vs", "dracula", "replit")`. Default is `replit`.
+- `SNAPSHOT_LOCATION`: The location where to save the snapshots of the blocks. Default is `tempdir()`. This is used to save the blocks in the browser's local storage.
+- `AUTO_SNAPSHOT`: Whether to automatically save the blocks in the browser's local storage. Default is `FALSE` (not stable at the moment).
 
 ## Development
 

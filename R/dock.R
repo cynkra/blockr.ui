@@ -2,7 +2,7 @@
 #'
 #' @rdname dashboard
 #' @export
-dashboard_ui.dock_board <- function(id, board, ...) {
+dashboard_ui.dag_board <- function(id, board, ...) {
   ns <- NS(id)
   div(
     id = ns("dashboard_zoom_target"),
@@ -15,17 +15,17 @@ dashboard_ui.dock_board <- function(id, board, ...) {
 #'
 #' @rdname dashboard
 #' @export
-dashboard_server.dock_board <- function(board, update, parent, ...) {
-  session <- get("session", parent.frame(1))
+dashboard_server.dag_board <- function(board, update, session, parent, ...) {
+  isolate(
+    {
+      parent$grid <- structure(list(), class = "dock")
+      parent$in_grid <- list()
+    }
+  )
+
   input <- session$input
   ns <- session$ns
   output <- session$output
-
-  # Local reactiveValues
-  vals <- reactiveValues(
-    grid = structure(list(), class = "dock"),
-    in_grid = list()
-  )
 
   # Restore dock from serialisation only when network is restored
   observeEvent(
@@ -33,14 +33,14 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       req(parent$refreshed == "network")
     },
     {
-      restore_dashboard(board$board, board$blocks, vals, parent, session)
+      restore_dashboard(board$board, board$blocks, parent, session)
       # We don't even need to call restore_dock!
     }
   )
 
   # Whenever a new block is created, we initialise its grid state
   observeEvent(parent$added_block, {
-    vals$in_grid[[block_uid(parent$added_block)]] <- FALSE
+    parent$in_grid[[block_uid(parent$added_block)]] <- FALSE
   })
 
   # Removed block(s) must not be referenced in the grid
@@ -48,7 +48,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
     lapply(parent$removed_block, \(removed) {
       # Signal to remove panel from dock.
       # Panel will be removed by manage_dashboard.
-      vals$in_grid[[removed]] <- NULL
+      parent$in_grid[[removed]] <- NULL
       if (paste0("block_", removed) %in% get_panels_ids("dock")) {
         remove_panel("dock", paste0("block_", removed))
       }
@@ -59,12 +59,12 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   # the block result on demand
   observeEvent(
     {
-      req(parent$selected_block, vals$in_grid[[parent$selected_block]])
+      req(parent$selected_block, parent$in_grid[[parent$selected_block]])
       board$blocks[[parent$selected_block]]$server$result()
     },
     {
       output[[sprintf(
-        "dock-%s",
+        "dock-%s-result",
         parent$selected_block
       )]] <- block_output(
         board$blocks[[parent$selected_block]]$block,
@@ -78,7 +78,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   observeEvent(
     {
       req(parent$selected_block)
-      vals$in_grid[[parent$selected_block]]
+      parent$in_grid[[parent$selected_block]]
     },
     {
       # Render a second output containing only
@@ -88,20 +88,23 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
           !(sprintf("block-%s", parent$selected_block) %in%
             get_panels_ids("dock"))
         ) {
+          dock_blk_ui <- block_ui(
+            session$ns(
+              sprintf(
+                "dock-%s",
+                parent$selected_block
+              )
+            ),
+            board$blocks[[parent$selected_block]]$block
+          )
+
           add_panel(
             "dock",
             sprintf("block_%s", parent$selected_block),
             panel = dockViewR::panel(
               id = sprintf("block-%s", parent$selected_block),
               title = sprintf("Block: %s", parent$selected_block),
-              content = DT::dataTableOutput(
-                session$ns(
-                  sprintf(
-                    "dock-%s",
-                    parent$selected_block
-                  )
-                )
-              )
+              content = dock_blk_ui
             )
           )
         }
@@ -121,23 +124,11 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
   output$dock <- renderDockView({
     dock_view(
       panels = list(), # TBD handle when we initalise from a non empty dock
-      # TBD: handle theme from global app theme
-      theme = if (nchar(Sys.getenv("DOCK_THEME")) > 0) {
-        Sys.getenv("DOCK_THEME")
-      } else {
-        "replit"
-      }
+      # TBD: handle theme from global app options
+      theme = "replit"
     )
   })
   outputOptions(output, "dock", suspendWhenHidden = FALSE)
-
-  # Update dock theme based on board options
-  observeEvent(get_board_option_value("dark_mode"), {
-    update_dock_view(
-      "dock",
-      list(theme = get_board_option_value("dark_mode"))
-    )
-  })
 
   # Handle zoom on grid element
   observeEvent(get_board_option_value("dashboard_zoom"), {
@@ -151,21 +142,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       input$dock_state
     },
     {
-      vals$grid <- structure(input$dock_state, class = "dock")
+      parent$grid <- structure(input$dock_state, class = "dock")
     }
   )
-
-  # Callback from links plugin
-  observeEvent(parent$in_grid, {
-    vals$in_grid <- parent$in_grid
-  })
-
-  # Maintain consistency between parent and local reactive values
-  observeEvent(vals$in_grid, {
-    parent$in_grid <- vals$in_grid
-  })
-
-  observeEvent(vals$grid, {
-    parent$grid <- vals$grid
-  })
 }

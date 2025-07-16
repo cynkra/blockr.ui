@@ -10,7 +10,7 @@
 #' @param ... Generic consistency.
 #' @export
 #' @rdname blockr_ser
-blockr_ser.dash_board <- function(
+blockr_ser.dag_board <- function(
   x,
   blocks = NULL,
   network = NULL,
@@ -64,7 +64,7 @@ blockr_ser.data.frame <- function(x, ...) {
 #' @rdname blockr_ser
 #' @param data Data to restore.
 #' @export
-blockr_deser.dash_board <- function(x, data, ...) {
+blockr_deser.dag_board <- function(x, data, ...) {
   list(
     board = new_board(
       blocks = blockr_deser(data[["blocks"]]),

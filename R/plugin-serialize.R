@@ -64,7 +64,7 @@ ser_deser_server <- function(id, board, ...) {
         observeEvent(
           c(vals$current_backup, dot_args$parent$backup_list),
           {
-            toggle_undo_redo(vals, parent)
+            toggle_undo_redo(vals, dot_args$parent)
           },
           ignoreNULL = TRUE
         )

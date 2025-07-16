@@ -1,11 +1,3 @@
-chr_ply <- function(x, fun, ..., length = 1L, use_names = FALSE) {
-  vapply(x, fun, character(length), ..., USE.NAMES = use_names)
-}
-
-lgl_ply <- function(x, fun, ..., length = 1L, use_names = FALSE) {
-  vapply(x, fun, logical(length), ..., USE.NAMES = use_names)
-}
-
 dropNulls <- function(x) {
   x[!lgl_ply(x, is.null)]
 }
@@ -24,26 +16,12 @@ firstup <- function(x) {
   x
 }
 
-map <- function(f, ..., use_names = FALSE) Map(f, ..., USE.NAMES = use_names)
-
 v_rule <- function() {
   shiny::tags$div(class = "vr")
 }
 
-lst_xtr <- function(x, ...) {
-  for (i in c(...)) {
-    x <- lapply(x, `[[`, i)
-  }
-  x
-}
-
 lst_xtr_reval <- function(x, ...) {
   lapply(lst_xtr(x, ...), reval)
-}
-
-set_names <- function(object = nm, nm) {
-  names(object) <- nm
-  object
 }
 
 reval <- function(x) {
@@ -58,21 +36,6 @@ pkg_file <- function(...) {
 
 is_pkg_avail <- function(pkg) {
   requireNamespace(pkg, quietly = TRUE)
-}
-
-coal <- function(..., fail_null = TRUE) {
-  for (i in seq_len(...length())) {
-    x <- ...elt(i)
-    if (is.null(x)) {
-      next
-    } else {
-      return(x)
-    }
-  }
-  if (isTRUE(fail_null)) {
-    stop("No non-NULL value encountered")
-  }
-  NULL
 }
 
 #' Useful for shinytest2

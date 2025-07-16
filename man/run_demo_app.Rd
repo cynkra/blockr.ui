@@ -2,15 +2,17 @@
 % Please edit documentation in R/apps.R
 \name{run_demo_app}
 \alias{run_demo_app}
-\alias{new_dash_board}
+\alias{new_dag_board}
 \title{Demo app}
 \usage{
 run_demo_app(...)
 
-new_dash_board(...)
+new_dag_board(..., modules = new_dashboard_module())
 }
 \arguments{
 \item{...}{Forwarded to \link[blockr.core]{new_board}.}
+
+\item{modules}{Further modules to pass.}
 }
 \description{
 Run demo app
