@@ -12,6 +12,8 @@ add_rm_link_ui(id, board)
 \arguments{
 \item{context_menu}{Context menu.}
 
+\item{id}{Module ID.}
+
 \item{board}{The initial \code{board} object}
 }
 \value{

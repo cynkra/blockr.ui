@@ -20,6 +20,8 @@
 \item{block}{Block to generate the UI for.}
 
 \item{...}{Generic consistency.}
+
+\item{blocks}{Blocks to insert or remove.}
 }
 \description{
 Block custom UI

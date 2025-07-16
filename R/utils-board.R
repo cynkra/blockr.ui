@@ -67,7 +67,7 @@ board_ui.board_options <- function(id, x, ...) {
   ns <- NS(id)
 
   bslib::popover(
-    bsicons::bs_icon("gear", size = "1.5em"),
+    icon("gear"),
     accordion(
       id = ns("board_options"),
       multiple = TRUE,
@@ -138,6 +138,7 @@ board_ui.board_options <- function(id, x, ...) {
 }
 
 #' @rdname board_ui
+#' @param session Shiny session object.
 #' @export
 update_ui.board_options <- function(x, session, ...) {
   updateTextInput(

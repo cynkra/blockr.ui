@@ -20,7 +20,9 @@ main_server(id, board, plugins, modules)
 
 \item{board}{Board object.}
 
-\item{modules}{Further modules to pass}
+\item{plugins}{List of plugins to use. See \link[blockr.core]{plugins}.}
+
+\item{modules}{Further modules to pass.}
 }
 \description{
 The board is composed of 2 views pointing to the network module

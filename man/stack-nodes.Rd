@@ -19,8 +19,6 @@ unstack_nodes(parent, session)
 \item{parent}{Global scope (entire app) reactive values.}
 
 \item{session}{Shiny session object.}
-
-\item{vals}{Local scope (links module) reactive values.}
 }
 \description{
 Given a set of selected nodes, add them to a unique group

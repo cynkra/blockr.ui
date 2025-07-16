@@ -19,6 +19,8 @@
 
 \item{...}{Generic consistency.}
 
+\item{session}{Shiny session object.}
+
 \item{plugins}{UI for board plugins.}
 }
 \description{

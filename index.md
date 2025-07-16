@@ -40,7 +40,6 @@ library(blockr.dplyr)
 library(blockr.sdtm)
 library(blockr.io)
 
-Sys.setenv("DASHBOARD_TYPE" = "dock")
 run_demo_app()
 ```
 
@@ -49,7 +48,7 @@ run_demo_app()
 > The demo below runs with shinylive. Not all feature may work as
 > expected due to compatibility issues with webR.
 
-<iframe class="border border-5 rounded shadow-lg" src="https://shinylive.io/r/app/#h=0&amp;code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAdzgCMAnRRASwgGdSoAbbgCgA6YOtyIEA1gwwBXFkNwACBnFRF2CgLwKhAC1KlU7RAHpjBAJ4RJUDAHMWpHdLoYWRYyLGSMtOlmNCAJQCEL5MrBxcvILCohJSACao3OYM8koqapraYHoGRqYWVgw29o7Oru6e8T70-kEhYcxsnDz8QtXe7AmkMOnKqupauvqGJmaW1nYOTi5uHnHevvVgwaH04S1R7bFeUm79mUM5eWOFkyXT5XNVi1LLAash3CyMUAzmfJ1Ssmsvbx8vncMEkUgw-q8SoDvhhur0IQDPjC3GsQgBlczsWFwcgQABuMQAIgBBNEACQAQgB5YlYQkAfQAKgBNAAKAFEhNkhAkvA0IAxpBB6Qk4DAiPS0Kg+IEwABfAC6QA" style="zoom: 0.75;" width="100%" height="1100px"></iframe>
+<iframe class="border border-5 rounded shadow-lg" src="https://shinylive.io/r/app/#h=0&amp;code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAdzgCMAnRRASwgGdSoAbbgCgA6YOtyIEA1gwwBXFkNwACBnFRF2CgLwKhAC1KlU7RAHpjBAJ4RJUDAHMWpHdLoYWRYyLGSMtOlmNCAJQCEL5MrBxcvILCohJSACao3OYM8koqapraYHoGRqYWVgw29o7Oru6e8T70-kEhYcxsnDz8QtXe7AmkMOnKqupauvqGJmaW1nYOTi5uHnHevvVgwaH04S1R7bFeUm79mUM5eWOFkyXT5XNVi1LLAash3CyMUAzmfJ1Ssmsvbx8vncMEkUgw-q8SoDvhhur0IQDPjC3GsQgxpBAAPoJOAwIiYtCoPiBMAAXwAukA" style="zoom: 0.75;" width="100%" height="1100px"></iframe>
 
 ## App options
 
@@ -60,12 +59,12 @@ environment variables:
     pickerInput. Default is 40.
 -   `STACKS_COLOR_PALETTE`: the color palette type. Default is
     `spectral`. We use `hcl.colors` to setup the palette.
--   `DASHBOARD_TYPE`: Default is `dock` to leverage `{dockViewR}`. Other
-    implementation may come later.
-    -   `DOCK_THEME`: when `DASHBOARD_TYPE` is `dock` you can customize
-        the dock skin. Choose among
-        `c("light", "abyss", "dark", "vs", "dracula", "replit")`.
-        Default is `replit`.
+-   `SNAPSHOT_LOCATION`: The location where to save the snapshots of the
+    blocks. Default is `tempdir()`. This is used to save the blocks in
+    the browser’s local storage.
+-   `AUTO_SNAPSHOT`: Whether to automatically save the blocks in the
+    browser’s local storage. Default is `FALSE` (not stable at the
+    moment).
 
 ## Development
 

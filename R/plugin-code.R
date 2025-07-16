@@ -7,8 +7,6 @@
 #' by offering a download button, by providing this functionality as a
 #' `generate_code` module.
 #'
-#' @param server,ui Server/UI for the plugin module
-#'
 #' @return A plugin container inheriting from `generate_code` is returned by
 #' `generate_code()`, while the UI component (e.g. `generate_code_ui()`) is
 #' expected to return shiny UI (i.e. [shiny::tagList()]) and the server

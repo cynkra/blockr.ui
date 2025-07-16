@@ -63,6 +63,7 @@ remove_block_panels <- function(id) {
   })
 }
 
+#' @param blocks Blocks to insert or remove.
 #' @rdname block_ui
 #' @export
 insert_block_ui.dag_board <- function(

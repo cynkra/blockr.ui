@@ -11,6 +11,8 @@ new_dag_board(..., modules = new_dashboard_module())
 }
 \arguments{
 \item{...}{Forwarded to \link[blockr.core]{new_board}.}
+
+\item{modules}{Further modules to pass.}
 }
 \description{
 Run demo app

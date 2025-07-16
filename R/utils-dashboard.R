@@ -1,19 +1,3 @@
-#' Init dashboard state generic
-#'
-#' Whenever a new block is created or some blocks
-#' are removed, we update the mapping to know which
-#' block should be in the dashboard, so that \link{manage_dashboard}
-#' knows what to do.
-#'
-#' @param board Board object.
-#' @param blocks Board blocks.
-#' @param vals Local reactive values.
-#' @rdname init-dashboard-state
-#' @export
-init_dashboard_state <- function(board, blocks, vals) {
-  UseMethod("init_dashboard_state", board)
-}
-
 #' Restore dashboard state from board state
 #'
 #' @param board Board object.

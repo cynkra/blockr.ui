@@ -245,6 +245,7 @@ gen_add_rm_link_server <- function(context_menu) {
   }
 }
 
+#' @param id Module ID.
 #' @param board The initial `board` object
 #' @rdname add_rm_link
 #' @export

@@ -946,7 +946,6 @@ show_stack_actions <- function(rv, session) {
 #'
 #' @param stack_id Stack id to attach nodes to.
 #' @param nodes Vector of node ids to stack.
-#' @param vals Local scope (links module) reactive values.
 #' @param rv Board reactive values.
 #' @param parent Global scope (entire app) reactive values.
 #' @param session Shiny session object.

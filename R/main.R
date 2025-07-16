@@ -4,6 +4,8 @@
 #' or the grid/dashboard module.
 #'
 #' @param id Unique id.
+#' @param board Board object.
+#' @param plugins List of plugins to use. See \link[blockr.core]{plugins}.
 #' @rdname main
 #' @export
 main_ui <- function(id, board, plugins) {
@@ -39,9 +41,7 @@ create_app_state <- function(board) {
 #' @export
 create_app_state.dag_board <- function(board) {
   reactiveValues(
-    mode = "network",
     cold_start = TRUE,
-    preview = FALSE,
     refreshed = NULL,
     network = structure(list(), class = "network"),
     # Blocks/nodes
@@ -79,8 +79,7 @@ create_app_state.dag_board <- function(board) {
 #'
 #' Server module for board.
 #'
-#' @param board Board object.
-#' @param modules Further modules to pass
+#' @param modules Further modules to pass.
 #'
 #' @rdname main
 #' @export

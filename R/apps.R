@@ -3,7 +3,9 @@
 #' Run demo app
 #'
 #' @param ... Forwarded to \link[blockr.core]{new_board}.
+#' @param modules Further modules to pass.
 #'
+#' @rdname run_demo_app
 #' @export
 run_demo_app <- function(...) {
   serve(

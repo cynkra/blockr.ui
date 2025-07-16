@@ -64,7 +64,7 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
     },
     {
       output[[sprintf(
-        "dock-%s",
+        "dock-%s-result",
         parent$selected_block
       )]] <- block_output(
         board$blocks[[parent$selected_block]]$block,
@@ -88,20 +88,23 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
           !(sprintf("block-%s", parent$selected_block) %in%
             get_panels_ids("dock"))
         ) {
+          dock_blk_ui <- block_ui(
+            session$ns(
+              sprintf(
+                "dock-%s",
+                parent$selected_block
+              )
+            ),
+            board$blocks[[parent$selected_block]]$block
+          )
+
           add_panel(
             "dock",
             sprintf("block_%s", parent$selected_block),
             panel = dockViewR::panel(
               id = sprintf("block-%s", parent$selected_block),
               title = sprintf("Block: %s", parent$selected_block),
-              content = DT::dataTableOutput(
-                session$ns(
-                  sprintf(
-                    "dock-%s",
-                    parent$selected_block
-                  )
-                )
-              )
+              content = dock_blk_ui
             )
           )
         }
@@ -121,12 +124,8 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
   output$dock <- renderDockView({
     dock_view(
       panels = list(), # TBD handle when we initalise from a non empty dock
-      # TBD: handle theme from global app theme
-      theme = if (nchar(Sys.getenv("DOCK_THEME")) > 0) {
-        Sys.getenv("DOCK_THEME")
-      } else {
-        "replit"
-      }
+      # TBD: handle theme from global app options
+      theme = "replit"
     )
   })
   outputOptions(output, "dock", suspendWhenHidden = FALSE)
