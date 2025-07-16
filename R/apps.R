@@ -46,7 +46,6 @@ new_dag_board <- function(..., modules = new_dashboard_module()) {
     options = new_board_options(
       dark_mode = "light",
       stacks_colors = hcl.colors(n_stacks, palette = stacks_color_palette),
-      dashboard_type = dashboard_type,
       dashboard_zoom = 1,
       snapshot = list(
         location = snapshot_location,

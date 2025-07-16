@@ -392,6 +392,7 @@ add_to_dashboard_ctxm <- new_context_menu_entry(
     observeEvent(
       input$add_to_dashboard,
       {
+        parent$selected_block <- input$add_to_dashboard
         parent$in_grid[[input$add_to_dashboard]] <- TRUE
       }
     )
@@ -416,6 +417,7 @@ remove_from_dashboard_ctxm <- new_context_menu_entry(
     observeEvent(
       input$remove_from_dashboard,
       {
+        parent$selected_block <- input$add_to_dashboard
         parent$in_grid[[input$remove_from_dashboard]] <- FALSE
       }
     )
