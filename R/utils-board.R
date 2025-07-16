@@ -205,7 +205,7 @@ board_header <- function(id, board_ui) {
 #' @param ... Generic consistency.
 #' @rdname board_ui
 #' @export
-board_ui.dash_board <- function(id, x, plugins = list(), ...) {
+board_ui.dag_board <- function(id, x, plugins = list(), ...) {
   plugins <- as_plugins(plugins)
 
   toolbar_plugins <- c(

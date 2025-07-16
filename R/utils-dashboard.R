@@ -29,7 +29,7 @@ restore_dashboard <- function(board, blocks, parent, session) {
 
 #' @export
 #' @rdname restore-dashboard
-restore_dashboard.dash_board <- function(board, blocks, parent, session) {
+restore_dashboard.dag_board <- function(board, blocks, parent, session) {
   parent$in_grid <- NULL
   ids <- names(blocks)
 
@@ -73,7 +73,7 @@ find_blocks_ids <- function(
 #'
 #' @rdname restore-dashboard
 #' @export
-find_blocks_ids.dock_board <- function(
+find_blocks_ids.dag_board <- function(
   board,
   parent,
   session

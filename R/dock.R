@@ -2,7 +2,7 @@
 #'
 #' @rdname dashboard
 #' @export
-dashboard_ui.dock_board <- function(id, board, ...) {
+dashboard_ui.dag_board <- function(id, board, ...) {
   ns <- NS(id)
   div(
     id = ns("dashboard_zoom_target"),
@@ -15,7 +15,7 @@ dashboard_ui.dock_board <- function(id, board, ...) {
 #'
 #' @rdname dashboard
 #' @export
-dashboard_server.dock_board <- function(board, update, session, parent, ...) {
+dashboard_server.dag_board <- function(board, update, session, parent, ...) {
   isolate(
     {
       parent$grid <- structure(list(), class = "dock")

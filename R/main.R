@@ -37,7 +37,7 @@ create_app_state <- function(board) {
 #'
 #' @rdname main
 #' @export
-create_app_state.dock_board <- function(board) {
+create_app_state.dag_board <- function(board) {
   reactiveValues(
     mode = "network",
     cold_start = TRUE,
