@@ -43,14 +43,15 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
     parent$in_grid[[block_uid(parent$added_block)]] <- FALSE
   })
 
-  # Removed block(s) must not be referenced in the grid
+  # Removed block(s) must not be referenced in the grid and
+  # the panel must be removed from the dock.
   observeEvent(parent$removed_block, {
     lapply(parent$removed_block, \(removed) {
       # Signal to remove panel from dock.
       # Panel will be removed by manage_dashboard.
       parent$in_grid[[removed]] <- NULL
-      if (paste0("block_", removed) %in% get_panels_ids("dock")) {
-        remove_panel("dock", paste0("block_", removed))
+      if (paste0("block-", removed) %in% get_panels_ids("dock")) {
+        remove_panel("dock", paste0("block-", removed))
       }
     })
   })
