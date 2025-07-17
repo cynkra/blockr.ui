@@ -21,16 +21,29 @@ generate_dashboard_blk_output <- function(id, rv, session) {
 
   observeEvent(
     {
+      req(id %in% board_block_ids(rv$board))
       rv$msgs()[[id]]
       rv$blocks[[id]]$server$result()
     },
     {
       output[[out_name]] <- block_output(
         rv$blocks[[id]]$block,
-        rv$blocks[[id]]$server$result(),
+        {
+          # Provide user feedback in the dashboard
+          # to explain why an output is blank. shiny.emptystate
+          # could also be a more polished alternative ...
+          validate(
+            need(
+              rv$blocks[[id]]$server$result(),
+              "Not data available. Please update the pipeline."
+            )
+          )
+          rv$blocks[[id]]$server$result()
+        },
         session
       )
-    }
+    },
+    ignoreNULL = FALSE
   )
 }
 
