@@ -137,6 +137,11 @@ show_block_panel <- function(id, parent, session) {
       id = sprintf("block-%s", id),
       title = sprintf("Block: %s", id),
       content = tagList(),
+      # Don't remove if position is "within": by default,
+      # only the visible tab is mounted in the DOM,
+      # which means updating one block does not update
+      # the linked block UIs and causes many issues.
+      renderer = "always",
       position = list(
         referencePanel = if (length(get_panels_ids("layout")) == 2) {
           "dag"
@@ -197,18 +202,15 @@ remove_block_ui.dag_board <- function(id, x, blocks = NULL, ...) {
 #' @param x Block object
 #' @keywords internal
 get_block_metadata <- function(x) {
-
   stopifnot(is_block(x))
 
   ctor <- attr(x, "ctor")
 
   if (is_string(ctor)) {
-
     blk <- sub("^new_", "", ctor)
     blks <- available_blocks()
 
     if (blk %in% names(blks)) {
-
       info <- blks[[blk]]
 
       res <- list(
