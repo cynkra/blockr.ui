@@ -34,7 +34,7 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
     },
     {
       # Restore reactive values
-      restore_dashboard(board$board, board$blocks, parent, session)
+      restore_dashboard(board$board, board, parent, session)
     }
   )
 
@@ -56,23 +56,22 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
     })
   })
 
-  # Render a second output containing only
-  # the block result on demand
-  observeEvent(
-    {
-      req(parent$added_to_dashboard)
-      board$blocks[[parent$added_to_dashboard]]$server$result()
-    },
-    {
-      generate_dashboard_blk_output(
-        parent$added_to_dashboard,
-        board$blocks,
-        session
-      )
-    }
-  )
+  # Initialise outputs for any existing block in the grid
+  # TBD: this is not needed yet as we can't initialise a board
+  # with existing blocks in the grid. Uncomment the code
+  # below when we can do that.
+  #lapply(
+  #  isolate(parent$in_grid),
+  #  \(id) {
+  #    generate_dashboard_blk_output(
+  #      id,
+  #      board,
+  #      session
+  #    )
+  #  }
+  #)
 
-  # Add panel to dashboard
+  # Add panel to dashboard + handle secondary output
   observeEvent(
     {
       req(
@@ -83,7 +82,12 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
     {
       add_blk_panel_to_dashboard(
         parent$added_to_dashboard,
-        board$blocks,
+        board,
+        session
+      )
+      generate_dashboard_blk_output(
+        parent$added_to_dashboard,
+        board,
         session
       )
       parent$added_to_dashboard <- NULL

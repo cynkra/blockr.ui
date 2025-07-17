@@ -1,31 +1,41 @@
 #' Restore dashboard state from board state
 #'
 #' @param board Board object.
-#' @param blocks Board block objects.
+#' @param rv Board reactive values object. Read-only
 #' @param parent Parent reactive values.
 #' @param session Shiny session object.
 #' Contains blocks coordinates, dimensions, ...
 #' @export
 #' @rdname restore-dashboard
-restore_dashboard <- function(board, blocks, parent, session) {
+restore_dashboard <- function(board, rv, parent, session) {
   UseMethod("restore_dashboard", board)
 }
 
 #' @keywords internal
-generate_dashboard_blk_output <- function(id, blocks, session) {
+generate_dashboard_blk_output <- function(id, rv, session) {
   output <- session$output
-  output[[sprintf(
+  out_name <- sprintf(
     "dock-%s-result",
     id
-  )]] <- block_output(
-    blocks[[id]]$block,
-    blocks[[id]]$server$result(),
-    session
+  )
+
+  observeEvent(
+    {
+      rv$msgs()[[id]]
+      rv$blocks[[id]]$server$result()
+    },
+    {
+      output[[out_name]] <- block_output(
+        rv$blocks[[id]]$block,
+        rv$blocks[[id]]$server$result(),
+        session
+      )
+    }
   )
 }
 
 #' @keywords internal
-add_blk_panel_to_dashboard <- function(id, blocks, session) {
+add_blk_panel_to_dashboard <- function(id, rv, session) {
   ns <- session$ns
   dock_blk_ui <- block_ui(
     ns(
@@ -34,7 +44,7 @@ add_blk_panel_to_dashboard <- function(id, blocks, session) {
         id
       )
     ),
-    blocks[[id]]$block
+    rv$blocks[[id]]$block
   )
 
   add_panel(
@@ -51,17 +61,17 @@ add_blk_panel_to_dashboard <- function(id, blocks, session) {
 #' @keywords internal
 remove_blk_from_dashboard <- function(id, session) {
   output <- session$output
+  out_name <- sprintf("dock-%s-result", id)
   remove_panel("dock", sprintf("block-%s", id))
-  output[[sprintf("dock-%s-result", id)]] <- NULL
+  output[[out_name]] <- NULL
 }
 
 #' @export
 #' @rdname restore-dashboard
-restore_dashboard.dag_board <- function(board, blocks, parent, session) {
+restore_dashboard.dag_board <- function(board, rv, parent, session) {
   parent$in_grid <- NULL
-  ids <- names(blocks)
-
-  in_grid_ids <- find_blocks_ids(board, parent, session)
+  ids <- names(rv$blocks)
+  in_grid_ids <- find_blocks_ids(rv$board, parent, session)
 
   # When the dock was empty, we still need to initialise the block state
   # and all values are false
@@ -78,8 +88,8 @@ restore_dashboard.dag_board <- function(board, blocks, parent, session) {
   lapply(in_grid_ids, \(id) {
     parent$in_grid[[id]] <- TRUE
     # Regenerate the output for the block as well as dock panel
-    generate_dashboard_blk_output(id, blocks, session)
-    add_blk_panel_to_dashboard(id, blocks, session)
+    generate_dashboard_blk_output(id, rv, session)
+    add_blk_panel_to_dashboard(id, rv, session)
   })
 
   lapply(ids[not_in_grid], \(id) {
