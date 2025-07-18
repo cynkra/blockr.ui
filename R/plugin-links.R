@@ -255,6 +255,6 @@ gen_add_rm_link_server <- function(context_menu) {
 #' @export
 add_rm_link_ui <- function(id, board) {
   tagList(
-    g6_output(NS(id, "network"), height = "800px")
+    g6_output(NS(id, "network"), height = "100%")
   )
 }
