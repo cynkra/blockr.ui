@@ -254,9 +254,9 @@ remove_node_ctxm <- new_context_menu_entry(
   },
   action = function(input, output, session, board, update, parent) {
     observeEvent(
-      input$remove_node,
+      input$removed_node,
       {
-        parent$removed_block <- input$remove_node
+        parent$removed_block <- input$removed_node
       }
     )
   },
