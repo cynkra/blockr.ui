@@ -7,12 +7,14 @@
 \usage{
 run_demo_app(...)
 
-new_dag_board(..., modules = new_dashboard_module())
+new_dag_board(..., modules = new_dashboard_module(), class = character())
 }
 \arguments{
 \item{...}{Forwarded to \link[blockr.core]{new_board}.}
 
 \item{modules}{Further modules to pass.}
+
+\item{class}{Additional class(es).}
 }
 \description{
 Run demo app

@@ -3,7 +3,6 @@
 #' Run demo app
 #'
 #' @param ... Forwarded to \link[blockr.core]{new_board}.
-#' @param modules Further modules to pass.
 #'
 #' @rdname run_demo_app
 #' @export
@@ -14,9 +13,12 @@ run_demo_app <- function(...) {
   )
 }
 
+#' @param modules Further modules to pass.
+#' @param class Additional class(es).
 #' @rdname run_demo_app
 #' @export
-new_dag_board <- function(..., modules = new_dashboard_module()) {
+new_dag_board <- function(..., modules = new_dashboard_module(),
+                          class = character()) {
 
   if (is_board_module(modules)) {
     modules <- list(modules)
@@ -55,7 +57,7 @@ new_dag_board <- function(..., modules = new_dashboard_module()) {
       )
     ),
     modules = modules,
-    class = "dag_board"
+    class = c(class, "dag_board")
   )
 }
 
