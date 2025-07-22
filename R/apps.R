@@ -108,7 +108,8 @@ serve.dag_board <- function(x, id = "main", ...) {
     padding = 0,
     gap = 0,
     shinyjs::useShinyjs(),
-    add_busy_load_deps(main_ui(id, x, plugins))
+    add_busy_load_deps(main_ui(id, x, plugins)),
+    ...
   )
 
   server <- function(input, output, session) {
