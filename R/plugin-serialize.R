@@ -4,6 +4,7 @@
 #'
 #' @param id Namespace ID
 #' @param board Reactive values object
+#' @param parent App state
 #' @param ... Extra arguments passed from parent scope
 #'
 #' @return A \link[shiny]{reactiveVal} object that evaluates to `NULL` or a
@@ -11,7 +12,7 @@
 #'
 #' @rdname ser_deser
 #' @export
-ser_deser_server <- function(id, board, ...) {
+ser_deser_server <- function(id, board, parent, ...) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -21,18 +22,16 @@ ser_deser_server <- function(id, board, ...) {
         current_backup = NULL
       )
 
-      dot_args <- list(...)
-
       # Manual state saving. Use this to share the
       # app state with another group.
       output$serialize <- downloadHandler(
         board_filename(board),
-        write_board_to_disk(board, dot_args$parent, session)
+        write_board_to_disk(board, parent, session)
       )
 
       # Init backup list
       observeEvent(TRUE, {
-        dot_args$parent$backup_list <- list_snapshot_files(board$board_id)
+        parent$backup_list <- list_snapshot_files(board$board_id)
       })
 
       # TBD -> add board option for auto_snapshot
@@ -45,7 +44,7 @@ ser_deser_server <- function(id, board, ...) {
         snapshot_trigger <- reactive({
           list(
             board_links(board$board),
-            dot_args$parent$grid,
+            lapply(parent$module_state, reval),
             get_blocks_state(board) # Capture any block state change (input change, ...)
           )
         }) |>
@@ -57,14 +56,14 @@ ser_deser_server <- function(id, board, ...) {
             snapshot_trigger()
           },
           {
-            snapshot_board(vals, board, dot_args$parent, session)
+            snapshot_board(vals, board, parent, session)
           }
         )
 
         observeEvent(
-          c(vals$current_backup, dot_args$parent$backup_list),
+          c(vals$current_backup, parent$backup_list),
           {
-            toggle_undo_redo(vals, dot_args$parent)
+            toggle_undo_redo(vals, parent)
           },
           ignoreNULL = TRUE
         )
@@ -83,9 +82,9 @@ ser_deser_server <- function(id, board, ...) {
           {
             vals$auto_snapshot <- TRUE
             restore_board(
-              dot_args$parent$backup_list[[vals$current_backup]],
+              parent$backup_list[[vals$current_backup]],
               res,
-              dot_args$parent
+              parent
             )
           },
           ignoreInit = TRUE
@@ -93,8 +92,8 @@ ser_deser_server <- function(id, board, ...) {
       }
 
       # Manual save
-      observeEvent(req(dot_args$parent$save_board), {
-        snapshot_board(vals, board, dot_args$parent, session)
+      observeEvent(req(parent$save_board), {
+        snapshot_board(vals, board, parent, session)
       })
 
       # Probably useful to save something if the user disconnects
@@ -102,26 +101,26 @@ ser_deser_server <- function(id, board, ...) {
       session$onSessionEnded(function() {
         # we need isolate to avoid reactive context error.
         isolate({
-          snapshot_board(vals, board, dot_args$parent, session)
+          snapshot_board(vals, board, parent, session)
         })
       })
 
       # Restore workspace from json file
       observeEvent(input$restore, {
-        restore_board(input$restore$datapath, res, dot_args$parent)
+        restore_board(input$restore$datapath, res, parent)
       })
 
       # Restore from scoutbar choice
       observeEvent(
         {
-          dot_args$parent$scoutbar
-          req(dot_args$parent$scoutbar$action == "restore_board")
+          parent$scoutbar
+          req(parent$scoutbar$action == "restore_board")
         },
         {
           restore_board(
-            dot_args$parent$scoutbar$value,
+            parent$scoutbar$value,
             res,
-            dot_args$parent
+            parent
           )
         }
       )

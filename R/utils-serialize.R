@@ -2,62 +2,29 @@
 #'
 #' @param x Board.
 #' @param blocks Board blocks.
-#' @param network visNetwork data.
-#' @param grid gridstack data.
-#' @param selected Selected node.
-#' @param mode App mode.
 #' @param options Board options.
+#' @param network visNetwork data.
+#' @param selected Selected node.
+#' @param modules Module state.
 #' @param ... Generic consistency.
 #' @export
 #' @rdname blockr_ser
 blockr_ser.dag_board <- function(
   x,
   blocks = NULL,
-  network = NULL,
-  grid = NULL,
-  selected = NULL,
-  mode = NULL,
   options = NULL,
+  network = NULL,
+  selected = NULL,
+  modules = NULL,
   ...
 ) {
   list(
     object = class(x),
-    blocks = blockr_ser(board_blocks(x), blocks),
-    links = lapply(board_links(x), blockr_ser),
-    stacks = lapply(board_stacks(x), blockr_ser),
-    options = blockr_ser(board_options(x), options),
-    network = blockr_ser(network),
+    board = NextMethod(),
+    network = network,
     selected_block = selected,
-    grid = blockr_ser(grid),
-    mode = mode,
+    modules = modules,
     version = as.character(utils::packageVersion(utils::packageName()))
-  )
-}
-
-#' @rdname blockr_ser
-#' @export
-blockr_ser.dock <- function(x, ...) {
-  list(
-    object = class(x),
-    payload = unclass(x)
-  )
-}
-
-#' @rdname blockr_ser
-#' @export
-blockr_ser.network <- function(x, ...) {
-  list(
-    object = class(x),
-    payload = unclass(x)
-  )
-}
-
-#' @rdname blockr_ser
-#' @export
-blockr_ser.data.frame <- function(x, ...) {
-  list(
-    object = class(x),
-    payload = as.list(x)
   )
 }
 
@@ -66,43 +33,13 @@ blockr_ser.data.frame <- function(x, ...) {
 #' @export
 blockr_deser.dag_board <- function(x, data, ...) {
   list(
-    board = new_board(
-      blocks = blockr_deser(data[["blocks"]]),
-      links = lapply(data[["links"]], blockr_deser),
-      stacks = lapply(data[["stacks"]], blockr_deser),
-      options = blockr_deser(data[["options"]]),
-      class = setdiff(class(x), "board")
-    ),
+    board = NextMethod(data = data[["board"]]),
     # Other elements that are not part of the board
     # and need to be restored at the top level
-    network = blockr_deser(data[["network"]]),
+    network = data[["network"]],
     selected_block = data[["selected_block"]],
-    grid = blockr_deser(data[["grid"]]),
-    mode = data[["mode"]]
+    modules = data[["modules"]]
   )
-}
-
-#' @rdname blockr_ser
-#' @export
-blockr_deser.dock <- function(x, data, ...) {
-  data[["payload"]]
-}
-
-#' @rdname blockr_ser
-#' @export
-blockr_deser.network <- function(x, data, ...) {
-  data[["payload"]]
-}
-
-#' @rdname blockr_ser
-#' @export
-blockr_deser.data.frame <- function(x, data, ...) {
-  # null becomes NA ...
-  data[["payload"]] <- lapply(data[["payload"]], \(el) {
-    if (is.null(el)) el <- NA
-    el
-  })
-  as.data.frame(data[["payload"]])
 }
 
 #' Create board filename
@@ -112,14 +49,11 @@ blockr_deser.data.frame <- function(x, data, ...) {
 #' @rdname save-board
 board_filename <- function(rv) {
   function() {
-    file.path(
-      get_board_option_value("snapshot")$location,
-      paste0(
-        rv$board_id,
-        "_",
-        format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),
-        ".json"
-      )
+    paste0(
+      rv$board_id,
+      "_",
+      format(Sys.time(), "%Y-%m-%d_%H-%M-%S"),
+      ".json"
     )
   }
 }
@@ -155,11 +89,10 @@ write_board_to_disk <- function(rv, parent, session) {
       to_json(
         rv$board,
         blocks,
+        opts,
         parent$network,
-        parent$grid,
         parent$selected_block,
-        parent$mode,
-        opts
+        lapply(parent$module_state, reval)
       )
     )
 
@@ -185,35 +118,6 @@ board_option_from_userdata <- function(name, session) {
   }
 
   res
-}
-
-check_ser_deser_val <- function(val) {
-  observeEvent(
-    TRUE,
-    {
-      if (!is.reactive(val)) {
-        stop("Expecting a `ser_deser` server to return a reactive value.")
-      }
-    },
-    once = TRUE
-  )
-
-  observeEvent(
-    val(),
-    {
-      if (!is_board(val())) {
-        stop(
-          "Expecting the `ser_deser` return value to evaluate to a ",
-          "`board` object."
-        )
-      }
-
-      validate_board(val())
-    },
-    once = TRUE
-  )
-
-  val
 }
 
 #' @keywords internal
@@ -284,15 +188,47 @@ restore_board <- function(path, res, parent) {
       res(tmp_res$board)
       # Update parent node, grid, selected, mode
       # that were stored in the JSON but not part of the board object.
-      parent$network <- structure(tmp_res$network, class = "network")
-      parent$grid <- structure(tmp_res$grid, class = "dock")
+      parent$network <- tmp_res$network
       parent$selected_block <- tmp_res$selected_block
-      parent$mode <- tmp_res$mode
+
+      mods <- intersect(names(parent$module_state), names(tmp_res$modules))
+
+      miss <- setdiff(names(parent$module_state), names(tmp_res$modules))
+      xtra <- setdiff(names(tmp_res$modules), names(parent$module_state))
+
+      if (length(miss)) {
+        showNotification(
+          paste0(
+            "Attempting to restore a board with missing module settings for: ",
+            paste_enum(miss), ". These will be reset."
+          ),
+          duration = NA,
+          type = "warning"
+        )
+      }
+
+      if (length(xtra)) {
+        showNotification(
+          paste0(
+            "Attempting to restore a board with extra module settings for: ",
+            paste_enum(xtra), ". These will be ignored."
+          ),
+          duration = NA,
+          type = "warning"
+        )
+      }
+
+      for (mod in mods) {
+        parent$module_state[[mod]](tmp_res$modules[[mod]])
+      }
     },
     error = function(e) {
       showNotification(
-        "Error restoring snapshot. It is possible that you try to restore an old state
-              that is not compatible with the current version",
+        paste0(
+          "Error restoring snapshot. It is possible that you are trying to ",
+          "restore an old state that is not compatible with the current ",
+          "version."
+        ),
         tags$details(
           tags$summary("Details"),
           tags$small(e$message)

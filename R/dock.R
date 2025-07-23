@@ -18,7 +18,6 @@ dashboard_ui.dag_board <- function(id, board, ...) {
 dashboard_server.dag_board <- function(board, update, session, parent, ...) {
   isolate(
     {
-      parent$grid <- structure(list(), class = "dock")
       parent$in_grid <- list()
     }
   )
@@ -26,6 +25,10 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
   input <- session$input
   ns <- session$ns
   output <- session$output
+
+  res <- reactiveVal()
+
+  observeEvent(input$dock_state, res(input$dock_state))
 
   # Restore dock from serialisation only when network is restored
   observeEvent(
@@ -120,14 +123,5 @@ dashboard_server.dag_board <- function(board, update, session, parent, ...) {
     handle_dashboard_zoom(session)
   })
 
-  # Update rv cache to real time change in the grid only
-  # in dashboard mode.
-  observeEvent(
-    {
-      input$dock_state
-    },
-    {
-      parent$grid <- structure(input$dock_state, class = "dock")
-    }
-  )
+  res
 }

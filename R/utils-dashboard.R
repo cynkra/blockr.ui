@@ -132,14 +132,11 @@ find_blocks_ids.dag_board <- function(
   parent,
   session
 ) {
-  if (!length(names(parent$grid$panels))) {
+  state <- parent$module_state$dashboard()
+  if (!length(state) || !length(state$panels)) {
     return(NULL)
   }
-  chr_ply(
-    strsplit(names(parent$grid$panels), "block-"),
-    `[[`,
-    2
-  )
+  chr_ply(strsplit(names(state$panels), "block-"), `[[`, 2L)
 }
 
 #' Update dashboard zoom on the client
