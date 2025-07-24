@@ -1,3 +1,14 @@
+#' Create a board module
+#'
+#' Extend a DAG board by adding modules.
+#'
+#' @param ui,server UI and server functions
+#' @param id,title Module ID and title
+#' @param context_menu List of context menu entries
+#' @param position Panel position
+#' @param class (Optional) additional class(es)
+#'
+#' @export
 new_board_module <- function(
   ui,
   server,
