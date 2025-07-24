@@ -43,7 +43,7 @@ create_app_state.dag_board <- function(board) {
   reactiveValues(
     cold_start = TRUE,
     refreshed = NULL,
-    network = structure(list(), class = "network"),
+    network = list(),
     # Blocks/nodes
     append_block = FALSE,
     added_block = NULL,
@@ -74,7 +74,8 @@ create_app_state.dag_board <- function(board) {
     display_code = FALSE,
     # Dashboard
     removed_from_dashboard = NULL,
-    add_to_dashboard = NULL
+    add_to_dashboard = NULL,
+    module_state = list()
   )
 }
 
@@ -87,7 +88,13 @@ create_app_state.dag_board <- function(board) {
 #' @rdname main
 #' @export
 main_server <- function(id, board, plugins, modules) {
-  stopifnot(is.list(modules), all(lgl_ply(modules, is_board_module)))
+  stopifnot(
+    is.list(modules),
+    all(lgl_ply(modules, is_board_module)),
+    length(unique(chr_ply(modules, board_module_id))) == length(modules)
+  )
+
+  names(modules) <- chr_ply(modules, board_module_id)
 
   moduleServer(
     id,
@@ -106,7 +113,7 @@ main_server <- function(id, board, plugins, modules) {
       exportTestValues(res = process_app_state(app_state))
 
       # Board module
-      board_server(
+      res <- board_server(
         "board",
         board,
         plugins = plugins,
@@ -121,6 +128,12 @@ main_server <- function(id, board, plugins, modules) {
           )
         ),
         parent = app_state
+      )
+
+      isolate(
+        {
+          app_state$module_state <- res[names(modules)]
+        }
       )
     }
   )

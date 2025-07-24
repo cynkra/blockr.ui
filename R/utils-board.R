@@ -277,6 +277,7 @@ board_ui.dag_board <- function(id, x, plugins = list(), ...) {
 #' @rdname handlers-utils
 board_restore <- function(board, update, session, parent, ...) {
   board_refresh <- get("board_refresh", parent.frame(1))
+
   observeEvent(
     board_refresh(),
     {
@@ -284,7 +285,8 @@ board_restore <- function(board, update, session, parent, ...) {
     },
     ignoreInit = TRUE
   )
-  return(NULL)
+
+  NULL
 }
 
 #' App layout
@@ -363,6 +365,8 @@ build_layout <- function(modules, plugins) {
         list(theme = get_board_option_value("dark_mode"))
       )
     })
+
+    NULL
   }
 }
 
@@ -467,4 +471,6 @@ manage_scoutbar <- function(board, update, session, parent, ...) {
       value = tmp[1]
     )
   })
+
+  NULL
 }

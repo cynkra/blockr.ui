@@ -40,10 +40,7 @@ gen_add_rm_link_server <- function(context_menu) {
 
         # Serialize state
         observeEvent(input[["network-state"]], {
-          parent$network <- structure(
-            input[["network-state"]],
-            class = "network"
-          )
+          parent$network <- input[["network-state"]]
         })
 
         ctx_path <- session$registerDataObj(
