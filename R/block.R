@@ -7,20 +7,20 @@
 #'
 #' @export
 #' @rdname block_ui
-block_ui.dash_board <- function(id, x, block = NULL, ...) {
+block_ui.dag_board <- function(id, x, block = NULL, ...) {
   block_card <- function(x, id, ns) {
     blk_id <- ns(paste0("block_", id))
-    blk_info <- get_block_registry(x)
+    blk_info <- get_block_metadata(x)
     card(
       id = ns(id),
       full_screen = TRUE,
       card_header(
         class = "d-flex justify-content-between",
         card_title(
-          blk_icon(attr(blk_info, "category")),
+          blk_icon(blk_info$category),
           sprintf(
             "Block: %s (id: %s)",
-            attr(blk_info, "name"),
+            blk_info$name,
             gsub("block_", "", id)
           )
         ),
@@ -30,7 +30,7 @@ block_ui.dash_board <- function(id, x, block = NULL, ...) {
             icon("lightbulb"),
             "How to use this block?",
           ),
-          p(attr(blk_info, "description"), ".")
+          p(blk_info$description, ".")
         )
       ),
       # subtitle
@@ -38,8 +38,8 @@ block_ui.dash_board <- function(id, x, block = NULL, ...) {
         class = "card-subtitle mb-2 text-body-secondary",
         sprintf(
           "Type: %s; Package: %s",
-          attr(blk_info, "category"),
-          attr(blk_info, "package")
+          blk_info$category,
+          blk_info$package
         )
       ),
       expr_ui(blk_id, x),
@@ -63,9 +63,10 @@ remove_block_panels <- function(id) {
   })
 }
 
+#' @param blocks Blocks to insert or remove.
 #' @rdname block_ui
 #' @export
-insert_block_ui.dash_board <- function(
+insert_block_ui.dag_board <- function(
   id,
   x,
   blocks = NULL,
@@ -136,6 +137,11 @@ show_block_panel <- function(id, parent, session) {
       id = sprintf("block-%s", id),
       title = sprintf("Block: %s", id),
       content = tagList(),
+      # Don't remove if position is "within": by default,
+      # only the visible tab is mounted in the DOM,
+      # which means updating one block does not update
+      # the linked block UIs and causes many issues.
+      renderer = "always",
       position = list(
         referencePanel = if (length(get_panels_ids("layout")) == 2) {
           "dag"
@@ -145,7 +151,7 @@ show_block_panel <- function(id, parent, session) {
         direction = if (length(get_panels_ids("layout")) == 2) {
           "below"
         } else {
-          "right"
+          "within"
         }
       ),
       remove = list(enable = TRUE, mode = "manual")
@@ -183,7 +189,7 @@ hide_block_panel <- function(id, session) {
 
 #' @rdname block_ui
 #' @export
-remove_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
+remove_block_ui.dag_board <- function(id, x, blocks = NULL, ...) {
   NULL
 }
 
@@ -191,9 +197,35 @@ remove_block_ui.dash_board <- function(id, x, blocks = NULL, ...) {
 #'
 #' @param x Block object
 #' @keywords internal
-get_block_registry <- function(x) {
+get_block_metadata <- function(x) {
   stopifnot(is_block(x))
-  available_blocks()[[strsplit(attr(x, "ctor"), "new_")[[1]][2]]]
+
+  ctor <- attr(x, "ctor")
+
+  if (is_string(ctor)) {
+    blk <- sub("^new_", "", ctor)
+    blks <- available_blocks()
+
+    if (blk %in% names(blks)) {
+      info <- blks[[blk]]
+
+      res <- list(
+        category = attr(info, "category"),
+        name = attr(info, "name"),
+        description = attr(info, "description"),
+        package = attr(info, "package")
+      )
+
+      return(res)
+    }
+  }
+
+  list(
+    category = "Uncategorized",
+    name = block_name(x),
+    description = "No description available",
+    package = "local"
+  )
 }
 
 #' Get the state of a block

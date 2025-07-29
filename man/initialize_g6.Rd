@@ -4,7 +4,7 @@
 \alias{initialize_g6}
 \title{Initialize a G6 ANTV Network Visualization}
 \usage{
-initialize_g6(nodes = NULL, edges = NULL, ns)
+initialize_g6(nodes = NULL, edges = NULL, ns, path, context_menu)
 }
 \arguments{
 \item{nodes}{A data frame or list containing node information. Each node should

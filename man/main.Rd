@@ -3,22 +3,26 @@
 \name{main_ui}
 \alias{main_ui}
 \alias{create_app_state}
-\alias{create_app_state.dock_board}
+\alias{create_app_state.dag_board}
 \alias{main_server}
 \title{Main ui for blockr2}
 \usage{
-main_ui(id, board)
+main_ui(id, board, plugins)
 
 create_app_state(board)
 
-\method{create_app_state}{dock_board}(board)
+\method{create_app_state}{dag_board}(board)
 
-main_server(id, board)
+main_server(id, board, plugins, modules)
 }
 \arguments{
 \item{id}{Unique id.}
 
 \item{board}{Board object.}
+
+\item{plugins}{List of plugins to use. See \link[blockr.core]{plugins}.}
+
+\item{modules}{Further modules to pass.}
 }
 \description{
 The board is composed of 2 views pointing to the network module

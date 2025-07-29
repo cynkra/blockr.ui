@@ -5,7 +5,6 @@ library(blockr.io)
 library(blockr.ui)
 
 Sys.setenv(
-  "DASHBOARD_TYPE" = "dock",
   "SNAPSHOT_LOCATION" = "~/Downloads",
   "AUTO_SNAPSHOT" = FALSE
 )

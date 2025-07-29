@@ -3,14 +3,14 @@
 \name{board_ui.board_options}
 \alias{board_ui.board_options}
 \alias{update_ui.board_options}
-\alias{board_ui.dash_board}
+\alias{board_ui.dag_board}
 \title{Custom board UI}
 \usage{
 \method{board_ui}{board_options}(id, x, ...)
 
 \method{update_ui}{board_options}(x, session, ...)
 
-\method{board_ui}{dash_board}(id, x, plugins = list(), ...)
+\method{board_ui}{dag_board}(id, x, plugins = list(), ...)
 }
 \arguments{
 \item{id}{Namespace ID.}
@@ -18,6 +18,8 @@
 \item{x}{Board.}
 
 \item{...}{Generic consistency.}
+
+\item{session}{Shiny session object.}
 
 \item{plugins}{UI for board plugins.}
 }

@@ -9,10 +9,11 @@ dashboard_ui <- function(id, board, ...) {
 #'
 #' @param board Board reactiveValues. Read-only.
 #' @param update Update reactiveVal to signal change to the board.
+#' @param session Shiny session.
 #' @param parent Parent global reactiveValues.
 #' @param ... Extra parameters.
 #' @rdname dashboard
 #' @export
-dashboard_server <- function(board, update, parent, ...) {
+dashboard_server <- function(board, update, session, parent, ...) {
   UseMethod("dashboard_server", isolate(board$board))
 }

@@ -1,47 +1,96 @@
-#' Init dashboard state generic
-#'
-#' Whenever a new block is created or some blocks
-#' are removed, we update the mapping to know which
-#' block should be in the dashboard, so that \link{manage_dashboard}
-#' knows what to do.
-#'
-#' @param board Board object.
-#' @param blocks Board blocks.
-#' @param vals Local reactive values.
-#' @rdname init-dashboard-state
-#' @export
-init_dashboard_state <- function(board, blocks, vals) {
-  UseMethod("init_dashboard_state", board)
-}
-
 #' Restore dashboard state from board state
 #'
 #' @param board Board object.
-#' @param blocks Board block objects.
-#' @param vals Local reactive values.
+#' @param rv Board reactive values object. Read-only
 #' @param parent Parent reactive values.
 #' @param session Shiny session object.
 #' Contains blocks coordinates, dimensions, ...
 #' @export
 #' @rdname restore-dashboard
-restore_dashboard <- function(board, blocks, vals, parent, session) {
+restore_dashboard <- function(board, rv, parent, session) {
   UseMethod("restore_dashboard", board)
+}
+
+#' @keywords internal
+generate_dashboard_blk_output <- function(id, rv, session) {
+  output <- session$output
+  out_name <- sprintf(
+    "dock-%s-result",
+    id
+  )
+
+  observeEvent(
+    {
+      req(id %in% board_block_ids(rv$board))
+      rv$msgs()[[id]]
+      rv$blocks[[id]]$server$result()
+    },
+    {
+      output[[out_name]] <- block_output(
+        rv$blocks[[id]]$block,
+        {
+          # Provide user feedback in the dashboard
+          # to explain why an output is blank. shiny.emptystate
+          # could also be a more polished alternative ...
+          validate(
+            need(
+              rv$blocks[[id]]$server$result(),
+              "Not data available. Please update the pipeline."
+            )
+          )
+          rv$blocks[[id]]$server$result()
+        },
+        session
+      )
+    },
+    ignoreNULL = FALSE
+  )
+}
+
+#' @keywords internal
+add_blk_panel_to_dashboard <- function(id, rv, session) {
+  ns <- session$ns
+  dock_blk_ui <- block_ui(
+    ns(
+      sprintf(
+        "dock-%s",
+        id
+      )
+    ),
+    rv$blocks[[id]]$block
+  )
+
+  add_panel(
+    "dock",
+    sprintf("block_%s", id),
+    panel = dockViewR::panel(
+      id = sprintf("block-%s", id),
+      title = sprintf("Block: %s", id),
+      content = dock_blk_ui
+    )
+  )
+}
+
+#' @keywords internal
+remove_blk_from_dashboard <- function(id, session) {
+  output <- session$output
+  out_name <- sprintf("dock-%s-result", id)
+  remove_panel("dock", sprintf("block-%s", id))
+  output[[out_name]] <- NULL
 }
 
 #' @export
 #' @rdname restore-dashboard
-restore_dashboard.dash_board <- function(board, blocks, vals, parent, session) {
-  vals$in_grid <- NULL
-  vals$grid <- parent$grid
-  ids <- names(blocks)
-
-  in_grid_ids <- find_blocks_ids(board, parent, session)
+restore_dashboard.dag_board <- function(board, rv, parent, session) {
+  parent$in_grid <- NULL
+  ids <- names(rv$blocks)
+  in_grid_ids <- find_blocks_ids(rv$board, parent, session)
 
   # When the dock was empty, we still need to initialise the block state
   # and all values are false
   if (!length(in_grid_ids)) {
     lapply(ids, \(id) {
-      vals$in_grid[[id]] <- FALSE
+      parent$in_grid[[id]] <- FALSE
     })
     return(NULL)
   }
@@ -50,11 +99,14 @@ restore_dashboard.dash_board <- function(board, blocks, vals, parent, session) {
   not_in_grid <- which(!(ids %in% in_grid_ids))
 
   lapply(in_grid_ids, \(id) {
-    vals$in_grid[[id]] <- TRUE
+    parent$in_grid[[id]] <- TRUE
+    # Regenerate the output for the block as well as dock panel
+    generate_dashboard_blk_output(id, rv, session)
+    add_blk_panel_to_dashboard(id, rv, session)
   })
 
   lapply(ids[not_in_grid], \(id) {
-    vals$in_grid[[id]] <- FALSE
+    parent$in_grid[[id]] <- FALSE
   })
   parent$refreshed <- "grid"
 }
@@ -75,7 +127,7 @@ find_blocks_ids <- function(
 #'
 #' @rdname restore-dashboard
 #' @export
-find_blocks_ids.dock_board <- function(
+find_blocks_ids.dag_board <- function(
   board,
   parent,
   session
@@ -84,7 +136,7 @@ find_blocks_ids.dock_board <- function(
     return(NULL)
   }
   chr_ply(
-    strsplit(names(parent$grid$panels), "block_"),
+    strsplit(names(parent$grid$panels), "block-"),
     `[[`,
     2
   )

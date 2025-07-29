@@ -12,8 +12,6 @@ generate_code_server(id, board, ...)
 \item{board}{Reactive values object}
 
 \item{...}{Extra arguments passed from parent scope}
-
-\item{server, ui}{Server/UI for the plugin module}
 }
 \value{
 A plugin container inheriting from \code{generate_code} is returned by

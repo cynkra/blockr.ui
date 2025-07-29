@@ -11,9 +11,9 @@ create_edges_data_from_links(links)
 
 create_nodes_data_from_blocks(blocks, stacks)
 
-create_combos_data_from_stacks(stacks, vals, colors)
+create_combos_data_from_stacks(stacks, parent, colors)
 
-cold_start(vals, rv, parent, session)
+cold_start(rv, parent, session)
 }
 \arguments{
 \item{links}{Board links.}
@@ -22,13 +22,11 @@ cold_start(vals, rv, parent, session)
 
 \item{stacks}{Board stacks.}
 
-\item{vals}{Module internal reactive values.}
+\item{parent}{Global app reactive values.}
 
 \item{colors}{Stacks colors. Internal.}
 
 \item{rv}{Board reactive values. Read-only}
-
-\item{parent}{Global app reactive values.}
 
 \item{session}{Shiny session}
 }

@@ -2,7 +2,7 @@
 #'
 #' @rdname dashboard
 #' @export
-dashboard_ui.dock_board <- function(id, board, ...) {
+dashboard_ui.dag_board <- function(id, board, ...) {
   ns <- NS(id)
   div(
     id = ns("dashboard_zoom_target"),
@@ -15,17 +15,17 @@ dashboard_ui.dock_board <- function(id, board, ...) {
 #'
 #' @rdname dashboard
 #' @export
-dashboard_server.dock_board <- function(board, update, parent, ...) {
-  session <- get("session", parent.frame(1))
+dashboard_server.dag_board <- function(board, update, session, parent, ...) {
+  isolate(
+    {
+      parent$grid <- structure(list(), class = "dock")
+      parent$in_grid <- list()
+    }
+  )
+
   input <- session$input
   ns <- session$ns
   output <- session$output
-
-  # Local reactiveValues
-  vals <- reactiveValues(
-    grid = structure(list(), class = "dock"),
-    in_grid = list()
-  )
 
   # Restore dock from serialisation only when network is restored
   observeEvent(
@@ -33,109 +33,85 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       req(parent$refreshed == "network")
     },
     {
-      restore_dashboard(board$board, board$blocks, vals, parent, session)
-      # We don't even need to call restore_dock!
+      # Restore reactive values
+      restore_dashboard(board$board, board, parent, session)
     }
   )
 
   # Whenever a new block is created, we initialise its grid state
   observeEvent(parent$added_block, {
-    vals$in_grid[[block_uid(parent$added_block)]] <- FALSE
+    parent$in_grid[[block_uid(parent$added_block)]] <- FALSE
   })
 
-  # Removed block(s) must not be referenced in the grid
+  # Removed block(s) must not be referenced in the grid and
+  # the panel must be removed from the dock.
   observeEvent(parent$removed_block, {
     lapply(parent$removed_block, \(removed) {
       # Signal to remove panel from dock.
       # Panel will be removed by manage_dashboard.
-      vals$in_grid[[removed]] <- NULL
-      if (paste0("block_", removed) %in% get_panels_ids("dock")) {
-        remove_panel("dock", paste0("block_", removed))
+      parent$in_grid[[removed]] <- NULL
+      if (paste0("block-", removed) %in% get_panels_ids("dock")) {
+        remove_panel("dock", paste0("block-", removed))
       }
     })
   })
 
-  # Render a second output containing only
-  # the block result on demand
+  # Initialise outputs for any existing block in the grid
+  # TBD: this is not needed yet as we can't initialise a board
+  # with existing blocks in the grid. Uncomment the code
+  # below when we can do that.
+  #lapply(
+  #  isolate(parent$in_grid),
+  #  \(id) {
+  #    generate_dashboard_blk_output(
+  #      id,
+  #      board,
+  #      session
+  #    )
+  #  }
+  #)
+
+  # Add panel to dashboard + handle secondary output
   observeEvent(
     {
-      req(parent$selected_block, vals$in_grid[[parent$selected_block]])
-      board$blocks[[parent$selected_block]]$server$result()
+      req(
+        parent$added_to_dashboard,
+        parent$in_grid[[parent$added_to_dashboard]]
+      )
     },
     {
-      output[[sprintf(
-        "dock-%s",
-        parent$selected_block
-      )]] <- block_output(
-        board$blocks[[parent$selected_block]]$block,
-        board$blocks[[parent$selected_block]]$server$result(),
+      add_blk_panel_to_dashboard(
+        parent$added_to_dashboard,
+        board,
         session
       )
+      generate_dashboard_blk_output(
+        parent$added_to_dashboard,
+        board,
+        session
+      )
+      parent$added_to_dashboard <- NULL
     }
   )
 
   # Toggle state for each selected block and update the state
   observeEvent(
     {
-      req(parent$selected_block)
-      vals$in_grid[[parent$selected_block]]
+      req(parent$removed_from_dashboard)
+      parent$in_grid[[parent$removed_from_dashboard]]
     },
     {
-      # Render a second output containing only
-      # the block result on demand
-      if (parent$in_grid[[parent$selected_block]]) {
-        if (
-          !(sprintf("block-%s", parent$selected_block) %in%
-            get_panels_ids("dock"))
-        ) {
-          add_panel(
-            "dock",
-            sprintf("block_%s", parent$selected_block),
-            panel = dockViewR::panel(
-              id = sprintf("block-%s", parent$selected_block),
-              title = sprintf("Block: %s", parent$selected_block),
-              content = DT::dataTableOutput(
-                session$ns(
-                  sprintf(
-                    "dock-%s",
-                    parent$selected_block
-                  )
-                )
-              )
-            )
-          )
-        }
-      } else {
-        if (
-          sprintf("block-%s", parent$selected_block) %in% get_panels_ids("dock")
-        ) {
-          # Remove output from dock
-          remove_panel("dock", sprintf("block-%s", parent$selected_block))
-          output[[sprintf("dock-%s", parent$selected_block)]] <- NULL
-        }
-      }
-    },
-    ignoreInit = TRUE
+      # Remove output from dock
+      remove_blk_from_dashboard(parent$removed_from_dashboard, session)
+      parent$removed_from_dashboard <- NULL
+    }
   )
 
   output$dock <- renderDockView({
     dock_view(
       panels = list(), # TBD handle when we initalise from a non empty dock
-      # TBD: handle theme from global app theme
-      theme = if (nchar(Sys.getenv("DOCK_THEME")) > 0) {
-        Sys.getenv("DOCK_THEME")
-      } else {
-        "replit"
-      }
-    )
-  })
-  outputOptions(output, "dock", suspendWhenHidden = FALSE)
-
-  # Update dock theme based on board options
-  observeEvent(get_board_option_value("dark_mode"), {
-    update_dock_view(
-      "dock",
-      list(theme = get_board_option_value("dark_mode"))
+      # TBD: handle theme from global app options
+      theme = "replit"
     )
   })
 
@@ -151,21 +127,7 @@ dashboard_server.dock_board <- function(board, update, parent, ...) {
       input$dock_state
     },
     {
-      vals$grid <- structure(input$dock_state, class = "dock")
+      parent$grid <- structure(input$dock_state, class = "dock")
     }
   )
-
-  # Callback from links plugin
-  observeEvent(parent$in_grid, {
-    vals$in_grid <- parent$in_grid
-  })
-
-  # Maintain consistency between parent and local reactive values
-  observeEvent(vals$in_grid, {
-    parent$in_grid <- vals$in_grid
-  })
-
-  observeEvent(vals$grid, {
-    parent$grid <- vals$grid
-  })
 }

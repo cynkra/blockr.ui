@@ -67,7 +67,7 @@ board_ui.board_options <- function(id, x, ...) {
   ns <- NS(id)
 
   bslib::popover(
-    bsicons::bs_icon("gear", size = "1.5em"),
+    icon("gear"),
     accordion(
       id = ns("board_options"),
       multiple = TRUE,
@@ -138,6 +138,7 @@ board_ui.board_options <- function(id, x, ...) {
 }
 
 #' @rdname board_ui
+#' @param session Shiny session object.
 #' @export
 update_ui.board_options <- function(x, session, ...) {
   updateTextInput(
@@ -205,7 +206,7 @@ board_header <- function(id, board_ui) {
 #' @param ... Generic consistency.
 #' @rdname board_ui
 #' @export
-board_ui.dash_board <- function(id, x, plugins = list(), ...) {
+board_ui.dag_board <- function(id, x, plugins = list(), ...) {
   plugins <- as_plugins(plugins)
 
   toolbar_plugins <- c(
@@ -232,11 +233,30 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
     board_options_ui = board_ui(id, board_options(x))
   )
 
+  # If there are blocks at start, we need to generate the UI
+  # There are then put in the offcanvas, waiting to be shown
+  # For now, I've omited the plugins[["edit_block"]] but that can
+  # be added later on.
+  blocks <- lapply(
+    board_block_ids(x),
+    \(blk_id) {
+      block_ui(
+        id = id,
+        x = x,
+        block = board_blocks(x)[blk_id]
+      )
+    }
+  )
+
   tagList(
     # Offcanvas is used has an hidden element to move block UI whenever
     # we remove and add panels in the dock. This avoids to have
     # to recreate the block UI each time (which causes other issues anyway)
-    off_canvas(id = paste0(id, "-offcanvas"), title = "Board"),
+    off_canvas(
+      id = paste0(id, "-offcanvas"),
+      title = "Board",
+      blocks
+    ),
     board_header(id, my_board_ui),
     dockViewOutput(
       paste0(id, "-layout"),
@@ -255,7 +275,7 @@ board_ui.dash_board <- function(id, x, plugins = list(), ...) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-board_restore <- function(board, update, parent, ...) {
+board_restore <- function(board, update, session, parent, ...) {
   board_refresh <- get("board_refresh", parent.frame(1))
   observeEvent(
     board_refresh(),
@@ -271,83 +291,86 @@ board_restore <- function(board, update, parent, ...) {
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-build_layout <- function(board, update, parent, ...) {
-  session <- get("session", parent.frame(1))
-  input <- session$input
-  output <- session$output
-  ns <- session$ns
+build_layout <- function(modules, plugins) {
+  function(board, update, session, parent, ...) {
+    input <- session$input
+    output <- session$output
+    ns <- session$ns
 
-  # TBD: re-insert block panel ui if it was closed
-  observeEvent(
-    {
-      req(parent$selected_block)
-    },
-    {
-      show_block_panel(parent$selected_block, parent, session)
-    }
-  )
+    # TBD: re-insert block panel ui if it was closed
+    observeEvent(
+      {
+        req(parent$selected_block, length(parent$selected_block) == 1)
+      },
+      {
+        show_block_panel(parent$selected_block, parent, session)
+      }
+    )
 
-  observeEvent(
-    input[["layout_panel-to-remove"]],
-    {
-      hide_block_panel(input[["layout_panel-to-remove"]], session)
-    }
-  )
+    observeEvent(
+      input[["layout_panel-to-remove"]],
+      {
+        hide_block_panel(input[["layout_panel-to-remove"]], session)
+      }
+    )
 
-  # Remove block panel on block remove
-  # As we can remove multiple blocks at once, we
-  # need to loop over the removed blocks.
-  observeEvent(parent$removed_block, {
-    remove_block_panels(parent$removed_block)
-  })
+    # Remove block panel on block remove
+    # As we can remove multiple blocks at once, we
+    # need to loop over the removed blocks.
+    observeEvent(parent$removed_block, {
+      remove_block_panels(parent$removed_block)
+    })
 
-  output$layout <- renderDockView({
-    # Since board$board is reactive, we need to isolate it
-    # so we don't re-render the whole layout each time ...
-    isolate({
-      dock_view(
-        panels = list(
-          panel(
-            id = "dag",
-            title = "Pipeline overview",
-            content = board_ui(
-              session$ns(NULL),
-              dash_board_plugins("manage_links")
+    output$layout <- renderDockView({
+      # Since board$board is reactive, we need to isolate it
+      # so we don't re-render the whole layout each time ...
+      isolate({
+        dock_view(
+          panels = c(
+            list(
+              panel(
+                id = "dag",
+                title = "Pipeline overview",
+                content = board_ui(
+                  ns(NULL),
+                  plugins["manage_links"]
+                )
+              )
+            ),
+            map(
+              panel,
+              id = chr_ply(modules, board_module_id),
+              title = chr_ply(modules, board_module_title),
+              content = lapply(
+                modules,
+                call_board_module_ui,
+                ns(NULL),
+                board$board
+              ),
+              position = board_module_positions(modules)
             )
           ),
-          panel(
-            id = "dashboard",
-            title = "Dashboard",
-            content = tagList(
-              dashboard_ui(session$ns(NULL), board$board)
-            ),
-            position = list(
-              referencePanel = "dag",
-              direction = "right"
-            )
-          )
-        ),
-        # TBD (make theme function of board options)
-        theme = "light"
+          # TBD (make theme function of board options)
+          theme = "light"
+        )
+      })
+    })
+
+    # Update theme in real time
+    observeEvent(get_board_option_value("dark_mode"), {
+      update_dock_view(
+        "layout",
+        list(theme = get_board_option_value("dark_mode"))
       )
     })
-  })
-
-  # Update theme in real time
-  observeEvent(get_board_option_value("dark_mode"), {
-    update_dock_view(
-      "layout",
-      list(theme = get_board_option_value("dark_mode"))
-    )
-  })
+  }
 }
 
 #' Scoutbar management callback
 #'
 #' @keywords internal
 #' @rdname handlers-utils
-manage_scoutbar <- function(board, update, parent, ...) {
-  session <- get("session", parent.frame(1))
+manage_scoutbar <- function(board, update, session, parent, ...) {
   input <- session$input
   ns <- session$ns
 

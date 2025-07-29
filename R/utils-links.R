@@ -159,7 +159,7 @@ define_conlabel.llm_block <- function(x, target, rv) {
 #' @return A G6 network visualization object that can be further customized or directly
 #'   rendered in R Markdown, Shiny, or other R environments.
 #' @keywords internal
-initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
+initialize_g6 <- function(nodes = NULL, edges = NULL, ns, path, context_menu) {
   g6(
     nodes = nodes,
     edges = edges
@@ -167,7 +167,7 @@ initialize_g6 <- function(nodes = NULL, edges = NULL, ns) {
     default_g6_options() |>
     g6_layout() |>
     default_g6_behaviors(ns = ns) |>
-    default_g6_plugins(ns = ns)
+    default_g6_plugins(ns = ns, path = path, context_menu = context_menu)
 }
 
 #' Default g6 network options
@@ -271,7 +271,7 @@ default_g6_behaviors <- function(graph, ..., ns) {
 
 #' @rdname default-g6
 #' @keywords internal
-default_g6_plugins <- function(graph, ..., ns) {
+default_g6_plugins <- function(graph, ..., ns, path, context_menu) {
   if (!inherits(graph, "g6")) {
     stop("default_g6_options must be called on a g6 instance")
   }
@@ -296,79 +296,32 @@ default_g6_plugins <- function(graph, ..., ns) {
         ),
         # nolint start
         onClick = JS(
-          sprintf(
-            "(value, target, current) => {
-            const graphId = `${target.closest('.g6').id}`;
-            const graph = HTMLWidgets.find(`#${graphId}`).getWidget();
-            if ((value !== 'create_stack' && value !== 'add_block') && current.id === undefined) return;
-            if (value === 'create_edge') {
-              graph.updateBehavior({
-                key: 'create-edge', // Specify the behavior to update
-                enable: true,
-              });
-              // Select node
-              graph.setElementState(current.id, 'selected');
-              // Disable drag node as it is incompatible with edge creation
-              graph.updateBehavior({ key: 'drag-element', enable: false });
-              graph.updateBehavior({ key: 'drag-element-force', enable: false });
-            } else if (value === 'remove_node') {
-              // Send message to R so we can modify the
-              // graph from R and not from JS
-              Shiny.setInputValue('%s', current.id)
-            } else if (value === 'remove_edge') {
-              // Needed to destroy the link since edge id can't be edited
-              // so the link ID is stored in the data attributes.
-              Shiny.setInputValue('%s', current.id);
-              graph.removeEdgeData([current.id]);
-              graph.draw();
-            } else if (value === 'append_node') {
-              Shiny.setInputValue('%s', true, {priority: 'event'})
-            } else if (value === 'create_stack') {
-              Shiny.setInputValue('%s', true, {priority: 'event'})
-            } else if (value === 'remove_stack') {
-              Shiny.setInputValue('%s', current.id)
-            } else if (value === 'add_block') {
-              Shiny.setInputValue('%s', true, {priority: 'event'})
-            } else if (value === 'add_to_dashboard') {
-              Shiny.setInputValue('%s', true, {priority: 'event'})
-            } else if (value === 'remove_from_dashboard') {
-              Shiny.setInputValue('%s', true, {priority: 'event'})
-            }
-          }",
-            ns("removed_node"),
-            ns("removed_edge"),
-            ns("append_node"),
-            ns("create_stack"),
-            ns("remove_stack"),
-            ns("add_block"),
-            ns("add_to_dashboard"),
-            ns("remove_from_dashboard")
-          )
+          context_menu_entry_js(context_menu, ns)
         ),
         # nolint end
         getItems = JS(
-          "(e) => {
-          if (e.targetType === 'node') {
-            return [
-              { name: 'Create edge', value: 'create_edge' },
-              { name: 'Append node', value: 'append_node' },
-              { name: 'Remove node', value: 'remove_node' }
-            ];
-          } else if (e.targetType === 'edge') {
-            return [
-              { name: 'Remove edge', value: 'remove_edge' }
-            ];
-          } else if (e.targetType === 'canvas') {
-            return [
-              { name: 'Create stack', value: 'create_stack' },
-              { name: 'New block', value: 'add_block' }
-            ];
-          } else if (e.targetType === 'combo') {
-            return [
-              { name: 'Remove stack', value: 'remove_stack' }
-            ];
-          }
-        }"
+          paste0(
+            "async (e) => {\n",
+            "  const response = await fetch(\n",
+            "    '", path, "',\n",
+            "    {\n",
+            "      method: 'POST',\n",
+            "      headers: {\n",
+            "        'Accept': 'application/json',\n",
+            "        'Content-Type': 'application/json'\n",
+            "      },\n",
+            "      body: JSON.stringify(\n",
+            "        {\n",
+            "          id: e.target.id,\n",
+            "          type: e.targetType\n",
+            "        }\n",
+            "      )\n",
+            "    }\n",
+            "  );\n",
+            "  const items = await response.json();\n",
+            "  return items;\n",
+            "}"
+          )
         )
       ),
       g6R::toolbar(
@@ -993,7 +946,6 @@ show_stack_actions <- function(rv, session) {
 #'
 #' @param stack_id Stack id to attach nodes to.
 #' @param nodes Vector of node ids to stack.
-#' @param vals Local scope (links module) reactive values.
 #' @param rv Board reactive values.
 #' @param parent Global scope (entire app) reactive values.
 #' @param session Shiny session object.
@@ -1003,7 +955,6 @@ show_stack_actions <- function(rv, session) {
 stack_nodes <- function(
   stack_id = NULL,
   nodes = NULL,
-  vals,
   rv,
   parent,
   session
@@ -1030,14 +981,14 @@ stack_nodes <- function(
   stack_color <- input$stack_color
   if (is.null(stack_color)) {
     colors <- board_option("stacks_colors", rv$board)
-    if (length(vals$stacks) == 0) {
+    if (length(parent$stacks) == 0) {
       stack_color <- colors[1]
     } else {
-      stack_color <- colors[length(vals$stacks) * 5]
+      stack_color <- colors[length(parent$stacks) * 5]
     }
   }
 
-  vals$stacks <- c(vals$stacks, stack_id)
+  parent$stacks <- c(parent$stacks, stack_id)
 
   # Update graph
   g6_proxy(ns("network")) |>
@@ -1071,7 +1022,7 @@ stack_nodes <- function(
 #'
 #' @keywords internal
 #' @rdname stack-nodes
-unstack_nodes <- function(vals, parent, session) {
+unstack_nodes <- function(parent, session) {
   ns <- session$ns
   input <- session$input
 
@@ -1080,7 +1031,7 @@ unstack_nodes <- function(vals, parent, session) {
   parent$removed_stack <- strsplit(stack_id, "combo-")[[1]][2]
 
   # Update local reactiveValues
-  vals$stacks <- vals$stacks[-which(vals$stacks == stack_id)]
+  parent$stacks <- parent$stacks[-which(parent$stacks == stack_id)]
 
   # Send message to network
   # (combos are automatically removed from node state so
@@ -1186,18 +1137,18 @@ create_nodes_data_from_blocks <- function(blocks, stacks) {
 #' @keywords internal
 create_combos_data_from_stacks <- function(
   stacks,
-  vals,
+  parent,
   colors
 ) {
   lapply(seq_along(stacks), \(i) {
     stack_id <- sprintf("combo-%s", names(stacks)[[i]])
-    if (length(vals$stacks) == 0) {
+    if (length(parent$stacks) == 0) {
       stack_color <- colors[1]
     } else {
-      stack_color <- colors[length(vals$stacks) * 5]
+      stack_color <- colors[length(parent$stacks) * 5]
     }
 
-    vals$stacks <- c(vals$stacks, stack_id)
+    parent$stacks <- c(parent$stacks, stack_id)
 
     list(
       id = stack_id,
@@ -1224,12 +1175,11 @@ create_combos_data_from_stacks <- function(
 #' links and stacks.
 #'
 #' @keywords internal
-#' @param vals Module internal reactive values.
 #' @param rv Board reactive values. Read-only
 #' @param parent Global app reactive values.
 #' @param session Shiny session
 #' @rdname cold-start
-cold_start <- function(vals, rv, parent, session) {
+cold_start <- function(rv, parent, session) {
   ns <- session$ns
   # Cold start
   links <- board_links(rv$board)
@@ -1239,7 +1189,7 @@ cold_start <- function(vals, rv, parent, session) {
   edges_data <- create_edges_data_from_links(links)
   combos_data <- create_combos_data_from_stacks(
     stacks,
-    vals,
+    parent,
     board_option("stacks_colors", rv$board)
   )
   nodes_data <- create_nodes_data_from_blocks(blocks, stacks)
