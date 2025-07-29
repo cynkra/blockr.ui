@@ -83,10 +83,23 @@ testServer(
       dot_args$parent,
       session
     )
+
+    test_dock <- list()
+    test_dock[["panels"]] <- setNames(
+      list(id = "dashboard"),
+      "dashboard"
+    )
+    session$setInputs(layout_state = test_dock)
+
     expect_true(is_block(dot_args$parent$added_block))
     expect_false(dot_args$parent$in_grid[[block_uid(
       dot_args$parent$added_block
     )]])
+
+    # Select block
+    dot_args$parent$selected_block <- block_uid(
+      dot_args$parent$added_block
+    )
 
     # Add to dashboard
     dot_args$parent$added_to_dashboard <- block_uid(dot_args$parent$added_block)
