@@ -14,7 +14,7 @@ mock_add_block <- function(blk, board_update, parent, session) {
   session$flushReact()
 }
 
-create_mock_params <- function(board = new_dash_board()) {
+create_mock_params <- function(board = new_dag_board()) {
   list(
     x = board,
     plugins = dash_board_plugins(
@@ -39,7 +39,7 @@ create_mock_params <- function(board = new_dash_board()) {
   )
 }
 
-test_board_server <- function(board = new_dash_board()) {
+test_board_server <- function(board = new_dag_board()) {
   testServer(
     board_server,
     args = create_mock_params(noard),

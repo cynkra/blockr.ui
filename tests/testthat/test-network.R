@@ -94,12 +94,31 @@ mocked_network_state <- list(
   combos = list()
 )
 
+modules <- board_modules(new_dag_board())
+
+ctx_menu_items <- unlst(
+  c(
+    list(
+      list(
+        create_edge_ctxm,
+        remove_node_ctxm,
+        remove_edge_ctxm,
+        append_node_ctxm,
+        create_stack_ctxm,
+        remove_stack_ctxm,
+        add_block_ctxm
+      )
+    ),
+    lapply(modules, board_module_context_menu)
+  )
+)
+
 testServer(
-  add_rm_link_server,
+  gen_add_rm_link_server(ctx_menu_items),
   args = list(
     board = reactiveValues(
       blocks = list(),
-      board = new_dash_board(
+      board = new_dag_board(
         #blocks = c(
         #  a = new_dataset_block("BOD"),
         #  b = new_dataset_block("ChickWeight"),
@@ -158,67 +177,67 @@ testServer(
     session$flushReact()
 
     # Cold start
-    dot_args$parent$cold_start <- FALSE
+    parent$cold_start <- FALSE
     session$flushReact()
-    expect_identical(dot_args$parent$refreshed, "network")
+    expect_identical(parent$refreshed, "network")
     # TBD does this even do something?
 
     # TBD mock: g6_state to get input[["network-state"]]
     session$setInputs("network-state" = list())
-    expect_s3_class(dot_args$parent$network, "network")
+    expect_s3_class(parent$network, "network")
 
     # Check output
     output$network
 
     # Display code
-    expect_false(dot_args$parent$display_code)
+    expect_false(parent$display_code)
     session$setInputs("show_code" = TRUE)
-    expect_true(dot_args$parent$display_code)
+    expect_true(parent$display_code)
 
     # Tigger add block
-    expect_null(dot_args$parent$scoutbar$trigger)
-    expect_false(dot_args$parent$open_scoutbar)
+    expect_null(parent$scoutbar$trigger)
+    expect_false(parent$open_scoutbar)
     session$setInputs("add_block" = TRUE)
-    expect_true(dot_args$parent$open_scoutbar)
+    expect_true(parent$open_scoutbar)
     expect_identical(
-      dot_args$parent$scoutbar$trigger,
+      parent$scoutbar$trigger,
       "links"
     )
 
     # Trigger save board
-    expect_false(dot_args$parent$save_board)
+    expect_false(parent$save_board)
     session$setInputs("save_board" = TRUE)
-    expect_true(dot_args$parent$save_board)
+    expect_true(parent$save_board)
 
     # Trigger browse snapshots
     session$setInputs("browse_snapshots" = TRUE)
-    expect_true(dot_args$parent$open_scoutbar)
+    expect_true(parent$open_scoutbar)
     expect_identical(
-      dot_args$parent$scoutbar$trigger,
+      parent$scoutbar$trigger,
       "serialize"
     )
 
-    dot_args$parent$scoutbar$is_open <- TRUE
+    parent$scoutbar$is_open <- TRUE
     session$flushReact()
 
     # Added block
-    dot_args$parent$append_block <- TRUE
+    parent$append_block <- TRUE
     session$setInputs("network-selected_node" = "test")
     mock_add_block(
       test_blk,
       board,
-      dot_args$parent,
+      parent,
       session
     )
     expect_null(update())
-    expect_null(dot_args$parent$added_edge)
-    expect_identical(dot_args$parent$cancelled_edge, "test")
+    expect_null(parent$added_edge)
+    expect_identical(parent$cancelled_edge, "test")
 
     # Append block
-    dot_args$parent$append_block <- FALSE
+    parent$append_block <- FALSE
     session$setInputs("append_node" = TRUE)
-    expect_true(dot_args$parent$append_block)
-    expect_identical(dot_args$parent$scoutbar$trigger, "links")
+    expect_true(parent$append_block)
+    expect_identical(parent$scoutbar$trigger, "links")
 
     # Mock add other block (+ append)
     select_blk <- new_select_block()
@@ -226,16 +245,16 @@ testServer(
     mock_add_block(
       select_blk,
       board,
-      dot_args$parent,
+      parent,
       session
     )
-    expect_s3_class(dot_args$parent$added_edge, "links")
-    link <- as.data.frame(dot_args$parent$added_edge[[1]])
+    expect_s3_class(parent$added_edge, "links")
+    link <- as.data.frame(parent$added_edge[[1]])
     expect_identical(link$from, "test")
     expect_identical(link$to, "select_test")
     expect_identical(link$input, "data")
-    expect_identical(update()$links$add, dot_args$parent$added_edge)
-    expect_false(dot_args$parent$append_block)
+    expect_identical(update()$links$add, parent$added_edge)
+    expect_false(parent$append_block)
 
     # TBD Add edge
     head_blk <- new_head_block(n = 2)
@@ -243,7 +262,7 @@ testServer(
     mock_add_block(
       head_blk,
       board,
-      dot_args$parent,
+      parent,
       session
     )
     session$setInputs(
@@ -253,69 +272,70 @@ testServer(
         id = "dummy_edge_id"
       )
     )
-    expect_identical(update()$links$add, dot_args$parent$added_edge)
-    link <- as.data.frame(dot_args$parent$added_edge[[1]])
+    expect_identical(update()$links$add, parent$added_edge)
+    link <- as.data.frame(parent$added_edge[[1]])
     expect_identical(link$from, "select_test")
     expect_identical(link$to, "head_test")
     expect_identical(link$input, "data")
 
     # Remove last added edge
     expect_null(update()$links$rm)
-    session$setInputs("removed_edge" = dot_args$parent$added_edge$id)
+    session$setInputs("remove_edge" = parent$added_edge$id)
     expect_identical(
       update()$links$rm,
-      input$removed_edge
+      input$remove_edge
     )
 
     # Create stack
-    expect_null(vals$stacks)
+    expect_null(parent$stacks)
     session$setInputs("create_stack" = TRUE)
     session$setInputs(
       "new_stack" = 1,
       "new_stack_nodes" = board_block_ids(board$board),
       "stack_color" = "#DF5A21"
     )
-    expect_identical(dot_args$parent$added_stack, input$new_stack_nodes)
+    expect_identical(parent$added_stack, input$new_stack_nodes)
     mock_add_stack(
       "new_stack",
-      dot_args$parent$added_stack,
+      parent$added_stack,
       board,
       session
     )
     expect_identical(board_stack_ids(board$board), "new_stack")
-    expect_identical(vals$stacks, "combo-new_stack")
+    expect_identical(parent$stacks, "combo-new_stack")
 
     # Remove stack
-    expect_null(dot_args$parent$removed_stack)
+    expect_null(parent$removed_stack)
     session$setInputs("remove_stack" = "combo-new_stack")
-    expect_identical(dot_args$parent$removed_stack, "new_stack")
-    expect_length(vals$stacks, 0)
+    expect_identical(parent$removed_stack, "new_stack")
+    expect_length(parent$stacks, 0)
 
     # TBD: how to do stack_added_block/stack_removed_block?
 
     # Add/Remove to/from dashboard
-    expect_null(dot_args$parent$in_grid[[dot_args$parent$selected_block]])
-    session$setInputs("add_to_dashboard" = TRUE)
-    expect_true(dot_args$parent$in_grid[[dot_args$parent$selected_block]])
-    session$setInputs("remove_from_dashboard" = TRUE)
-    expect_false(dot_args$parent$in_grid[[dot_args$parent$selected_block]])
+    expect_null(parent$removed_from_dashboard)
+    expect_null(parent$added_to_dashboard)
+    session$setInputs("add_to_dashboard" = parent$selected_block)
+    expect_identical(parent$added_to_dashboard, parent$selected_block)
+    session$setInputs("remove_from_dashboard" = parent$selected_block)
+    expect_identical(parent$removed_from_dashboard, parent$selected_block)
 
     # Removed node and block
     session$setInputs("removed_node" = "select_test")
-    expect_identical(dot_args$parent$removed_block, "select_test")
-    expect_identical(dot_args$parent$removed_edge, board_links(board$board)$id)
+    expect_identical(parent$removed_block, "select_test")
+    expect_identical(parent$removed_edge, board_links(board$board)$id)
     mock_remove_block(
       "select_test",
       board,
-      dot_args$parent,
+      parent,
       session
     )
 
     # Selected block
-    expect_identical(dot_args$parent$selected_block, "test")
+    expect_identical(parent$selected_block, "test")
 
     # Restore state: maybe TBD setup a mocked network from json object
-    dot_args$parent$refreshed <- "board"
+    parent$refreshed <- "board"
     session$flushReact()
   }
 )

@@ -1,12 +1,12 @@
 test_that("get_block_registry works", {
-  expect_error(get_block_registry(character()))
-  res <- get_block_registry(new_dataset_block())
-  expect_s3_class(res, "registry_entry")
-  expect_identical(attr(res, "ctor_name"), "new_dataset_block")
+  expect_error(get_block_metadata(character()))
+  res <- get_block_metadata(new_dataset_block())
+  expect_type(res, "list")
+  expect_named(res, c("category", "name", "description", "package"))
 })
 
 
-my_board <- new_dash_board(blocks = new_dataset_block())
+my_board <- new_dag_board(blocks = new_dataset_block())
 
 test_that("block ui works", {
   ui <- block_ui(

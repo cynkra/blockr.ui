@@ -1,5 +1,5 @@
 test_that("generate_code_ui works", {
-  ui <- generate_code_ui("mod", new_dash_board())
+  ui <- generate_code_ui("mod", new_dag_board())
   expect_null(ui)
 })
 
@@ -31,7 +31,7 @@ testServer(
   args = list(
     board = reactiveValues(
       blocks = list(),
-      board = new_dash_board(),
+      board = new_dag_board(),
       inputs = list()
     ),
     parent = reactiveValues(

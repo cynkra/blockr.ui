@@ -17,7 +17,7 @@ mock_add_block <- function(blk, rv, parent, session) {
 #   args = list(
 #     board = reactiveValues(
 #       blocks = list(),
-#       board = new_dash_board(),
+#       board = new_dag_board(),
 #       board_id = "board"
 #     ),
 #     # dot_args
@@ -86,7 +86,7 @@ mock_add_block <- function(blk, rv, parent, session) {
 # )
 
 test_that("ser_deser_ui works", {
-  ui <- ser_deser_ui("mod", new_dash_board())
+  ui <- ser_deser_ui("mod", new_dag_board())
   expect_length(ui, 2)
   expect_named(ui, c("buttons", "restore"))
 })

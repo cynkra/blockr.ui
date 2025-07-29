@@ -32,7 +32,7 @@ testServer(
   args = list(
     board = reactiveValues(
       blocks = list(),
-      board = new_dash_board(),
+      board = new_dag_board(),
       board_id = "board",
       inputs = list(),
       links = list(),
