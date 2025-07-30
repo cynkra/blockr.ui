@@ -23,8 +23,7 @@ You can install the development version of blockr.ui from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("cynkra/blockr.ui")
+pak::pak("BristolMyersSquibb/blockr.ui")
 ```
 
 ## Example

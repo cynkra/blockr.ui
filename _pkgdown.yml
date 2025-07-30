@@ -2,3 +2,15 @@ url: https://bristolmyerssquibb.github.io/blockr.ui/
 template:
   bootstrap: 5
 
+navbar:
+  structure:
+    left:  [extend]
+    right: [search, reference, news, github]
+  components:
+    home: ~
+
+    extend:
+      text: Extend
+      menu:
+        - text: Add modules
+          href: articles/app-modules.html
