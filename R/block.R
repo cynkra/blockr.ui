@@ -162,9 +162,7 @@ show_block_panel <- function(id, parent, session) {
   session$sendCustomMessage(
     "show-block",
     list(
-      offcanvas_input = ns("offcanvas_state"),
       block_id = sprintf("#%s", ns(id)),
-      block_raw_id = id,
       panel_id = sprintf("#%s", ns(paste0("layout-block-", id)))
     )
   )
@@ -182,9 +180,7 @@ hide_block_panel <- function(id, session) {
   session$sendCustomMessage(
     "hide-block",
     list(
-      offcanvas_input = ns("offcanvas_state"),
       offcanvas = sprintf("#%s", ns("offcanvas")),
-      block_raw_id = strsplit(id, "block-")[[1]][2],
       block_id = sprintf("#%s", ns(paste0("layout-", id)))
     )
   )

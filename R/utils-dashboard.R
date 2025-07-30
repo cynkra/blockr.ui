@@ -82,8 +82,14 @@ remove_blk_from_dashboard <- function(id, session) {
 #' @export
 #' @rdname restore-dashboard
 restore_dashboard.dag_board <- function(board, rv, parent, session) {
-  parent$in_grid <- NULL
+  parent$in_grid <- list()
   ids <- names(rv$blocks)
+
+  if (!length(ids)) {
+    parent$refreshed <- "grid"
+    return(NULL)
+  }
+
   in_grid_ids <- find_blocks_ids(rv$board, parent, session)
 
   # When the dock was empty, we still need to initialise the block state

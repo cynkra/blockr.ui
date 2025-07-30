@@ -154,7 +154,8 @@ gen_add_rm_link_server <- function(context_menu) {
         # Rules:
         # - The dragged target must exist.
         # - We can't drag the edge on the current selected node (avoid loops).
-        # - A node that has already all input slots connected can't received any incoming connection.
+        # - A node that has already all input slots connected
+        # can't received any incoming connection.
         # data block can't receive input data. Transform block receive
         # as many input data as slot they have (1 for select, 2 for join, ...).
         observeEvent(input$added_edge, {

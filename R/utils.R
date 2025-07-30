@@ -56,6 +56,8 @@ process_app_state <- function(state) {
               \(node) {
                 node$x <- NULL
                 node$y <- NULL
+                node$style$x <- NULL
+                node$style$y <- NULL
                 node
               }
             )
@@ -67,6 +69,8 @@ process_app_state <- function(state) {
               \(combo) {
                 combo$x <- NULL
                 combo$y <- NULL
+                combo$style$x <- NULL
+                combo$style$y <- NULL
                 combo
               }
             )
@@ -75,6 +79,9 @@ process_app_state <- function(state) {
         } else {
           state[[nme]]
         }
+      } else if (nme == "backup_list") {
+        state[[nme]] <- list()
+        state[[nme]]
       } else {
         state[[nme]]
       }
