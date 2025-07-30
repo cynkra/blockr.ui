@@ -344,3 +344,50 @@ test_that("network ui works", {
   ui <- add_rm_link_ui("mod", new_board())
   expect_s3_class(ui, "shiny.tag.list")
 })
+
+test_that("create_nodes_data_from_blocks works", {
+  blocks <- as_blocks(new_dataset_block())
+  stacks <- as_stacks(new_stack(blocks = blocks))
+  res <- create_nodes_data_from_blocks(
+    blocks = blocks,
+    stacks = stacks
+  )
+  expect_type(res, "list")
+  expect_length(res, 1)
+
+  dat <- res[[1]]
+  expect_named(dat, c("id", "label", "style", "combo"))
+  expect_identical(dat$id, names(blocks)[[1]])
+  expect_identical(dat$combo, sprintf("combo-%s", names(stacks)[[1]]))
+  expect_type(dat$style, "list")
+})
+
+test_that("create_edges_data_from_links works", {
+  links <- as_links(new_link("a", "b", "data"))
+  res <- create_edges_data_from_links(links)
+  expect_type(res, "list")
+  expect_length(res, 1)
+
+  dat <- res[[1]]
+  links_df <- as.data.frame(links)
+  expect_named(dat, c("id", "type", "source", "target", "label"))
+  expect_identical(dat$id, links_df$id)
+  expect_identical(dat$source, links_df$from)
+  expect_identical(dat$target, links_df$to)
+  expect_identical(dat$label, links_df$input)
+})
+
+test_that("create_combos_data_from_stacks works", {
+  stacks <- as_stacks(new_stack())
+  parent <- list(stacks = NULL)
+  colors <- board_option("stacks_colors", new_dag_board())
+  res <- create_combos_data_from_stacks(stacks, parent, colors)
+  expect_type(res, "list")
+  expect_length(res, 1)
+
+  dat <- res[[1]]
+  expect_named(dat, c("id", "label", "style"))
+  expect_identical(dat$id, sprintf("combo-%s", names(stacks)[[1]]))
+  expect_identical(dat$label, names(stacks)[[1]])
+  expect_type(dat$style, "list")
+})

@@ -162,6 +162,21 @@ testServer(
     expect_false(dot_args$parent$append_block)
     expect_false(dot_args$parent$open_scoutbar)
     expect_false(dot_args$parent$scoutbar$is_open)
+
+    # Hide block panel in app layout
+    mock_add_block(
+      new_dataset_block("mtcars"),
+      board_update,
+      dot_args$parent,
+      session
+    )
+    test_dock <- list()
+    test_dock[["panels"]] <- setNames(
+      list(id = block_uid(dot_args$parent$added_block)),
+      sprintf("block-%s", block_uid(dot_args$parent$added_block))
+    )
+    session$setInputs(layout_state = test_dock)
+    session$setInputs("layout_panel-to-remove" = dot_args$parent$added_block)
   }
 )
 
