@@ -1,0 +1,159 @@
+{
+  "input": {
+    "main-board-manage_links-network-initialized": true
+  },
+  "export": {
+    "main-res": {
+      "cold_start": false,
+      "refreshed": "network",
+      "network": {
+        "nodes": [
+          {
+            "id": "a",
+            "label": "dataset_block \n id: a",
+            "style": {
+              "labelBackgroundFill": "#a0cafa",
+              "zIndex": 1,
+              "z": 0,
+              "fill": "#1783FF",
+              "badges": [
+
+              ]
+            },
+            "combo": "combo-ac",
+            "data": {
+
+            }
+          },
+          {
+            "id": "b",
+            "label": "dataset_block \n id: b",
+            "style": {
+              "labelBackgroundFill": "#a0cafa",
+              "zIndex": 0,
+              "z": 0,
+              "fill": "#1783FF",
+              "badges": [
+
+              ]
+            },
+            "data": {
+
+            }
+          },
+          {
+            "id": "c",
+            "label": "merge_block \n id: c",
+            "style": {
+              "labelBackgroundFill": "#a0cafa",
+              "zIndex": 1,
+              "z": 0,
+              "fill": "#1783FF",
+              "badges": [
+
+              ]
+            },
+            "combo": "combo-ac",
+            "data": {
+
+            }
+          }
+        ],
+        "edges": [
+          {
+            "id": "ac",
+            "type": "fly-marker-cubic",
+            "source": "a",
+            "target": "c",
+            "label": "x",
+            "style": {
+              "zIndex": 0,
+              "stroke": "#000",
+              "badgeText": null,
+              "sourceNode": "a",
+              "targetNode": "c"
+            },
+            "data": {
+
+            },
+            "states": [
+
+            ]
+          },
+          {
+            "id": "bc",
+            "type": "fly-marker-cubic",
+            "source": "b",
+            "target": "c",
+            "label": "y",
+            "style": {
+              "zIndex": 0,
+              "sourceNode": "b",
+              "targetNode": "c",
+              "stroke": "#000",
+              "badgeText": null
+            },
+            "data": {
+
+            },
+            "states": [
+
+            ]
+          }
+        ],
+        "combos": [
+          {
+            "id": "combo-ac",
+            "label": "ac",
+            "style": {
+              "stroke": "#A71B4B",
+              "fill": "#A71B4B",
+              "fillOpacity": 0.2,
+              "shadowColor": "#A71B4B",
+              "collapsedFill": "#A71B4B",
+              "collapsedStroke": "#A71B4B",
+              "iconFill": "#A71B4B",
+              "labelPlacement": "top",
+              "zIndex": 0,
+              "z": 0
+            },
+            "data": {
+
+            }
+          }
+        ]
+      },
+      "append_block": false,
+      "added_block": null,
+      "removed_block": null,
+      "selected_block": null,
+      "cancelled_edge": null,
+      "added_edge": null,
+      "removed_edge": null,
+      "added_stack": null,
+      "stack_added_block": null,
+      "stack_removed_block": null,
+      "removed_stack": null,
+      "stacks": "combo-ac",
+      "open_scoutbar": false,
+      "scoutbar": {
+        "is_open": false
+      },
+      "save_board": false,
+      "backup_list": [
+
+      ],
+      "display_code": false,
+      "removed_from_dashboard": null,
+      "added_to_dashboard": null,
+      "grid": [
+
+      ],
+      "in_grid": {
+        "a": false,
+        "b": false,
+        "c": false
+      }
+    }
+  }
+}

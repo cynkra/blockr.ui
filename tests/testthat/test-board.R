@@ -176,39 +176,42 @@ testServer(
       sprintf("block-%s", block_uid(dot_args$parent$added_block))
     )
     session$setInputs(layout_state = test_dock)
-    session$setInputs("layout_panel-to-remove" = dot_args$parent$added_block)
+    session$setInputs(
+      "layout_panel-to-remove" = sprintf(
+        "block-%s",
+        block_uid(dot_args$parent$added_block)
+      )
+    )
   }
 )
 
-# test_that("Board dock app works", {
-#   skip_on_cran()
+test_that("Board dock app works", {
+  skip_on_cran()
 
-#   app <- AppDriver$new(
-#     system.file(package = "blockr.ui", "examples/dashboard/dock"),
-#     name = "dashboard-dock-app",
-#     seed = 4323
-#   )
+  # We test from an existing dock so that we can fix block, stack and link IDs
+  # to avoid randomness failure
+  app <- AppDriver$new(
+    system.file(package = "blockr.ui", "examples/dashboard/non-empty"),
+    name = "dashboard-non-empty-app",
+    seed = 4323
+  )
 
-#   inputs <- c(
-#     "main-board-manage_blocks-scoutbar-configuration",
-#     "main-board-manage_links-network_initialized",
-#     "main-board-lock",
-#     "main-board-properties",
-#     "main-board-dashboard"
-#   )
+  Sys.sleep(2)
 
-#   app$expect_values(input = inputs, export = TRUE)
+  inputs <- c(
+    "main-board-manage_blocks-scoutbar-configuration",
+    "main-board-manage_links-network-initialized"
+  )
 
-#   # Add block
-#   app$click(selector = ".g6-toolbar-item[value=\"add-block\"")
-#   app$wait_for_idle()
-#   app$click(
-#     selector = ".scout__bar-wrapper button[aria-label=\"dataset_block\"]"
-#   )
-#   app$wait_for_idle()
-#   app$expect_values(input = inputs, export = TRUE)
-#   app$click("main-board-manage_blocks-remove_block")
-#   app$wait_for_idle()
-#   app$expect_values(input = inputs, export = TRUE)
-#   app$stop()
-# })
+  app$expect_values(input = inputs, export = TRUE)
+
+  # Add block: is there a way to fix the block ID?
+  #app$click(selector = ".g6-toolbar-item[value=\"add-block\"")
+  #app$wait_for_idle()
+  #app$click(
+  #  selector = ".scout__bar-wrapper button[aria-label=\"dataset_block@add_block\"]"
+  #)
+  #app$wait_for_idle()
+  #app$expect_values(input = inputs, export = TRUE)
+  app$stop()
+})
