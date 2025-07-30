@@ -141,6 +141,27 @@ testServer(
       dot_args$parent,
       session
     )
+    expect_null(dot_args$parent$in_grid[[dot_args$parent$removed_block]])
+
+    # Refresh
+    dot_args$parent$refreshed <- "network"
+    session$flushReact()
+    expect_identical(dot_args$parent$refreshed, "grid")
+
+    # Scoutbar
+    session$setInputs("scoutbar" = "dataset_block@add_block")
+    expect_identical(dot_args$parent$scoutbar$action, "add_block")
+    expect_identical(dot_args$parent$scoutbar$value, "dataset_block")
+
+    dot_args$parent$open_scoutbar <- TRUE
+    session$flushReact()
+
+    dot_args$parent$append_block <- TRUE
+
+    session$setInputs("scoutbar-open" = FALSE)
+    expect_false(dot_args$parent$append_block)
+    expect_false(dot_args$parent$open_scoutbar)
+    expect_false(dot_args$parent$scoutbar$is_open)
   }
 )
 
