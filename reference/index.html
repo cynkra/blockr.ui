@@ -50,6 +50,12 @@
         <dd>blockr.ui dependencies utils</dd>
       </dl><dl><dt>
 
+          <code><a href="add_busy_load_deps.html">add_busy_load_deps()</a></code>
+
+        </dt>
+        <dd>busy-load dependencies utils</dd>
+      </dl><dl><dt>
+
           <code><a href="add_rm_block.html">add_rm_block_server()</a></code> <code><a href="add_rm_block.html">add_rm_block_ui()</a></code>
 
         </dt>
@@ -62,25 +68,31 @@
         <dd>Add/remove block stacks module</dd>
       </dl><dl><dt>
 
-          <code><a href="add_rm_link.html">add_rm_link_server()</a></code> <code><a href="add_rm_link.html">add_rm_link_ui()</a></code>
+          <code><a href="add_rm_link.html">gen_add_rm_link_server()</a></code> <code><a href="add_rm_link.html">add_rm_link_ui()</a></code>
 
         </dt>
         <dd>Add/remove block links module</dd>
       </dl><dl><dt>
 
-          <code><a href="block_ui.html">block_ui(<i>&lt;dash_board&gt;</i>)</a></code> <code><a href="block_ui.html">remove_block_ui(<i>&lt;dash_board&gt;</i>)</a></code>
+          <code><a href="block-panel.html">show_block_panel()</a></code> <code><a href="block-panel.html">hide_block_panel()</a></code>
+
+        </dt>
+        <dd>Show a block panel</dd>
+      </dl><dl><dt>
+
+          <code><a href="block_ui.html">block_ui(<i>&lt;dag_board&gt;</i>)</a></code> <code><a href="block_ui.html">insert_block_ui(<i>&lt;dag_board&gt;</i>)</a></code> <code><a href="block_ui.html">remove_block_ui(<i>&lt;dag_board&gt;</i>)</a></code>
 
         </dt>
         <dd>Block custom UI</dd>
       </dl><dl><dt>
 
-          <code><a href="blockr_ser.html">blockr_ser(<i>&lt;dash_board&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_ser(<i>&lt;dock&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_ser(<i>&lt;network&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_ser(<i>&lt;data.frame&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_deser(<i>&lt;dash_board&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_deser(<i>&lt;dock&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_deser(<i>&lt;network&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_deser(<i>&lt;data.frame&gt;</i>)</a></code>
+          <code><a href="blockr_ser.html">blockr_ser(<i>&lt;dag_board&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_ser(<i>&lt;dock&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_ser(<i>&lt;network&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_ser(<i>&lt;data.frame&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_deser(<i>&lt;dag_board&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_deser(<i>&lt;dock&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_deser(<i>&lt;network&gt;</i>)</a></code> <code><a href="blockr_ser.html">blockr_deser(<i>&lt;data.frame&gt;</i>)</a></code>
 
         </dt>
         <dd>Ser/deser board</dd>
       </dl><dl><dt>
 
-          <code><a href="board_ui.html">board_ui(<i>&lt;dash_board&gt;</i>)</a></code>
+          <code><a href="board_ui.html">board_ui(<i>&lt;board_options&gt;</i>)</a></code> <code><a href="board_ui.html">update_ui(<i>&lt;board_options&gt;</i>)</a></code> <code><a href="board_ui.html">board_ui(<i>&lt;dag_board&gt;</i>)</a></code>
 
         </dt>
         <dd>Custom board UI</dd>
@@ -116,16 +128,16 @@
         <dd>Create a Bootstrap dropdown</dd>
       </dl><dl><dt>
 
-          <code><a href="gen_code.html">gen_code_ui()</a></code>
+          <code><a href="gen_code.html">generate_code_ui()</a></code>
 
         </dt>
         <dd>Code generation module</dd>
       </dl><dl><dt>
 
-          <code><a href="init-dashboard-state.html">init_dashboard_state()</a></code>
+          <code><a href="generate_code.html">generate_code_server()</a></code>
 
         </dt>
-        <dd>Init dashboard state generic</dd>
+        <dd>Code generation plugin module</dd>
       </dl><dl><dt>
 
           <code><a href="list_empty_connections.html">list_empty_connections()</a></code>
@@ -140,10 +152,10 @@
         <dd>Main ui for blockr2</dd>
       </dl><dl><dt>
 
-          <code><a href="manage-dashboard.html">add_dashboard_block()</a></code> <code><a href="manage-dashboard.html">remove_dashboard_block()</a></code> <code><a href="manage-dashboard.html">manage_dashboard()</a></code>
+          <code><a href="new_board_module.html">new_board_module()</a></code>
 
         </dt>
-        <dd>Add block to dashboard generic</dd>
+        <dd>Create a board module</dd>
       </dl><dl><dt>
 
           <code><a href="off_canvas.html">off_canvas()</a></code>
@@ -152,19 +164,13 @@
         <dd>Create a Bootstrap Off-Canvas Element</dd>
       </dl><dl><dt>
 
-          <code><a href="plugins.html">dash_board_plugins()</a></code>
-
-        </dt>
-        <dd>Register custom board plugins</dd>
-      </dl><dl><dt>
-
           <code><a href="restore-dashboard.html">restore_dashboard()</a></code> <code><a href="restore-dashboard.html">find_blocks_ids()</a></code>
 
         </dt>
         <dd>Restore dashboard state from board state</dd>
       </dl><dl><dt>
 
-          <code><a href="run_demo_app.html">run_demo_app()</a></code> <code><a href="run_demo_app.html">new_dash_board()</a></code>
+          <code><a href="run_demo_app.html">run_demo_app()</a></code> <code><a href="run_demo_app.html">new_dag_board()</a></code>
 
         </dt>
         <dd>Demo app</dd>
@@ -174,12 +180,6 @@
 
         </dt>
         <dd>Serialization module</dd>
-      </dl><dl><dt>
-
-          <code><a href="update-dashboard-state.html">update_dashboard_state()</a></code>
-
-        </dt>
-        <dd>Update block dashboard state generic</dd>
       </dl></div>
   </main></div>
 

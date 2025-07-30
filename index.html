@@ -73,13 +73,12 @@
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">blockr.sdtm</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">blockr.io</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span><span class="st">"DASHBOARD_TYPE"</span> <span class="op">=</span> <span class="st">"dock"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/run_demo_app.html">run_demo_app</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <blockquote>
 <p><strong>Note</strong></p>
 <p>The demo below runs with shinylive. Not all feature may work as expected due to compatibility issues with webR.</p>
 </blockquote>
-<iframe class="border border-5 rounded shadow-lg" src="https://shinylive.io/r/app/#h=0&amp;code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAdzgCMAnRRASwgGdSoAbbgCgA6YOtyIEA1gwwBXFkNwACBnFRF2CgLwKhAC1KlU7RAHpjBAJ4RJUDAHMWpHdLoYWRYyLGSMtOlmNCAJQCEL5MrBxcvILCohJSACao3OYM8koqapraYHoGRqYWVgw29o7Oru6e8T70-kEhYcxsnDz8QtXe7AmkMOnKqupauvqGJmaW1nYOTi5uHnHevvVgwaH04S1R7bFeUm79mUM5eWOFkyXT5XNVi1LLAash3CyMUAzmfJ1Ssmsvbx8vncMEkUgw-q8SoDvhhur0IQDPjC3GsQgBlczsWFwcgQABuMQAIgBBNEACQAQgB5YlYQkAfQAKgBNAAKAFEhNkhAkvA0IAxpBB6Qk4DAiPS0Kg+IEwABfAC6QA" style="zoom: 0.75;" width="100%" height="1100px">
+<iframe class="border border-5 rounded shadow-lg" src="https://shinylive.io/r/app/#h=0&amp;code=NobwRAdghgtgpmAXGKAHVA6ASmANGAYwHsIAXOMpMAdzgCMAnRRASwgGdSoAbbgCgA6YOtyIEA1gwwBXFkNwACBnFRF2CgLwKhAC1KlU7RAHpjBAJ4RJUDAHMWpHdLoYWRYyLGSMtOlmNCAJQCEL5MrBxcvILCohJSACao3OYM8koqapraYHoGRqYWVgw29o7Oru6e8T70-kEhYcxsnDz8QtXe7AmkMOnKqupauvqGJmaW1nYOTi5uHnHevvVgwaH04S1R7bFeUm79mUM5eWOFkyXT5XNVi1LLAash3CyMUAzmfJ1Ssmsvbx8vncMEkUgw-q8SoDvhhur0IQDPjC3GsQgxpBAAPoJOAwIiYtCoPiBMAAXwAukA" style="zoom: 0.75;" width="100%" height="1100px">
 </iframe>
 </div>
 <div class="section level2">
@@ -92,12 +91,9 @@
 <li>
 <code>STACKS_COLOR_PALETTE</code>: the color palette type. Default is <code>spectral</code>. We use <code>hcl.colors</code> to setup the palette.</li>
 <li>
-<code>DASHBOARD_TYPE</code>: Default is <code>dock</code> to leverage <a href="https://github.com/cynkra/dockViewR" class="external-link">dockViewR</a>. Other implementation may come later.
-<ul>
+<code>SNAPSHOT_LOCATION</code>: The location where to save the snapshots of the blocks. Default is <code><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir()</a></code>. This is used to save the blocks in the browser’s local storage.</li>
 <li>
-<code>DOCK_THEME</code>: when <code>DASHBOARD_TYPE</code> is <code>dock</code> you can customize the dock skin. Choose among <code>c("light", "abyss", "dark", "vs", "dracula", "replit")</code>. Default is <code>replit</code>.</li>
-</ul>
-</li>
+<code>AUTO_SNAPSHOT</code>: Whether to automatically save the blocks in the browser’s local storage. Default is <code>FALSE</code> (not stable at the moment).</li>
 </ul>
 </div>
 <div class="section level2">
