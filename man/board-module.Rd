@@ -2,6 +2,7 @@
 % Please edit documentation in R/utils-module.R
 \name{new_board_module}
 \alias{new_board_module}
+\alias{new_dashboard_module}
 \title{Create a board module}
 \usage{
 new_board_module(
@@ -13,6 +14,8 @@ new_board_module(
   position = NULL,
   class = character()
 )
+
+new_dashboard_module(id = "dashboard", title = "Dashboard")
 }
 \arguments{
 \item{ui, server}{UI and server functions}

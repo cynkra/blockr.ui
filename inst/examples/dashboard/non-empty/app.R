@@ -1,4 +1,3 @@
-library(blockr.core)
 library(blockr.ui)
 
 run_demo_app(

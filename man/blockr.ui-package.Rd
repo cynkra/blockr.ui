@@ -11,8 +11,9 @@ Provides a web-based point and click interface for creating data pipelines and v
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/cynkra/blockr.ui}
-  \item Report bugs at \url{https://github.com/cynkra/blockr.ui/issues}
+  \item \url{https://github.com/BristolMyersSquibb/blockr.ui/}
+  \item \url{https://bristolmyerssquibb.github.io/blockr.ui/}
+  \item Report bugs at \url{https://github.com/BristolMyersSquibb/blockr.ui/issues}
 }
 
 }

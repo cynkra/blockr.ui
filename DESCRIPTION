@@ -64,3 +64,5 @@ BugReports: https://github.com/BristolMyersSquibb/blockr.ui/issues
 Depends: 
     R (>= 2.10)
 Config/Needs/website: rmarkdown
+VignetteBuilder:
+  quarto
