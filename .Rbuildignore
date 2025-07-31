@@ -21,3 +21,5 @@ _\.new\.png$
 ^esbuild\.dev\.js$
 ^esbuild\.prod\.js$
 ^codecov\.yml$
+^vignettes/articles$
+^vignettes/*_files$

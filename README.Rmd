@@ -29,15 +29,14 @@ The goal of blockr.ui is to provide an alternative user interface for `{blockr.c
 You can install the development version of blockr.ui from [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("cynkra/blockr.ui")
+pak::pak("BristolMyersSquibb/blockr.ui")
 ```
 
 ## Example
 
 To run the demo app:
 
-```{r, eval=FALSE, echo = TRUE}
+``` r
 library(blockr.ui)
 library(blockr.dplyr)
 library(blockr.sdtm)
@@ -46,20 +45,32 @@ library(blockr.io)
 run_demo_app()
 ```
 
-### Create a new block
-![](./man/figures/blockr-new.png)
+## User interface
 
-### Block properties
-![](./man/figures/blockr-properties.png)
+That's how `blockr.ui` looks like. We strived to make it as simple as possible, yet with a totally flexible layout.
+All panels can be resized and rearranged to your liking.
 
-### Append block and invalid state
-![](./man/figures/blockr-invalid.png)
+![](./vignettes/figures/blockr-ui.png)
 
-### Join independant data
-![](./man/figures/blockr-join.png)
+(1) The top navigation bar contains buttons to import or export any existing work you did before.
+(2) The left pipeline panel has a __toolbar__ which exposes quick actions such as:
 
-### Rearrange output on a grid
-![](./man/figures/blockr-dashboard.png)
+    - adding a new block.
+    - Removing a set of selected blocks.
+    - Saving the current work.
+    - Restore a previous state.
+    - Zoom in or out on the network.
+    - ...
+
+(3) In the center of the panel is displayed the current blockr pipeline where __blocks__ are represented as __nodes__ and connections as __edges__. In our example, we have 1 invalid __block__ which __state__ is depicted as orange. The reason is explained in the bottom right corner of the UI where __error__ messages are displayed (in this specific case, the block is missing input data). Blocks can be grouped together within __stacks__, as shown with the grey circle. This is convenient as stacks can be collapsed or expanded, thereby saving significant amount of space in the UI. You can also drag and drop nodes in or out of a stack to add/remove them, respectively. Pretty much all elements on the canvas have a right click action, also known as a __context menu__. For example, right-clicking on a node will show you options to remove it, add another node right after, connect it to another node or add/remove it in the right side dashboard. Right clicking on the canvas will show you options to add a new block or add a new stack. These actions can be customised as explained in the following [vignette](app-modules.html).
+
+(4) The bottom right corner hosts the __properties__ panels. It displays the properties of the any existing block. They can be closed but reappear if you click on the corresponding node in the graph. You can edit these properties directly in the UI, like changing the currently selected data. In future releases, you will be able to change the block name and more.
+
+(5) You may control __global options__ from the top right corner. This opens a menu where some options can be changed, such as the current theme, the dashboard zoom, ...
+
+(6) The right side __dashboard__ is a place to add blocks outputs such as plots, tables or any other output that can be produced by a block. You can add blocks to the dashboard by right-clicking on them and selecting "Add to dashboard" and remove them by right-clicking on the dashboard output and selecting "Remove from dashboard". The dashboard can be resized and each panel can be dragged to rearrange the layout.
+
+(7) The bottom left corner displays the current pipeline __error logs__.
 
 ## App options
 

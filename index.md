@@ -22,12 +22,12 @@ You can install the development version of blockr.ui from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("cynkra/blockr.ui")
+pak::pak("BristolMyersSquibb/blockr.ui")
 ```
 
 <p style="text-align: center;">
-<img src="./man/figures/hex.png" style="width:50.0%" />
+<img src="./man/figures/hex.png" style="width:50.0%"
+alt="blockr.ui hex" />
 </p>
 
 ## Example

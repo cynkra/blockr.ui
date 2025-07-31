@@ -9,6 +9,7 @@
 #' @param class (Optional) additional class(es)
 #'
 #' @export
+#' @rdname board-module
 new_board_module <- function(
   ui,
   server,
@@ -95,6 +96,8 @@ board_module_positions <- function(x) {
   res
 }
 
+#' @export
+#' @rdname board-module
 new_dashboard_module <- function(id = "dashboard", title = "Dashboard") {
   new_board_module(
     dashboard_ui,
@@ -113,6 +116,18 @@ call_board_module_ui <- function(x, ...) {
   board_module_ui(x)(...)
 }
 
+#' Create a context menu entry
+#'
+#' Adds a new entry to the context menu of a board.
+#'
+#' @param name Name of the context menu entry.
+#' @param js JavaScript code to execute when the entry is selected.
+#' @param action Action to perform when the entry is selected.
+#' @param condition Condition to determine if the entry should be shown.
+#' @param id Unique identifier for the context menu entry.
+#' Infered from `name` if not provided.
+#' @rdname context-menu
+#' @export
 new_context_menu_entry <- function(
   name,
   js,

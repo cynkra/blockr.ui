@@ -29,12 +29,11 @@ The goal of blockr.ui is to provide an alternative user interface for [`{blockr.
 You can install the development version of blockr.ui from [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("cynkra/blockr.ui")
+pak::pak("BristolMyersSquibb/blockr.ui")
 ```
 
 <p style="text-align: center;">
-![](./man/figures/hex.png){width="50%"}
+![](./man/figures/hex.png){width="50%" alt="blockr.ui hex"}
 </p>
 
 ## Example

@@ -1,0 +1,192 @@
+---
+title: "App modules"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, message=FALSE}
+library(blockr.ui)
+```
+
+## Introduction
+
+By default, `blockr.ui` exposes a dashboard module to display blocks on a grid. In short, to spin up an app from an existing board, you can do:
+
+```r
+my_board <- new_dag_board(
+  ...,
+  modules = new_dashboard_module()
+)
+
+serve(my_board)
+```
+
+`new_dag_board()` produces a __board__ object with a dashboard module attached to it with `new_dashboard_module()`. The `serve()` function starts a Shiny app.
+`...` is a placeholder for __blocks__, __stacks__ and __links__ that you want to display when the app starts.
+
+## Develop custom extensions
+
+### Creating a new board module
+
+To create a new board module, you can use the `new_board_module()` function. This function takes a `module` argument that defines the module's UI and server logic:
+
+```r
+my_module <- function(id = "dashboard", title = "Dashboard") {
+  new_board_module(
+    module_ui,
+    module_server,
+    id = id,
+    title = title,
+    context_menu = list(
+      # PASS context menu entries here (see below)
+    ),
+    class = "dashboard_module"
+  )
+}
+```
+
+`module_ui` and `module_server` are functions that define the module's user interface and server logic, respectively. The `id` argument is used to identify the module, and the `title` argument is used to display the module's title in the app. The context menu is a list of context menu items that will be available in the app when someone right-clicks on the network.
+
+### Context menu items
+
+A context menu entry is defined as follows with `new_context_menu_entry()`:
+
+```r
+menu_entry <- new_context_menu_entry(
+  name = "Remove from dashboard",
+  js = function(ns) {
+    sprintf(
+      "(value, target, current) => {
+      if (current.id === undefined) return;
+      Shiny.setInputValue('%s', current.id, {priority: 'event'});
+    }",
+      ns("remove_from_dashboard")
+    )
+  },
+  action = function(input, output, session, board, update, parent) {
+    observeEvent(
+      input$remove_from_dashboard,
+      {
+        parent$removed_from_dashboard <- input$remove_from_dashboard
+        parent$in_grid[[parent$removed_from_dashboard]] <- FALSE
+      }
+    )
+  },
+  condition = function(board, parent, target) {
+    target$type == "node" &&
+      target$id %in% names(parent$in_grid) &&
+      parent$in_grid[[target$id]]
+  }
+)
+```
+
+where each parameters is defined as follows:
+
+- `name` is the name of the context menu entry.
+- `js` is a JavaScript function or a string containing a JS function (`() => { ... }`) that defines the behavior of the context menu entry when it is clicked. It can access the `ns` function to get the namespace of the module. This code is evaluated on the client side.
+- `action` is an R function that defines the server-side logic of the context menu entry. It can access the `input`, `output`, `session`, `board`, `update`, and `parent` arguments.
+- `condition` is an R function that defines the condition under which the context menu entry should be displayed. It can access the `board`, `parent`, and `target` arguments.
+
+
+In the above example, the context menu entry is named "Remove from dashboard". It only appears when the target is a __node__ and the node is currently in the dashboard __grid__. When clicked, the element __id__ is recovered from the __client__ and stored within `input$<MODULE_NAMESPACE>-remove_from_dashboard`. The server logic then observes this input and updates the `parent$in_grid` list to remove the node from the grid.
+
+## Example: a custom AI chat
+
+We want to create a custom AI powered chat that will allow us to build blockr pipelines. We leverage `shinychat` and define the server and UI logic as follows:
+
+```r
+chat_ui <- function(id, board, ...) {
+    id <- NS(id, "chat")
+    card(
+      card_header("blockr.ui assistant"),
+      shinychat::chat_mod_ui(
+        id = NS(id, "openai"),
+        messages = list(
+          "Hi! I'll help you to build blockr.ui pipeline with OpenAI's `gpt-4o`."
+        )
+      )
+    )
+}
+
+chat_srv <- function(board, update, session, parent, ...) {
+    moduleServer(
+      "chat",
+      function(input, output, session) {
+        openai <- ellmer::chat_openai(
+          system_prompt = "You are a helpful assistant for developers who want to work with blockr but do not
+          not very well data analysis. Packages are available at: https://github.com/BristolMyersSquibb/blockr.core,
+          https://github.com/BristolMyersSquibb/blockr.dplyr, https://github.com/BristolMyersSquibb/blockr.io, These packages provide
+          blocks such that people can import data with new_dataset_block, transform them with new_select_block and do other things.
+          We also have blockr.ai that basically exposes llm blocks such as new_llm_transform_block and new_llm_plot_block. They
+          are convenient to accomplish tasks for which no block exists yet ... A blockr.ui application allows people to build blockr pipeline
+          step by step by adding block one after each other. 
+          When you are given an order, you will only return the corresponding block 
+          constructor to the user without the `new`. You will return 'Adding a *_block', '*' being the
+          type of the block. 
+          For instance 'Add me a block to select columns from a dataset' would return 
+          'Adding a select_block' and not new_select_block. If you are asked a question like 'How to load data?' 
+          You will answer to the question with more ellaborated answer from the blockr documentation.
+          If you are asked 'How to get started?' or similar, you will explain how a blockr pipeline works, from a data block to a plot block.",
+          model = "gpt-4o",
+          echo = "all"
+        )
+        res <- shinychat::chat_mod_server("openai", openai)
+        observeEvent(res(), {
+          blk <- regmatches(res()@text, regexpr("\\w+_block", res()@text))
+          if (!length(blk)) {
+            return(NULL)
+          }
+          if (blk %in% names(available_blocks())) {
+            parent$scoutbar$action <- "add_block"
+            parent$scoutbar$value <- blk
+          }
+        })
+      }
+    )
+}
+```
+
+In a nutshell, the chat module uses `shinychat` to create a chat interface with OpenAI's `gpt-4o` model. The server logic listens for messages and updates the `parent$scoutbar` to add a block based on the response from OpenAI. Some context is provided to the model to guide its responses, specifically about blockr and how to build pipelines. Providing a better context isn't the purpose of this vignette but you could imagine asking the model to handle specific block parameters so we can for instance start with a dataset block from the palmerpenguins data (instead of the `datasets` package).
+
+We then create our new module:
+
+```r
+new_chat_module <- function(id = "chat", title = "AI chat") {
+  new_board_module(
+    chat_ui,
+    chat_srv,
+    id = id,
+    title = title,
+    context_menu = list(
+      new_context_menu_entry(
+        name = "Open AI chat",
+        js = "() => {
+          console.log('Hello world')
+        }",
+        action = function(input, output, session, board, update, parent) {
+          # TBD
+        }
+      )
+    ),
+    class = "chat_module"
+  )
+}
+
+serve(
+  new_dag_board(
+    modules = list(
+      dash = new_dashboard_module(),
+      chat = new_chat_module()
+    )
+  ),
+  "main"
+)
+```
+
+The context menu entry won't do much. If you run the app and right click on the network panel, you'll see the "Open AI chat" entry. This is then up to you to
+refine it.
