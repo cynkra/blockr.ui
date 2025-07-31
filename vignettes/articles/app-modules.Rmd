@@ -103,11 +103,11 @@ We want to create a custom AI powered chat that will allow us to build blockr pi
 chat_ui <- function(id, board, ...) {
     id <- NS(id, "chat")
     card(
-      card_header("Chat with OpenAI"),
+      card_header("blockr.ui assistant"),
       shinychat::chat_mod_ui(
         id = NS(id, "openai"),
         messages = list(
-          "Hi! Use this chat interface to chat with OpenAI's `gpt-4o`."
+          "Hi! I'll help you to build blockr.ui pipeline with OpenAI's `gpt-4o`."
         )
       )
     )
@@ -124,24 +124,34 @@ chat_srv <- function(board, update, session, parent, ...) {
           blocks such that people can import data with new_dataset_block, transform them with new_select_block and do other things.
           We also have blockr.ai that basically exposes llm blocks such as new_llm_transform_block and new_llm_plot_block. They
           are convenient to accomplish tasks for which no block exists yet ... A blockr.ui application allows people to build blockr pipeline
-          step by step by adding block one after each other. When you are given an order, you will only return the corresponding block constructor to the user without the `new`. For instance 'Add me a block to select columns from a dataset' would return select_block and not new_select_block. If you are asked a question like 'How to load data?' You will answer to the question with more ellaborated answer. At the end you ask the user whether he wants the block
-          to be added. If yes, then you may return the constructor as if it was an order.",
+          step by step by adding block one after each other. 
+          When you are given an order, you will only return the corresponding block 
+          constructor to the user without the `new`. You will return 'Adding a *_block', '*' being the
+          type of the block. 
+          For instance 'Add me a block to select columns from a dataset' would return 
+          'Adding a select_block' and not new_select_block. If you are asked a question like 'How to load data?' 
+          You will answer to the question with more ellaborated answer from the blockr documentation.
+          If you are asked 'How to get started?' or similar, you will explain how a blockr pipeline works, from a data block to a plot block.",
           model = "gpt-4o",
           echo = "all"
         )
         res <- shinychat::chat_mod_server("openai", openai)
         observeEvent(res(), {
-          if (res()@text %in% names(available_blocks())) {
+          blk <- regmatches(res()@text, regexpr("\\w+_block", res()@text))
+          if (!length(blk)) {
+            return(NULL)
+          }
+          if (blk %in% names(available_blocks())) {
             parent$scoutbar$action <- "add_block"
-            parent$scoutbar$value <- res()@text
+            parent$scoutbar$value <- blk
           }
         })
       }
     )
-  }
+}
 ```
 
-In a nutshell, the chat module uses `shinychat` to create a chat interface with OpenAI's `gpt-4o` model. The server logic listens for messages and updates the `parent$scoutbar` to add a block based on the response from OpenAI.
+In a nutshell, the chat module uses `shinychat` to create a chat interface with OpenAI's `gpt-4o` model. The server logic listens for messages and updates the `parent$scoutbar` to add a block based on the response from OpenAI. Some context is provided to the model to guide its responses, specifically about blockr and how to build pipelines. Providing a better context isn't the purpose of this vignette but you could imagine asking the model to handle specific block parameters so we can for instance start with a dataset block from the palmerpenguins data (instead of the `datasets` package).
 
 We then create our new module:
 
@@ -178,4 +188,5 @@ serve(
 )
 ```
 
-If you spin up the app, open the AI chat and ask "How to load data?", you should get a block added so you can get started.
+The context menu entry won't do much. If you run the app and right click on the network panel, you'll see the "Open AI chat" entry. This is then up to you to
+refine it.
