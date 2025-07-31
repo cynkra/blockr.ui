@@ -20,7 +20,7 @@ library(blockr.ui)
 
 ## blockr.ui for users
 
-We strived to make it as simple as possible, yet with a totally flexible layout.
+We strived to make it as simple as possible, yet with a totally flexible layout. All panels can be resized and rearranged to your liking.
 
 ### The user interface
 

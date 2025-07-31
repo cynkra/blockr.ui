@@ -42,7 +42,8 @@ run_demo_app()
 ## User interface
 
 That’s how `blockr.ui` looks like. We strived to make it as simple as
-possible, yet with a totally flexible layout.
+possible, yet with a totally flexible layout. All panels can be resized
+and rearranged to your liking.
 
 ![](./vignettes/figures/blockr-ui.png)
 

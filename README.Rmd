@@ -36,7 +36,7 @@ pak::pak("BristolMyersSquibb/blockr.ui")
 
 To run the demo app:
 
-```{r, eval=FALSE, echo = TRUE}
+``` r
 library(blockr.ui)
 library(blockr.dplyr)
 library(blockr.sdtm)
@@ -48,6 +48,7 @@ run_demo_app()
 ## User interface
 
 That's how `blockr.ui` looks like. We strived to make it as simple as possible, yet with a totally flexible layout.
+All panels can be resized and rearranged to your liking.
 
 ![](./vignettes/figures/blockr-ui.png)
 
