@@ -4,11 +4,14 @@ template:
 
 navbar:
   structure:
-    left:  [extend]
+    left:  [get-started, extend]
     right: [search, reference, news, github]
   components:
     home: ~
 
+    get-started:
+      text: Get Started
+      href: articles/blockr.ui.html
     extend:
       text: Extend
       menu:

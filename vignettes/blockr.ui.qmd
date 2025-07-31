@@ -1,54 +1,32 @@
 ---
-output: github_document
+title: "blockr.ui"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{blockr.ui}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
 ---
-
-<!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
+  comment = "#>"
 )
 ```
 
-# blockr.ui
-
-<!-- badges: start -->
-[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
-[![ci](https://github.com/cynkra/blockr.ui/actions/workflows/ci.yml/badge.svg)](https://github.com/cynkra/blockr.ui/actions/workflows/ci.yml)
-[![CRAN status](https://www.r-pkg.org/badges/version/blockr.ui)](https://CRAN.R-project.org/package=blockr.ui)
-[![Codecov test coverage](https://codecov.io/gh/cynkra/blockr.ui/graph/badge.svg)](https://app.codecov.io/gh/cynkra/blockr.ui)
-<!-- badges: end -->
-
-The goal of blockr.ui is to provide an alternative user interface for `{blockr.core}`.
-
-## Installation
-
-You can install the development version of blockr.ui from [GitHub](https://github.com/) with:
-
-``` r
-pak::pak("BristolMyersSquibb/blockr.ui")
-```
-
-## Example
-
-To run the demo app:
-
-```{r, eval=FALSE, echo = TRUE}
+```{r setup, message=FALSE}
 library(blockr.ui)
-library(blockr.dplyr)
-library(blockr.sdtm)
-library(blockr.io)
-
-run_demo_app()
 ```
 
-## User interface
-![](./vignettes/figures/blockr-ui.png)
+## blockr.ui for users
 
-That's how `blockr.ui` looks like. We tried to make it as simple as possible, with a totally flexible layout.
+We strived to make it as simple as possible, yet with a totally flexible layout.
+
+### The user interface
+
+![](./figures/blockr-ui.png)
+
+That's how `blockr.ui` looks like.
 
 (1) The top navigation bar contains buttons to import or export any existing work you did before.
 (2) The left pipeline panel has a __toolbar__ which exposes quick actions such as:
@@ -70,21 +48,23 @@ That's how `blockr.ui` looks like. We tried to make it as simple as possible, wi
 
 (7) The bottom left corner displays the current pipeline __error logs__.
 
-## App options
+## blockr.ui for developers
 
-There are few __options__ you can customize through setting up environment variables:
-
-- `N_STACKS_COLORS`: how many colors to support in the stack color pickerInput. Default is 40.
-- `STACKS_COLOR_PALETTE`: the color palette type. Default is `spectral`. We use `hcl.colors` to setup
-the palette.
-- `SNAPSHOT_LOCATION`: The location where to save the snapshots of the blocks. Default is `tempdir()`. This is used to save the blocks in the browser's local storage.
-- `AUTO_SNAPSHOT`: Whether to automatically save the blocks in the browser's local storage. Default is `FALSE` (not stable at the moment).
-
-## Development
-
-JS code is managed by `esbuild` [`{charpente}`](https://github.com/RinteRface/charpente?tab=readme-ov-file#using-esbuild-and-mocha). To create a new JS file do and compile the entire project:
+To start an app with `blockr.ui`, you can use:
 
 ```r
-charpente::create_js("file-name")
-charpente::build_js()
+library(blockr.dplyr)
+library(blockr.sdtm)
+library(blockr.ai)
+library(blockr.io)
+library(blockr.ui)
+
+# To customize
+Sys.setenv(
+  "SNAPSHOT_LOCATION" = "<PATH_TO_SNAPSHOT_LOCATION>",
+  "AUTO_SNAPSHOT" = FALSE
+)
+run_demo_app()
 ```
+
+This code can be deployed on any server that supports R and Shiny, such as Shiny Server or RStudio Connect. Load each blockr related package to access the necessary blocks.
