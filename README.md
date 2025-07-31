@@ -41,10 +41,10 @@ run_demo_app()
 
 ## User interface
 
-![](./vignettes/figures/blockr-ui.png)
+That’s how `blockr.ui` looks like. We strived to make it as simple as
+possible, yet with a totally flexible layout.
 
-That’s how `blockr.ui` looks like. We tried to make it as simple as
-possible, with a totally flexible layout.
+![](./vignettes/figures/blockr-ui.png)
 
 1)  The top navigation bar contains buttons to import or export any
     existing work you did before.
