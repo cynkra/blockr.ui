@@ -57,7 +57,8 @@ Suggests:
     blockr.sdtm,
     cyclocomp,
     roxy.shinylive,
-    chromote
+    chromote,
+    quarto
 Config/testthat/edition: 3
 URL: https://github.com/BristolMyersSquibb/blockr.ui/, https://bristolmyerssquibb.github.io/blockr.ui/
 BugReports: https://github.com/BristolMyersSquibb/blockr.ui/issues
