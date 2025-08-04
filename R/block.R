@@ -141,7 +141,7 @@ show_block_panel <- function(id, parent, session) {
       # only the visible tab is mounted in the DOM,
       # which means updating one block does not update
       # the linked block UIs and causes many issues.
-      renderer = "always",
+      #renderer = "always",
       position = list(
         referencePanel = if (length(get_panels_ids("layout")) == 2) {
           "dag"
@@ -151,7 +151,7 @@ show_block_panel <- function(id, parent, session) {
         direction = if (length(get_panels_ids("layout")) == 2) {
           "below"
         } else {
-          "within"
+          "right"
         }
       ),
       remove = list(enable = TRUE, mode = "manual")
