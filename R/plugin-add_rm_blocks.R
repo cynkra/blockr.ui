@@ -23,11 +23,25 @@ add_rm_block_server <- function(id, board, update, ...) {
       # in the links plugin
       observeEvent(
         {
-          dot_args$parent$scoutbar
           req(dot_args$parent$scoutbar$action == "add_block")
+          dot_args$parent$scoutbar$value
         },
         {
-          new_blk <- as_blocks(create_block(dot_args$parent$scoutbar$value))
+          # Allow to create block with custom parameters
+          if (is.list(dot_args$parent$scoutbar$value)) {
+            new_blk <- as_blocks(
+              do.call(
+                create_block,
+                c(
+                  list(id = dot_args$parent$scoutbar$value$ctor),
+                  dot_args$parent$scoutbar$value$parms
+                )
+              )
+            )
+          } else {
+            new_blk <- as_blocks(create_block(dot_args$parent$scoutbar$value))
+          }
+
           update(
             list(blocks = list(add = new_blk))
           )
