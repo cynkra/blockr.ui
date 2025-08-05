@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   articles/app-modules: app-modules.html
   blockr.ui: blockr.ui.html
-last_built: 2025-08-04T06:48Z
+last_built: 2025-08-05T07:30Z
 urls:
   reference: https://bristolmyerssquibb.github.io/blockr.ui/reference
   article: https://bristolmyerssquibb.github.io/blockr.ui/articles
