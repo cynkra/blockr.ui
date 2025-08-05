@@ -14,8 +14,18 @@ status](https://www.r-pkg.org/badges/version/blockr.ui)](https://CRAN.R-project.
 coverage](https://codecov.io/gh/cynkra/blockr.ui/graph/badge.svg)](https://app.codecov.io/gh/cynkra/blockr.ui)
 <!-- badges: end -->
 
-The goal of blockr.ui is to provide an alternative user interface for
-`{blockr.core}`.
+The goal of `blockr.ui` is to provide an alternative user interface for
+[`blockr.core`](https://bristolmyerssquibb.github.io/blockr.core/). With
+`blockr.ui` you can create, edit and run **data analysis** pipelines in
+a user-friendly way with point and click and drag and drop actions. It
+builds on top of the blockr ecosystem, which provides building
+[blocks](https://github.com/BristolMyersSquibb/blockr.core/?tab=readme-ov-file#extending-blockr)
+from data import to data manipulation and visualisation with R. The code
+is reproducible and pipelines can be saved and shared with
+collaborators. Finally, `blockr.ui` is designed to be extensible, so you
+can add your own blocks or add extra
+[modules](https://bristolmyerssquibb.github.io/blockr.ui/articles/app-modules.html)
+to it.
 
 ## Installation
 
@@ -77,7 +87,7 @@ and rearranged to your liking.
     it in the right side dashboard. Right clicking on the canvas will
     show you options to add a new block or add a new stack. These
     actions can be customised as explained in the following
-    [vignette](app-modules.html).
+    [vignette](https://bristolmyerssquibb.github.io/blockr.ui/articles/app-modules.html).
 
 4)  The bottom right corner hosts the **properties** panels. It displays
     the properties of the any existing block. They can be closed but
