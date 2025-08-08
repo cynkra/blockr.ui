@@ -144,6 +144,15 @@ gen_add_rm_link_server <- function(context_menu) {
               e$message
             }
           )
+
+          # Need to reset
+          parent$scoutbar <- list(
+            trigger = NULL,
+            action = NULL,
+            value = NULL,
+            is_open = FALSE
+          )
+          parent$added_block <- NULL
           parent$append_block <- FALSE
         })
 
