@@ -17,9 +17,11 @@ run_demo_app <- function(...) {
 #' @param class Additional class(es).
 #' @rdname run_demo_app
 #' @export
-new_dag_board <- function(..., modules = new_dashboard_module(),
-                          class = character()) {
-
+new_dag_board <- function(
+  ...,
+  modules = new_dashboard_module(),
+  class = character()
+) {
   if (is_board_module(modules)) {
     modules <- list(modules)
   }
@@ -70,7 +72,6 @@ board_modules <- function(board) {
 
 #' @export
 serve.dag_board <- function(x, id = "main", ...) {
-
   Sys.setenv("blockr_dark_mode" = "light")
 
   modules <- board_modules(x)
@@ -118,3 +119,6 @@ serve.dag_board <- function(x, id = "main", ...) {
 
   shinyApp(add_blockr.ui_deps(ui), server)
 }
+
+#' @export
+serve.md_board <- serve.dag_board
