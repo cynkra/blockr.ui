@@ -33,7 +33,7 @@ add_rm_block_server <- function(id, board, update, ...) {
               do.call(
                 create_block,
                 c(
-                  list(id = dot_args$parent$scoutbar$value$ctor),
+                  list(id = dot_args$parent$scoutbar$value$name),
                   dot_args$parent$scoutbar$value$parms
                 )
               )
