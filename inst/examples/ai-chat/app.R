@@ -87,6 +87,15 @@ chat_mod_srv <- function(board, update, session, parent, ...) {
                 append = append,
                 parms = parms
               )
+
+              # Needs a reactive context... will happen once
+              observeEvent(TRUE, {
+                parent$scoutbar$action <- "add_block"
+                parent$scoutbar$value <- dat
+                if (dat$append) {
+                  parent$append_block <- TRUE
+                }
+              })
               return(app_request(list(action = "add_block", data = dat)))
             },
             name = paste0("add_", ctor),
@@ -98,7 +107,8 @@ chat_mod_srv <- function(board, update, session, parent, ...) {
             arguments = list(
               name = type_string(
                 "Name of the block to be created. Typically like *_block where '*' is
-                the block type (dataset, select, ...) and without the new_ prefix."
+                the block type (dataset, select, ...) and without the new_ prefix.
+                Valid names are given by the `available_block_names` tool."
               ),
               append = type_boolean(
                 "Whether to append to previous block. Default to FALSE."
@@ -122,7 +132,8 @@ chat_mod_srv <- function(board, update, session, parent, ...) {
         description = "Create a tool for a given block type.",
         arguments = list(
           ctor = type_string(
-            "Block constructor to create tool for (e.g., 'new_dataset_block', 'new_select_block')"
+            "Block constructor to create tool for (e.g., 'new_dataset_block', 'new_select_block').
+            Valid names are given by the `available_block_names` tool."
           )
         )
       )
@@ -146,9 +157,15 @@ chat_mod_srv <- function(board, update, session, parent, ...) {
         name = "return_board",
         description = "Returns the current board.",
         arguments = list(
-          blocks = type_object("a block produced by blockr.core::new_block"),
-          links = type_object("a link produced by blockr.core::new_link"),
-          stacks = type_object("a stack produced by blockr.core::new_stack")
+          blocks = type_object(
+            "a list of blocks produced by blockr.core::new_block"
+          ),
+          links = type_object(
+            "a list of links produced by blockr.core::new_link"
+          ),
+          stacks = type_object(
+            "a list of stacks produced by blockr.core::new_stack"
+          )
         )
       )
 
@@ -190,14 +207,24 @@ chat_mod_srv <- function(board, update, session, parent, ...) {
 
       observeEvent(res(), {
         # Order append block
-        if (app_request()$action == "add_block") {
-          # If the action is to set the board, we can update the parent with the new board
-          parent$scoutbar$action <- "add_block"
-          parent$scoutbar$value <- app_request()$data
-          if (app_request()$data$append) {
-            parent$append_block <- TRUE
-          }
-        }
+        #if (app_request()$action == "add_block") {
+        #  # If the action is to set the board, we can update the parent with the new board
+        #  parent$scoutbar$action <- "add_block"
+        #  parent$scoutbar$value <- app_request()$data
+        #  if (app_request()$data$append) {
+        #    parent$append_block <- TRUE
+        #  }
+        #}
+        #else if (app_request()$action == "set_board") {
+        #  browser()
+        #  if (!length(board_blocks(board$board))) {
+        #    board_blocks(board$board) <- app_request()$data$blocks
+        #    board_links(board$board) <- app_request()$data$links
+        #    board_stacks(board$board) <- app_request()$data$stacks
+        #    cold_start(board, parent, session)
+        #  } else {}
+        #  # Are there existing blocks in the board?
+        #}
       })
     }
   )
