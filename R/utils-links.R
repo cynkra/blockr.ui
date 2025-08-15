@@ -303,7 +303,9 @@ default_g6_plugins <- function(graph, ..., ns, path, context_menu) {
           paste0(
             "async (e) => {\n",
             "  const response = await fetch(\n",
-            "    '", path, "',\n",
+            "    '",
+            path,
+            "',\n",
             "    {\n",
             "      method: 'POST',\n",
             "      headers: {\n",
@@ -389,7 +391,7 @@ default_g6_plugins <- function(graph, ..., ns, path, context_menu) {
               }
             }
           ",
-            ns("removed_node"),
+            ns("remove_node"),
             ns("add_block"),
             ns("save_board"),
             ns("browse_snapshots"),
