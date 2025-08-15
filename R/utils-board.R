@@ -403,7 +403,7 @@ manage_scoutbar <- function(board, update, session, parent, ...) {
   )
 
   # Open the scoutbar when append block
-  observeEvent(req(parent$append_block), {
+  observeEvent(req(parent$append_block, is.null(parent$scoutbar$action)), {
     update_scoutbar(
       session,
       "scoutbar",
