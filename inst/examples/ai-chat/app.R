@@ -60,7 +60,12 @@ chat_mod_srv <- function(board, update, session, parent, ...) {
       create_block_tool_factory <- tool(
         function(ctor) {
           # Extract constructor parameters
-          parms <- get_block_parameters(ctor)
+          if (grepl("llm", ctor)) {
+            # LLM only have question field
+            parms <- pairlist(question = character())
+          } else {
+            parms <- get_block_parameters(ctor)
+          }
 
           # Create tool arguments based on constructor parameters
           tool_args <- lapply(names(parms), function(name) {
@@ -139,38 +144,60 @@ chat_mod_srv <- function(board, update, session, parent, ...) {
       )
       openai$register_tool(create_block_tool_factory)
 
-      # Modify your tool to set the reactive value
-      return_board <- tool(
-        function(blocks, links, stacks = NULL) {
-          board_obj <- new_dag_board(
-            blocks = blocks,
-            links = links,
-            stacks = stacks %||% list()
-          )
-
-          # Store the result in a reactive value
-          return(app_request(list(
-            action = "set_board",
-            data = board_obj
-          )))
+      remove_block <- tool(
+        function(id) {
+          # Needs a reactive context... will happen once
+          observeEvent(TRUE, {
+            if (!(id %in% board_block_ids(board$board))) {
+              showNotification(
+                paste("Block with id", id, "does not exist."),
+                type = "error"
+              )
+              return(NULL)
+            }
+            parent$removed_block <- id
+          })
+          return(app_request(list(action = "remove_block", data = id)))
         },
-        name = "return_board",
-        description = "Returns the current board.",
+        name = "remove_block",
+        description = "Remove a block by its id.",
         arguments = list(
-          blocks = type_object(
-            "a list of blocks produced by blockr.core::new_block"
-          ),
-          links = type_object(
-            "a list of links produced by blockr.core::new_link"
-          ),
-          stacks = type_object(
-            "a list of stacks produced by blockr.core::new_stack"
+          id = type_string(
+            "Id of the block to be removed."
           )
         )
       )
 
-      # Register the modified tool
-      openai$register_tool(return_board)
+      openai$register_tool(remove_block)
+
+      create_stack <- tool(
+        function(blocks) {
+          # Needs a reactive context... will happen once
+          observeEvent(TRUE, {
+            if (any(!(blocks %in% board_block_ids(board$board)))) {
+              showNotification(
+                "Some blocks do not exist in the board.",
+                type = "error"
+              )
+              return(NULL)
+            }
+            parent$added_stack <- blocks
+          })
+          return(app_request(list(
+            action = "add_stack",
+            data = list(blocks = blocks)
+          )))
+        },
+        name = "create_stack",
+        description = "Create a stack with a given name and blocks.",
+        arguments = list(
+          blocks = type_array(type_string(
+            "Ids of the blocks to include in the stack."
+          ))
+        )
+      )
+
+      openai$register_tool(create_stack)
 
       append_stream_task <- shiny::ExtendedTask$new(
         function(client, ui_id, user_input) {
